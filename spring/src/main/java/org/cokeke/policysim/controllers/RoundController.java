@@ -1,0 +1,68 @@
+package org.cokeke.policysim.controllers;
+
+import org.cokeke.policysim.models.Round;
+import org.cokeke.policysim.requests.RoundRequest;
+import org.cokeke.policysim.common.ApiResponse;
+import org.cokeke.policysim.responses.RoundResponse;
+import org.cokeke.policysim.services.RoundService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+public class RoundController {
+    private final RoundService roundService;
+
+    public RoundController(RoundService roundService) {
+        this.roundService = roundService;
+    }
+
+    @GetMapping("/api/games/{gameId}/rounds")
+    public ResponseEntity<ApiResponse<List<RoundResponse>>> getGameRounds(@PathVariable Long gameId) {
+        List<Round> rounds = roundService.getRoundsByGameId(gameId);
+        List<RoundResponse> roundResponses = rounds.stream()
+                .map(round -> new RoundResponse(round.getId(), round.getCurrentMonth(), round.getGame().getId(),
+                        round.getStateId(), round.getStateName(), round.getPopulation(), round.getProductivity(),
+                        round.getPublicCapital(), round.getPriceLevel(), round.getLastInflation(), round.getHouseholdWealth(),
+                        round.getGovernmentDebt(), round.getStability(), round.getTaxRate(), round.getSpendingShare(),
+                        round.getInvestmentShare(), round.getTransferShare()))
+                .toList();
+        return ResponseEntity.ok(ApiResponse.ok(roundResponses));
+    }
+
+    @PostMapping("/api/games/{gameId}/rounds")
+    public ResponseEntity<ApiResponse<RoundResponse>> createRound(@PathVariable Long gameId, @RequestBody RoundRequest req) {
+        Round round = roundService.createRound(gameId, req.currentMonth(), req.stateId(), req.stateName(), req.population(), req.productivity(),
+                req.publicCapital(), req.priceLevel(), req.lastInflation(), req.householdWealth(),
+                req.governmentDebt(), req.stability(), req.taxRate(), req.spendingShare(),
+                req.investmentShare(), req.transferShare());
+        RoundResponse roundResponse = new RoundResponse(round.getId(), round.getCurrentMonth(), round.getGame().getId(),
+                round.getStateId(), round.getStateName(), round.getPopulation(), round.getProductivity(),
+                round.getPublicCapital(), round.getPriceLevel(), round.getLastInflation(), round.getHouseholdWealth(),
+                round.getGovernmentDebt(), round.getStability(), round.getTaxRate(), round.getSpendingShare(),
+                round.getInvestmentShare(), round.getTransferShare());
+
+        return ResponseEntity.ok(ApiResponse.ok(roundResponse));
+    }
+
+    @GetMapping("/api/rounds/{roundId}")
+    public ResponseEntity<ApiResponse<RoundResponse>> getRound(@PathVariable Long roundId) {
+        Round round = roundService.getRoundById(roundId);
+        if (round == null) {
+            return ResponseEntity.notFound().build();
+        }
+        RoundResponse roundResponse = new RoundResponse(round.getId(), round.getCurrentMonth(), round.getGame().getId(),
+                round.getStateId(), round.getStateName(), round.getPopulation(), round.getProductivity(),
+                round.getPublicCapital(), round.getPriceLevel(), round.getLastInflation(), round.getHouseholdWealth(),
+                round.getGovernmentDebt(), round.getStability(), round.getTaxRate(), round.getSpendingShare(),
+                round.getInvestmentShare(), round.getTransferShare());
+
+        return ResponseEntity.ok(ApiResponse.ok(roundResponse));
+    }
+}

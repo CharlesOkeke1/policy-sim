@@ -1,0 +1,12 @@
+rootProject.name = 'policy-sim'
+
+include 'engine'
+include 'contracts'
+include 'spring'
+
+dependencyResolutionManagement {
+    repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
+    repositories {
+        mavenCentral()
+    }
+}

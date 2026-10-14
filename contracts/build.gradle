@@ -1,0 +1,11 @@
+plugins {
+    id 'java-library'
+}
+
+description = 'PolicySim shared message types'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
