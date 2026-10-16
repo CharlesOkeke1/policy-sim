@@ -9,6 +9,7 @@ import org.cokeke.policysim.exceptions.UserAlreadyExistsException;
 import org.cokeke.policysim.exceptions.UserNotFoundException;
 import org.cokeke.policysim.models.User;
 import org.cokeke.policysim.repos.UserRepository;
+import org.cokeke.policysim.responses.UserResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -119,6 +120,10 @@ public class UserService {
         new UserNotFoundException(failureMsg));
 
         return user;
+    }
+
+    public UserResponse userToUserResponse(User u) {
+        return new UserResponse(u.getId(), u.getEmail(), u.getName(), null);
     }
 
 }

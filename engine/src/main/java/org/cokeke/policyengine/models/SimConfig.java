@@ -14,6 +14,8 @@ public record SimConfig(
         double consumeFromIncome,
         double consumeFromWealth,
         double interestRate,
+        double debtFeedback,
+        double restructureThreshold,
         // federal
         double allocationShare,
         double allocationEqualWeight,
@@ -45,6 +47,8 @@ public record SimConfig(
         Checks.inRange("consumeFromIncome", consumeFromIncome, 0, 1);
         Checks.inRange("consumeFromWealth", consumeFromWealth, 0, 1);
         Checks.finite("interestRate", interestRate);
+        Checks.nonNegative("debtFeedback", debtFeedback);
+        Checks.nonNegative("restructureThreshold", restructureThreshold);
         Checks.inRange("allocationShare", allocationShare, 0, 1);
         Checks.nonNegative("allocationEqualWeight", allocationEqualWeight);
         Checks.nonNegative("allocationPopulationWeight", allocationPopulationWeight);
@@ -82,7 +86,10 @@ public record SimConfig(
      */
     public static SimConfig sim(double fixedSpending) {
         return builder()
+                .consumeFromIncome(0.6)
+                .consumeFromWealth(0.4)   // the published SIM values, per model period
                 .interestRate(0)
+                .debtFeedback(0)
                 .resourceOutput(0)
                 .simMode(true)
                 .simFixedSpending(fixedSpending)
@@ -95,8 +102,10 @@ public record SimConfig(
 
     public static final class Builder {
         private double consumeFromIncome = 0.6;
-        private double consumeFromWealth = 0.4;
+        private double consumeFromWealth = 0.4 / 12;       // SIM's 0.4 is per year-like period; this is per month
         private double interestRate = 0.004;
+        private double debtFeedback = 0.01;                // ~12%/yr of debt brought back through spending
+        private double restructureThreshold = 0.6;         // debt / annual potential above which restructuring is allowed
         private double allocationShare = 1.0;              // PLACEHOLDER
         private double allocationEqualWeight = 0.35;
         private double allocationPopulationWeight = 0.40;
@@ -107,7 +116,7 @@ public record SimConfig(
         private double capitalShare = 0.3;
         private double depreciation = 0.005;
         private double productivityGrowth = 0.001;
-        private double populationGrowth = 0.002;
+        private double populationGrowth = 0.0004;          // ~0.5%/yr; 0.002 compounded to x55 over 165 years
         private double inflationTarget = 0.002;
         private double expectationAnchor = 0.3;
         private double phillipsSlope = 0.05;
@@ -124,6 +133,8 @@ public record SimConfig(
         public Builder consumeFromIncome(double v) { consumeFromIncome = v; return this; }
         public Builder consumeFromWealth(double v) { consumeFromWealth = v; return this; }
         public Builder interestRate(double v) { interestRate = v; return this; }
+        public Builder debtFeedback(double v) { debtFeedback = v; return this; }
+        public Builder restructureThreshold(double v) { restructureThreshold = v; return this; }
         public Builder allocationShare(double v) { allocationShare = v; return this; }
         public Builder allocationWeights(double equal, double population, double output) {
             allocationEqualWeight = equal;
@@ -150,7 +161,7 @@ public record SimConfig(
         public Builder simFixedSpending(double v) { simFixedSpending = v; return this; }
 
         public SimConfig build() {
-            return new SimConfig(consumeFromIncome, consumeFromWealth, interestRate,
+            return new SimConfig(consumeFromIncome, consumeFromWealth, interestRate, debtFeedback, restructureThreshold,
                     allocationShare, allocationEqualWeight, allocationPopulationWeight, allocationOutputWeight,
                     resourceOutput, resourcePersistence, resourceVolatility,
                     capitalShare, depreciation, productivityGrowth, populationGrowth,

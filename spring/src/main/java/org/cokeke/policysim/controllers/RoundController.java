@@ -1,19 +1,20 @@
 package org.cokeke.policysim.controllers;
 
-import org.cokeke.policysim.models.Round;
-import org.cokeke.policysim.requests.RoundRequest;
+import java.util.List;
+
 import org.cokeke.policysim.common.ApiResponse;
+import org.cokeke.policysim.models.Round;
+import org.cokeke.policysim.requests.BatchRoundUploadRequest;
+import org.cokeke.policysim.requests.RoundRequest;
+import org.cokeke.policysim.responses.BatchRoundPushResponse;
 import org.cokeke.policysim.responses.RoundResponse;
 import org.cokeke.policysim.services.RoundService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 public class RoundController {
@@ -51,7 +52,7 @@ public class RoundController {
         return ResponseEntity.ok(ApiResponse.ok(roundResponse));
     }
 
-    @GetMapping("/api/rounds/{roundId}")
+    @GetMapping("/api/games/rounds/{roundId}")
     public ResponseEntity<ApiResponse<RoundResponse>> getRound(@PathVariable Long roundId) {
         Round round = roundService.getRoundById(roundId);
         if (round == null) {
@@ -64,5 +65,13 @@ public class RoundController {
                 round.getInvestmentShare(), round.getTransferShare());
 
         return ResponseEntity.ok(ApiResponse.ok(roundResponse));
+    }
+
+    @PostMapping("/api/games/rounds/batchUpload")
+    public ResponseEntity<ApiResponse<BatchRoundPushResponse>> batchUploadRounds(@RequestBody BatchRoundUploadRequest req) {
+        BatchRoundPushResponse res = roundService.pushRoundsToDB(req.rounds(), req.gameId());
+        ApiResponse<BatchRoundPushResponse> apiResponse = ApiResponse.ok(res);
+
+        return ResponseEntity.ok(apiResponse);
     }
 }

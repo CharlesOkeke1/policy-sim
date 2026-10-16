@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.List;
 
 import org.cokeke.policysim.common.ApiResponse;
+import org.cokeke.policysim.common.AuthContextHolder;
 import org.cokeke.policysim.common.Environment;
 import org.cokeke.policysim.common.TokenGenerator;
 import org.cokeke.policysim.models.Token;
@@ -18,6 +19,7 @@ import org.cokeke.policysim.services.UserService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,13 +32,15 @@ public class UserController {
     private final TokenGenerator tokenGenerator;
     private final UserService userSvc;
     private final TokenService tokenSvc;
+    private final AuthContextHolder holder;
 
-    public UserController(TokenGenerator tokenGenerator, UserService userSvc, TokenService tokenSvc) {
+    public UserController(TokenGenerator tokenGenerator, 
+    UserService userSvc, TokenService tokenSvc, AuthContextHolder holder) {
         this.tokenGenerator = tokenGenerator;
         this.userSvc = userSvc;
         this.tokenSvc = tokenSvc;
+        this.holder = holder;
     }
-
 
     @PostMapping(Environment.loginCall)
     public ResponseEntity<ApiResponse<UserResponse>> loginUser(@RequestBody LoginRequest req) {
@@ -85,10 +89,15 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.ok(resp));
     }
 
-
-    @PutMapping("/api/users/{id}/password")
-    public ResponseEntity<ApiResponse<ChangePasswordResponse>> changePassword(@PathVariable Long id, @RequestBody ChangePasswordRequest request) {
-        ChangePasswordResponse response = new ChangePasswordResponse(userSvc.changePassword(id, request.oldPassword(), request.newPassword()));
+    @PutMapping("/api/users/change-password")
+    public ResponseEntity<ApiResponse<ChangePasswordResponse>> changePassword(@RequestBody ChangePasswordRequest request) {
+        ChangePasswordResponse response = new ChangePasswordResponse(userSvc.changePassword(holder.getCurrentUserId(), request.oldPassword(), request.newPassword()));
         return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
+    @DeleteMapping("/api/users")
+    public ResponseEntity<ApiResponse<String>> deleteAccount(@PathVariable Long id) {
+        userSvc.deleteUser(id);
+        return ResponseEntity.ok(ApiResponse.ok("Account deleted successfully"));
     }
 }

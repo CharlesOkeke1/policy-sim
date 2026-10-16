@@ -1,6 +1,4 @@
 package org.cokeke.policyengine.models;
-
-
 import java.util.Objects;
 
 /** Comparable so every state map iterates in a fixed order and ranking ties break deterministically. */

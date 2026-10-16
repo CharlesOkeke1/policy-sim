@@ -2,7 +2,12 @@ package org.cokeke.policysim.models;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "tokens")
@@ -23,7 +28,7 @@ public class Token {
     public Token(String token, Long userId) {
         this.token = token;
         this.userId = userId;
-        this.expirationTime = LocalDateTime.now().plusMinutes(15);
+        this.expirationTime = LocalDateTime.now().plusMinutes(60);
     }
 
     public String getToken() { return this.token; }

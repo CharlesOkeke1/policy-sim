@@ -1,13 +1,19 @@
 package org.cokeke.policyengine.functions;
 
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.cokeke.policyengine.models.DemandResult;
 import org.cokeke.policyengine.models.FederalEconomy;
 import org.cokeke.policyengine.models.FederalFlows;
 import org.cokeke.policyengine.models.FederalResult;
+import org.cokeke.policyengine.models.GlobalGameState;
 import org.cokeke.policyengine.models.MonthReport;
 import org.cokeke.policyengine.models.Policy;
 import org.cokeke.policyengine.models.PolicyId;
 import org.cokeke.policyengine.models.PriceResult;
+import org.cokeke.policyengine.models.RoundData;
 import org.cokeke.policyengine.models.SimConfig;
 import org.cokeke.policyengine.models.StateEconomy;
 import org.cokeke.policyengine.models.StateFlows;
@@ -16,10 +22,6 @@ import org.cokeke.policyengine.models.Stream;
 import org.cokeke.policyengine.models.TickResult;
 import org.cokeke.policyengine.models.World;
 
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 /**
  * One month = one call. Phases run in fixed order; each writes only its own outputs.
  *
@@ -27,7 +29,41 @@ import java.util.TreeMap;
  * and elections (phase 10). eventRisk and baseline are carried forward unchanged.
  */
 public final class Engine {
-    private Engine() {}
+    private  GlobalGameState currentState;
+    public Engine(int seed) {
+        this.currentState = initializeSession(seed);
+    }
+
+    public GlobalGameState getGameState() { return this.currentState; }
+
+    public GlobalGameState initializeSession(int seed) {
+        Map<StateId, StateEconomy> states = SeedingEngine.seedStates(seed);
+        FederalEconomy fed = SeedingEngine.seedFederal(seed);
+        Map<StateId, StateEconomy> baseline = SeedingEngine.baseline();
+        World world = new World(0, seed, states, fed, baseline);
+        
+        SimConfig simConfig = SimConfig.defaults();
+        GlobalGameState initConfig = new GlobalGameState(world, simConfig);
+
+        return initConfig;
+    }
+
+    public RoundData getRound() {
+        TickResult result = tick(currentState.getWorld(), SeedingEngine.randomPolicies(currentState.getWorld().seed()),
+        currentState.getConfig());
+
+        List<StateEconomy> economies = result.getWorld().getStatesList();
+        FederalEconomy fed = result.getWorld().federal();
+        int currentMonth = result.getWorld().getMonth();
+
+        this.currentState.setWorld(result.getWorld());
+        return new RoundData(economies, fed, currentMonth);
+    }
+
+    public double getProgress(int total) {
+        int currentMonth = this.currentState.getWorld().getMonth();
+        return (double) (currentMonth * 100 / total);
+    }
 
     public static TickResult tick(World world, Map<StateId, PolicyId> actions, SimConfig config) {
         for (StateId id : actions.keySet()) {
@@ -40,6 +76,7 @@ public final class Engine {
         Map<StateId, Policy> applied = new TreeMap<>();
         Map<StateId, StateEconomy> states = new TreeMap<>();
         for (StateEconomy s : start.values()) {
+            
             Policy policy = Policies.get(actions.getOrDefault(s.id(), PolicyId.HOLD));
             applied.put(s.id(), policy);
             states.put(s.id(), PolicyPhase.applyPolicy(s, policy));
@@ -85,18 +122,17 @@ public final class Engine {
         // 9. Events, 10. Elections: not yet implemented.
 
         // 11. Record
+        for (StateEconomy s : List.copyOf(states.values())) {
+            states.put(s.id(), s.withCurrentMonth(month));
+        }
         MonthReport report = buildReport(month, start, demand, fed, prices, applied, resourceRevenue);
-        World next = new World(month, world.seed(), states, fed.next(), world.eventRisk(), world.baseline());
+        World next = new World(month, world.seed(), states, fed.next(), world.baseline());
         return new TickResult(next, report);
     }
 
-    static MonthReport buildReport(int month,
-                                   Map<StateId, StateEconomy> start,
-                                   Map<StateId, DemandResult> demand,
-                                   FederalResult fed,
-                                   Map<StateId, PriceResult> prices,
-                                   Map<StateId, Policy> applied,
-                                   double resourceRevenue) {
+    private static MonthReport buildReport(int month, Map<StateId, StateEconomy> start,
+    Map<StateId, DemandResult> demand, FederalResult fed, Map<StateId, PriceResult> prices,
+    Map<StateId, Policy> applied, double resourceRevenue) {
         double federalTaxShare = fed.next().federalTaxShare();
         Map<StateId, StateFlows> flows = new TreeMap<>();
         for (StateEconomy s : start.values()) {

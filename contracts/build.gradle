@@ -4,6 +4,10 @@ plugins {
 
 description = 'PolicySim shared message types'
 
+dependencies {
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(25)

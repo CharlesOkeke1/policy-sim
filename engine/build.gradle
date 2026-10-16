@@ -11,15 +11,18 @@ java {
 }
 
 application {
-    mainClass = 'org.cokeke.policysim.engine.Main'  // ← change to your actual main class
+    mainClass = 'org.cokeke.policyengine.server.Server'
 }
 
 dependencies {
     implementation project(':contracts')
+    implementation 'org.java-websocket:Java-WebSocket:1.6.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    
 }
 
 tasks.named('test') {

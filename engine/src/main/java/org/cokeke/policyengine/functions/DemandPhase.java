@@ -19,7 +19,10 @@ public final class DemandPhase {
         } else {
             double nominalPotential = Indicators.potentialOutput(s, config) * s.priceLevel();
             double share = s.spendingShare() + (isElectionMonth(month, config) ? config.campaignSpendShare() : 0);
-            spending = share * nominalPotential;
+            // Fiscal rule: a state brings back debtFeedback of its debt each month (spends down net assets
+            // when debt is negative). Without it, federal allocations a state never spends pile up as
+            // ever-more-negative debt and eventually drive output below zero. Spending cannot be negative.
+            spending = Math.max(0, share * nominalPotential - config.debtFeedback() * s.governmentDebt());
             transfers = s.transferShare() * nominalPotential;
         }
 

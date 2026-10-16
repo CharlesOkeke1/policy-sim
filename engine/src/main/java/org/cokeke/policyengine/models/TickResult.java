@@ -1,6 +1,4 @@
 package org.cokeke.policyengine.models;
-
-
 import java.util.Objects;
 
 public record TickResult(World next, MonthReport report) {
@@ -8,4 +6,6 @@ public record TickResult(World next, MonthReport report) {
         Objects.requireNonNull(next, "next");
         Objects.requireNonNull(report, "report");
     }
+
+    public World getWorld() { return this.next; }
 }

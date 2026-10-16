@@ -1,3 +1,5 @@
+package org.cokeke.policyengine.models;
+
 public enum Lever {
     TAX_RATE(0.0, 0.6),
     SPENDING_SHARE(0.0, 0.5),

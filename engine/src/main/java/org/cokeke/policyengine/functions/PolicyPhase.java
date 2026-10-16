@@ -26,10 +26,13 @@ public final class PolicyPhase {
     /**
      * Households are the creditors, so they lose exactly what the government sheds.
      * Without the matching haircut the sector identity fails in phase 5.
+     * The haircut is capped at what households hold: a creditor cannot lose more than its claim.
+     * Without the cap, repeated restructurings push household wealth negative, consumption follows,
+     * and output and the price level go below zero.
      */
     private static StateEconomy restructure(StateEconomy s, LeverChange change) {
-        double newDebt = change.op().apply(s.governmentDebt(), change.amount());
-        double haircut = s.governmentDebt() - newDebt;
-        return s.withAccounts(s.householdWealth() - haircut, newDebt);
+        double requested = s.governmentDebt() - change.op().apply(s.governmentDebt(), change.amount());
+        double haircut = Math.min(requested, Math.max(0, s.householdWealth()));
+        return s.withAccounts(s.householdWealth() - haircut, s.governmentDebt() - haircut);
     }
 }
