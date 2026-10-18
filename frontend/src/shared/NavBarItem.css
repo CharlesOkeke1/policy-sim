@@ -1,0 +1,30 @@
+.component {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    border-radius: var(--radius-lg);
+    background-color: var(--auth-link);
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: var(--text-body);
+    font-weight: var(--weight-medium);
+    width: 200px;
+    height: 30px;
+    cursor: pointer;
+}
+
+.supporting {
+    font-size: var(--text-body);
+    color: var(--text-muted);
+}
+
+.icon {
+    height: 35px;
+    width: 35px;
+}
+
+.main {
+    font-size: 18px;
+} 

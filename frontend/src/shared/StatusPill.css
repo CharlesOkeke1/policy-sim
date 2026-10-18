@@ -1,0 +1,11 @@
+.pillComponent {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 15px;
+    height: 15px;
+    width: 90px;
+    padding: 5px;
+    border: 1px solid black;
+}

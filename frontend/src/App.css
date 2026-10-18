@@ -1,9 +1,281 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
+
 * {
   padding: 0;
   margin: 0;
 }
 
-body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  -webkit-font-smoothing: antialiased;
+html,
+body,
+#root {
+    font-family: var(--font-sans);
 }
+
+button,
+input,
+textarea,
+select {
+    font-family: inherit;
+}
+
+/* ==========================================================================
+   PolicySim design tokens
+   Source of truth for the sign-up, My Games (dark + light) and Dashboard
+   mockups. Drop into src/styles/ and import once from index.css.
+
+   Themes:
+     :root                     -> dark app theme (default)
+     [data-theme="light"]      -> light app theme
+     .auth                     -> sign-up / sign-in pages (black and white)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Typography (same in every theme)
+   -------------------------------------------------------------------------- */
+:root {
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;   /* all UI text */
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;  /* every number: scores, ranks, months, stats */
+
+  --weight-regular: 400;
+  --weight-medium: 500;   /* active nav item, links, pills, secondary buttons */
+  --weight-semibold: 600; /* headings, card titles, primary buttons, logo */
+
+  /* Size scale (px). Name = role, value = what the mockups use. */
+  --text-display: 56px;   /* sign-up brand panel tagline "Build. Govern. Prosper." */
+  --text-h1: 30px;        /* page title: "My Games", "Dashboard" */
+  --text-h1-auth: 28px;   /* sign-up form title "Create your account" */
+  --text-stat-lg: 28px;   /* dashboard top stat tile values (mono) */
+  --text-stat: 22px;      /* summary strip values, card Score/Rank/Month, metric tiles (mono) */
+  --text-logo-mark: 18px; /* the "P" in the logo square */
+  --text-card-title: 17px;/* city name on a game card */
+  --text-h2: 16px;        /* section headings, logo wordmark, how-it-works rows */
+  --text-body: 15px;      /* nav links, subtitles, inputs, primary buttons */
+  --text-ui: 14px;        /* filter buttons, field labels, table rows, indicator values */
+  --text-small: 13px;     /* card meta ("Game #11 · Normal"), dates, stat labels, action buttons */
+  --text-caption: 12px;   /* hints, pills, deltas, logo tagline, field help text */
+  --text-micro: 11px;     /* indicator labels on cards, chart axis labels */
+
+  --letter-logo: 0.06em;  /* POLICYSIM wordmark */
+  --letter-eyebrow: 0.08em; /* uppercase "HOW A GAME WORKS" */
+
+  /* Shape */
+  --radius-sm: 6px;
+  --radius-md: 8px;       /* card action buttons, pagination */
+  --radius-lg: 10px;      /* inputs, filter buttons, nav items, primary buttons */
+  --radius-xl: 14px;      /* cards, summary strip, panels */
+  --radius-pill: 999px;   /* status pills */
+  --logo-mark-radius: 9px;
+
+  /* Sizing */
+  --control-height: 44px; /* minimum touch target: buttons, search, filters */
+  --input-height: 48px;   /* sign-up fields */
+  --button-height-lg: 50px; /* sign-up submit */
+  --button-height-sm: 36px; /* Resume / View report on cards */
+}
+
+
+/* --------------------------------------------------------------------------
+   2. Dark app theme (My Games, dark) - default
+   -------------------------------------------------------------------------- */
+:root {
+  /* Surfaces, darkest to lightest */
+  --bg-page: #121316;        /* page background */
+  --bg-footer: #16171A;      /* card footer strip (date + action) */
+  --bg-surface: #191A1E;     /* cards, summary strip, search, filter buttons */
+  --bg-inset: #1F2024;       /* city monogram square */
+  --bg-active: #24252A;      /* active nav item, current pagination page, avatar */
+
+  /* Lines */
+  --line: #26272C;           /* sidebar + header dividers, rules inside cards */
+  --line-strong: #2A2B31;    /* card and summary-strip borders, progress track */
+  --line-control: #34353C;   /* search + filter button borders */
+  --line-emphasis: #3A3B42;  /* monogram border, outlined "View report" button */
+
+  /* Text */
+  --text-primary: #F5F5F5;   /* headings, values, active nav */
+  --text-secondary: #D6D6D6; /* filter labels, healthy indicator values, "View report" */
+  --text-nav: #B0B0B0;       /* inactive nav links, header icons */
+  --text-muted: #8A8A8A;     /* labels, meta, dates, "/ 8", "/ 240" */
+
+  /* Links */
+  --link: #FFFFFF;
+  --link-hover: #BDBDBD;
+
+  /* Buttons */
+  --btn-primary-bg: #F5F5F5;   /* "New game", "Resume" */
+  --btn-primary-text: #121316;
+  --btn-secondary-border: #3A3B42; /* "View report" */
+  --btn-secondary-text: #D6D6D6;
+  --logo-mark-bg: #F5F5F5;
+  --logo-mark-text: #121316;
+
+  /* Status: pill text/border, pill fill, progress bar, deltas */
+  --status-good: #3DD68C;            /* Completed, score up */
+  --status-good-bg: rgba(61, 214, 140, 0.12);
+  --status-warn: #F0B04A;            /* In progress, indicator outside healthy range */
+  --status-warn-bg: rgba(240, 176, 74, 0.12);
+  --status-bad: #F2776A;             /* Abandoned, score down */
+  --status-bad-bg: rgba(242, 119, 106, 0.12);
+  /* Pill border = status colour at ~33% alpha (append "55" to the hex) */
+}
+
+
+/* --------------------------------------------------------------------------
+   3. Light app theme (My Games light, Dashboard light)
+   -------------------------------------------------------------------------- */
+[data-theme="light"] {
+  --bg-page: #F4F4F5;        /* page background, search field fill */
+  --bg-footer: #FAFAFA;      /* card footer strip, dashboard metric tiles */
+  --bg-surface: #FFFFFF;     /* cards, sidebar, header, panels */
+  --bg-inset: #F4F4F5;       /* city monogram square */
+  --bg-active: #E9E9EC;      /* active nav item, current page, avatar */
+
+  --line: #E4E4E7;           /* all borders and dividers */
+  --line-strong: #E4E4E7;
+  --line-control: #D4D4D8;   /* filter buttons, outlined buttons */
+  --line-emphasis: #D4D4D8;
+  --line-subtle: #F0F0F2;    /* list row dividers on the dashboard */
+  --chart-grid: #EDEDF0;     /* chart gridlines */
+
+  --text-primary: #111214;
+  --text-secondary: #3F3F46; /* healthy indicator values, legend text */
+  --text-nav: #52525B;
+  --text-muted: #6B6B73;
+
+  --link: #111214;
+  --link-hover: #52525B;
+
+  --btn-primary-bg: #111214;   /* "New game", "Resume" */
+  --btn-primary-text: #FFFFFF;
+  --btn-secondary-border: #D4D4D8;
+  --btn-secondary-text: #3F3F46;
+  --logo-mark-bg: #111214;
+  --logo-mark-text: #FFFFFF;
+
+  /* Status: darker shades so text passes contrast on white */
+  --status-good: #15803D;
+  --status-good-bg: rgba(21, 128, 61, 0.08);
+  --status-warn: #B45309;
+  --status-warn-bg: rgba(180, 83, 9, 0.08);
+  --status-bad: #B91C1C;
+  --status-bad-bg: rgba(185, 28, 28, 0.08);
+  --status-info: #1D4ED8;
+  --status-info-bg: rgba(29, 78, 216, 0.08);
+  /* Pill border = status colour at ~27% alpha (append "44" to the hex) */
+}
+
+
+/* --------------------------------------------------------------------------
+   4. Charts (Dashboard)
+   Two-series palette, checked for colour-blind separation on white.
+   One axis only: never put inflation (%) on the 0-100 score axis.
+   -------------------------------------------------------------------------- */
+:root,
+[data-theme="light"] {
+  --chart-1: #2563EB;        /* Score line, final-rank bars */
+  --chart-2: #EA580C;        /* Stability line */
+  --chart-empty: #E4E4E7;    /* zero-value bar stub */
+  --chart-line-width: 2px;
+  --chart-dot-radius: 4px;   /* with a 2px surface-coloured ring */
+  /* Donut segments use the status colours (Completed / In progress / Abandoned) */
+}
+
+
+/* --------------------------------------------------------------------------
+   5. Auth pages (sign-up) - black and white, no accent colour
+   Wrap the page in <div class="auth">.
+   -------------------------------------------------------------------------- */
+.auth {
+  /* Right side: form */
+  --auth-bg: #0A0A0A;            /* form side background */
+  --auth-input-bg: #141414;
+  --auth-input-border: #2E2E2E;  /* also: empty password-strength segments */
+  --auth-input-border-focus: #FFFFFF;
+  --auth-text: #F5F5F5;          /* form title, input text, filled strength segments */
+  --auth-label: #D6D6D6;         /* field labels */
+  --auth-text-muted: #9E9E9E;    /* "Already have one?" */
+  --auth-hint: #8A8A8A;          /* help text under fields, eye icon */
+  --auth-checkbox-text: #B0B0B0;
+  --auth-placeholder: #6B6B6B;
+  --auth-link: #FFFFFF;          /* underlined, offset 3px */
+  --auth-link-hover: #BDBDBD;
+  --auth-btn-bg: #F5F5F5;        /* "Create account" */
+  --auth-btn-text: #0A0A0A;
+
+  /* Left side: brand panel */
+  --auth-panel-bg: #F5F5F5;
+  --auth-panel-text: #0A0A0A;    /* tagline, logo wordmark, how-it-works text */
+  --auth-panel-muted: #5C5C5C;   /* eyebrow heading, copyright */
+  --auth-panel-rule: #0A0A0A;    /* top rule of the how-it-works list */
+  --auth-panel-divider: #D4D4D4; /* rules between how-it-works rows */
+  --auth-logo-mark-bg: #0A0A0A;
+  --auth-logo-mark-text: #F5F5F5;
+}
+
+
+/* --------------------------------------------------------------------------
+   6. Component reference (which tokens each piece uses)
+   --------------------------------------------------------------------------
+
+   SIGN-UP (.auth)
+     Brand panel ........ bg --auth-panel-bg, padding 48px 56px
+       Logo ............. mark 36x36, --text-logo-mark semibold; wordmark --text-h2 semibold, --letter-logo
+       Eyebrow .......... --text-small semibold uppercase, --letter-eyebrow, --auth-panel-muted
+       How-it-works rows  number --text-small semibold; text --text-h2, line-height 1.5, padding 18px 0
+       Tagline .......... --text-display semibold, line-height 1.02, letter-spacing -0.03em
+       Copyright ........ --text-small, --auth-panel-muted
+     Form ............... max-width 420px, gap 20px
+       Title ............ --text-h1-auth semibold
+       Subtitle ......... --text-body, --auth-text-muted; link medium weight
+       Label ............ --text-ui, --auth-label
+       Input ............ --input-height, --radius-lg, --text-body
+       Hint ............. --text-caption, --auth-hint
+       Strength bar ..... 4 segments, 4px tall, 6px gap, radius 2px
+       Checkbox row ..... --text-ui, --auth-checkbox-text, 18px box, accent --auth-text
+       Submit ........... --button-height-lg, --radius-lg, --text-body semibold
+
+   APP SHELL (My Games, Dashboard)
+     Sidebar ............ 232-260px wide, padding 28px 16px, right border --line
+       Nav item ......... padding 12px, --radius-lg, --text-body, icon 20px stroke 1.7
+       Active nav ....... bg --bg-active, --text-primary, medium weight
+     Header ............. padding 16px 40px, bottom border --line
+       Search ........... --control-height, --radius-lg, --text-ui, bg --bg-surface (light: --bg-page)
+     Main ............... padding 32px 40px 40px, max-width 1280px, section gap 20-24px
+       Page title ....... --text-h1 semibold; subtitle --text-body --text-muted
+       Filter button .... --control-height, --radius-lg, --text-ui, border --line-control
+       Primary button ... --control-height, --radius-lg, --text-ui semibold, --btn-primary-*
+
+   SUMMARY STRIP / STAT TILES
+     Container .......... --radius-xl, border --line-strong, bg --bg-surface
+     Value .............. --font-mono, --text-stat (dashboard tiles: --text-stat-lg)
+     Label .............. --text-small, --text-muted
+     Delta .............. --text-caption medium, --status-good / --status-bad, ▲ / ▼
+
+   GAME CARD
+     Card ............... --radius-xl, border --line-strong, bg --bg-surface
+     Header ............. padding 18px 18px 16px
+       Monogram ......... 44x44, --radius-lg, bg --bg-inset, border --line-emphasis, --font-mono 14px
+       City ............. --text-card-title semibold
+       Meta ............. --text-small, --text-muted
+       Status pill ...... --text-caption medium, padding 4px 10px, --radius-pill,
+                          text + border --status-*, fill --status-*-bg
+     Stats row .......... 3 columns, padding 14px 18px, dividers --line
+       Label ............ --text-caption, --text-muted
+       Value ............ --font-mono, --text-stat
+       Progress bar ..... 4px, track --line-strong, fill = status colour
+     Indicator row ...... 4 columns, padding 14px 18px
+       Label ............ --text-micro, --text-muted
+       Value ............ --font-mono, --text-ui; healthy --text-secondary, outside range --status-warn
+     Footer ............. padding 12px 18px, bg --bg-footer, top border --line
+       Date ............. --text-small, --text-muted
+       Resume ........... --button-height-sm, --radius-md, --text-small semibold, --btn-primary-*
+       View report ...... --button-height-sm, --radius-md, --text-small medium, --btn-secondary-*
+
+   DASHBOARD PANELS
+     Panel .............. padding 20px 22px, --radius-xl, border --line, bg --bg-surface
+       Heading .......... --text-h2 semibold; description --text-small --text-muted
+       List row ......... padding 12px 0, divider --line-subtle
+       Metric tile ...... padding 16px, --radius-lg (12px), bg --bg-footer, value --font-mono 22px
+       Activity dot ..... 10px circle in the status colour (hollow = neutral event)
+       Chart axis ....... --text-micro, --text-muted; gridlines --chart-grid
+   ========================================================================== */

@@ -3,6 +3,7 @@ package org.cokeke.policysim.controllers;
 import java.util.List;
 
 import org.cokeke.policysim.common.ApiResponse;
+import org.cokeke.policysim.dtos.RoundWithoutGame;
 import org.cokeke.policysim.models.Round;
 import org.cokeke.policysim.requests.BatchRoundUploadRequest;
 import org.cokeke.policysim.requests.RoundRequest;
@@ -25,16 +26,9 @@ public class RoundController {
     }
 
     @GetMapping("/api/games/{gameId}/rounds")
-    public ResponseEntity<ApiResponse<List<RoundResponse>>> getGameRounds(@PathVariable Long gameId) {
-        List<Round> rounds = roundService.getRoundsByGameId(gameId);
-        List<RoundResponse> roundResponses = rounds.stream()
-                .map(round -> new RoundResponse(round.getId(), round.getCurrentMonth(), round.getGame().getId(),
-                        round.getStateId(), round.getStateName(), round.getPopulation(), round.getProductivity(),
-                        round.getPublicCapital(), round.getPriceLevel(), round.getLastInflation(), round.getHouseholdWealth(),
-                        round.getGovernmentDebt(), round.getStability(), round.getTaxRate(), round.getSpendingShare(),
-                        round.getInvestmentShare(), round.getTransferShare()))
-                .toList();
-        return ResponseEntity.ok(ApiResponse.ok(roundResponses));
+    public ResponseEntity<ApiResponse<List<RoundWithoutGame>>> getGameRounds(@PathVariable Long gameId) {
+        List<RoundWithoutGame> rounds = roundService.getRoundsWithoutGameObjectByGameId(gameId);
+        return ResponseEntity.ok(ApiResponse.ok(rounds));
     }
 
     @PostMapping("/api/games/{gameId}/rounds")

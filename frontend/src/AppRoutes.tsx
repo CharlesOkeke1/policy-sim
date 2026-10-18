@@ -11,8 +11,8 @@ export default function AppRoutes() {
       {/* Public routes */}
       <Route element={<PublicLayout/>}>
         <Route path="/" element={<SignUp/>}/>
+        <Route path="/sign-up" element={<SignUp/>}/>
         <Route path="/login" element={<Login/>}/>
-        <Route path="/signup" element={<SignUp/>}/>
       </Route>
 
       {/* Authenticated routes */}

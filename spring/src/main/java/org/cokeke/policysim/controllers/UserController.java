@@ -56,17 +56,17 @@ public class UserController {
                 .sameSite("Strict")
                 .build();
 
-        UserResponse userResponse = new UserResponse(u.getId(), u.getEmail(), u.getName(), tokenObj.getToken());
+        UserResponse userResponse = new UserResponse(u.getId(), u.getEmail(), u.getUserName(), tokenObj.getToken());
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(ApiResponse.ok(userResponse));
+            .header(HttpHeaders.SET_COOKIE, cookie.toString())
+            .body(ApiResponse.ok(userResponse));
     }
 
-    @PostMapping(Environment.signUpCall)
+    @PostMapping("/api/users")
     public ResponseEntity<ApiResponse<UserResponse>> createUser(@RequestBody CreateUserRequest req) {
-        User u = userSvc.createUser(req.email(), req.password(), req.name());
-        UserResponse userResponse = new UserResponse(u.getId(), u.getEmail(), u.getName(), null);
+        User u = userSvc.createUser(req.username(), req.email(), req.password());
+        UserResponse userResponse = new UserResponse(u.getId(), u.getEmail(), u.getUserName(), null);
         ApiResponse<UserResponse> body = ApiResponse.ok(201, userResponse);
         return ResponseEntity
                 .created(URI.create("/api/users/" + userResponse.id()))
@@ -77,15 +77,21 @@ public class UserController {
     public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
         List<User> users = userSvc.getAllUsers();
         List<UserResponse> userResponses = users.stream()
-                .map(u -> new UserResponse(u.getId(), u.getEmail(), u.getName(), null))
+                .map(u -> new UserResponse(u.getId(), u.getEmail(), u.getUserName(), null))
                 .toList();
         return ResponseEntity.ok(ApiResponse.ok(userResponses));
+    }
+
+    @GetMapping("/api/usernames")
+    public ResponseEntity<ApiResponse<List<String>>> getAllUserNames() {
+        List<String> usernames = userSvc.getAllUserNames();
+        return ResponseEntity.ok(ApiResponse.ok(usernames));
     }
 
     @GetMapping("/api/users/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> getUser(@PathVariable Long id) {
         User u = userSvc.getUserById(id);
-        UserResponse resp = new UserResponse(u.getId(), u.getEmail(), u.getName(), null);
+        UserResponse resp = new UserResponse(u.getId(), u.getEmail(), u.getUserName(), null);
         return ResponseEntity.ok(ApiResponse.ok(resp));
     }
 

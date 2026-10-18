@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -61,18 +62,11 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(LoginFailedException.class)
-    public ProblemDetail handleLoginFailed(RuntimeException ex) {
+    public ResponseEntity<ApiResponse<String>> handleLoginFailed(RuntimeException ex) {
         log.warn("Login attempt failed", ex.getMessage());
-        ProblemDetail detail = ProblemDetail.forStatusAndDetail(
-            HttpStatus.UNAUTHORIZED,
-            "Invalid email or password"
-        );
-
-        detail.setTitle("Login Failed");
-        // detail.setType(URI.create("https://policysim.com"));
-        // detail.setInstance(URI.create("/api/users/login"));
-
-        return detail;
+        return ResponseEntity
+            .status(HttpStatus.UNAUTHORIZED)
+            .body(ApiResponse.error(401, ex.getMessage()));
     }
 
     @ExceptionHandler(TokenExpiredException.class)

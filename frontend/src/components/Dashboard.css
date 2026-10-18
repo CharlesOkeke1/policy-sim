@@ -1,0 +1,215 @@
+.plusIcon {
+    height: 30px;
+    width: 100%;
+    cursor: pointer;
+}
+
+.icon_bg {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    background: #FFFFFF;
+    color: #111214;
+    display: flex;
+    align-items: center;
+    justify-content: center;  
+}
+
+.new_game_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    height: 52px;
+    padding: 0 22px 0 8px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    background: #111214;
+    color: #FFFFFF;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(17,18,20,0.20);
+}
+
+.dashboard_row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.dashboard {
+    padding: 32px 80px 80px;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-page);
+    gap: 20px;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100vh;
+    padding-bottom: 160px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+.calendar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    padding: 0 14px;
+    background: #FFFFFF;
+    border: 1px solid #E4E4E7;
+    border-radius: 10px;
+    color: #3F3F46;
+    font-size: 14px;
+    width: 130px;
+    cursor: pointer;
+}
+
+.dashboard_right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.date_input {
+    height: 40px;
+    width: 90%;
+    background: var(--auth-link);
+    border-radius: 10px;
+    color: var(--text-muted);
+    font-size: 13px;
+    outline: none;
+    border: none;
+}
+
+.date_icon {
+    height: 22px;
+    width: 22px;
+    cursor: pointer;
+}
+
+.dashboard_main { 
+    margin: 0 0 6px;
+    font-size: 30px;
+    font-weight: 600;
+}
+
+.stats {
+    display: flex;
+    gap: 25px;
+}
+
+.chart_container {
+    flex: 2 1 560px;
+    min-width: 0;
+    width: 65%;
+    padding: 20px 22px;
+    background: #FFFFFF;
+    border: 1px solid #E4E4E7;
+    border-radius: 14px;
+}
+
+.recent_games {
+    flex: 1 1 320px;
+    min-width: 0;
+    width: 25%;
+    padding: 20px 22px;
+    background: #FFFFFF;
+    border: 1px solid #E4E4E7;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+}
+
+.previous_games {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+}
+
+.recent_games_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.recent_games_text {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.view_all {
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.chart_sub_header {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #6B6B73;
+}
+
+.chart_header {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.mini_stats_container {
+    flex: 2 1 560px;
+    min-width: 0;
+    width: 65%;
+    padding: 20px 22px;
+    background: #FFFFFF;
+    border: 1px solid #E4E4E7;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.game_outcomes {
+    flex: 2 1 560px;
+    min-width: 0;
+    width: 96.3%;
+    padding: 20px 22px;
+    background: #FFFFFF;
+    border: 1px solid #E4E4E7;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 300px;
+}
+
+.outcomes_charts {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.outcomes_pie_chart {
+    width: 60%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.outcomes_bar_chart {
+    width: 40%;
+    height: 100%;
+}
+
+.pie_chart_legend {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex-direction: column;
+    width: 60%;
+    padding: 12px;
+}

@@ -6,9 +6,6 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import org.cokeke.policysimcontracts.GameContractService;
 import org.java_websocket.WebSocket;
@@ -100,6 +97,6 @@ public class Server extends WebSocketServer {
             300
         );
 
-        new Server(contractService).start();        
+        new Server(contractService).start();       
     }
 }

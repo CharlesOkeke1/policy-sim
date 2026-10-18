@@ -1,0 +1,28 @@
+.pieCellComponent {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding:12px 24px;
+    gap: 10px;
+    border-bottom: 1px solid #E4E4E7;
+    width: 90%;
+}
+
+.game_status_pill {
+    height: 12px;
+    width: 12px;
+    border-radius: 3px;
+}
+
+.game_completion {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+}
+
+.count {
+    display: flex;
+    align-items: center;
+    gap: 50px;
+}

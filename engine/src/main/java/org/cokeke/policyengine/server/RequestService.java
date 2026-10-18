@@ -4,9 +4,12 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.cokeke.policyengine.functions.Engine;
 import org.cokeke.policyengine.models.GameConfig;
@@ -16,10 +19,6 @@ import org.cokeke.policyengine.models.SpringUploadData;
 import org.cokeke.policyengine.models.StateEconomy;
 import org.cokeke.policysimcontracts.GameContractClaims;
 import org.cokeke.policysimcontracts.GameContractService;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,10 +41,16 @@ public class RequestService {
         return switch (type) {
             case "INITIALIZE_SESSION" ->
                 initializeSession(payload);
+
             case "GET_ROUND" ->
                 getRound(payload);
+
             case "GET_GAME_PROGRESS" ->
                 getProgress();
+                
+            case "FINISH_GAME" -> 
+                finishGame();
+
             default ->
                 throw new IllegalArgumentException(
                     "Unknown request type: " + type
@@ -85,6 +90,7 @@ public class RequestService {
     }
 
     private RoundData getRound(JsonNode payload) {
+        // System.out.println("Play Round enpoint called successfully");
         RoundData rounds = requireEngine().getRound();
 
         List<StateEconomy> stateList = rounds.getStates();
@@ -99,9 +105,34 @@ public class RequestService {
      * 
      * @return
      */
-    // private void finishGame(JsonNode payload) {
+    private String finishGame() {
+        Long gameId = gameConfig.getGameId();
         
-    // }
+        String api = "http://localhost:8080/api/games/" + gameId;
+        if (!pendingUpdates.isEmpty()) {
+            pushToSpring();
+        }
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(api))
+                .header("Authorization", "Bearer " + this.gameConfig.getAuthToken())
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+            System.out.println("FINISH GAME [PUT]=>" + api + " at " + LocalDateTime.now());
+
+            HttpResponse<String> response = HttpClient.newHttpClient()
+            .send(request, HttpResponse.BodyHandlers.ofString());
+            System.out.println("Status: " + response.statusCode());
+            System.out.println("Response: " + response.body());
+            
+            handleBatchResponse(response, "Game finished successfully");
+            return "Game succeffully completed";
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Payload doesnt meet requirements");
+        }  
+    }
     /**
      * Function should be called every minute using the batched queue
     */
@@ -123,7 +154,7 @@ public class RequestService {
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
-                System.out.println("POST " + api);
+                System.out.println("PUSH TO DB [POST]=> " + api + " at " + LocalDateTime.now());
                 IO.print(gameConfig.getAuthToken());
                 System.out.println("Request body: " + jsonBody);
 
@@ -132,7 +163,7 @@ public class RequestService {
                 System.out.println("Status: " + response.statusCode());
                 System.out.println("Response: " + response.body());
                 
-                handleBatchResponse(response);
+                handleBatchResponse(response, "Batch saved successfully");
                 pendingUpdates.clear();  
             }
         } catch (Exception e) {
@@ -145,19 +176,16 @@ public class RequestService {
         return requireEngine().getProgress(gameConfig.getTotalRounds());
     }
 
-    public void handleBatchResponse(HttpResponse<String> response) {
+    public void handleBatchResponse(HttpResponse<String> response, String message) {
         int status = response.statusCode();
 
         if (status >= 200 && status < 300) {
-            System.out.println("Batch saved successfully");
+            System.out.println(message);
             return;
         }
 
         System.err.println("Batch request failed with status: " + status);
-        // TODO: retry or queue the batch for later
     }
-
-    
 
     private Engine requireEngine() {
         if (this.engine == null) {

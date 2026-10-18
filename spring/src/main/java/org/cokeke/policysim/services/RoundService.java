@@ -1,16 +1,18 @@
 package org.cokeke.policysim.services;
 
-import org.cokeke.policysim.models.Game;
-import org.cokeke.policysim.repos.GameRepository;
-import org.cokeke.policysim.models.Round;
-import org.cokeke.policysim.responses.BatchRoundPushResponse;
-import org.cokeke.policysim.repos.RoundRepository;
-import org.cokeke.policysim.dtos.SpringRoundDTO;
-
-import java.util.List;
 import java.time.LocalDateTime;
-import org.springframework.stereotype.Service;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.cokeke.policysim.dtos.RoundWithoutGame;
+import org.cokeke.policysim.dtos.SpringRoundDTO;
 import org.cokeke.policysim.exceptions.GameNotFoundException;
+import org.cokeke.policysim.models.Game;
+import org.cokeke.policysim.models.Round;
+import org.cokeke.policysim.repos.GameRepository;
+import org.cokeke.policysim.repos.RoundRepository;
+import org.cokeke.policysim.responses.BatchRoundPushResponse;
+import org.springframework.stereotype.Service;
 
 @Service
 public class RoundService {
@@ -43,6 +45,14 @@ public class RoundService {
         return roundRepo.save(r);
     }
 
+    public List<RoundWithoutGame> getRoundsWithoutGameObjectByGameId(Long gameId) {
+        Game game = gameRepo.findById(gameId).orElse(null);
+        if (game == null) {
+            throw new GameNotFoundException("Game not found");
+        }
+        return roundListToRoundListWithoutGameObject(roundRepo.findByGame_Id(gameId));
+    }
+
     public List<Round> getRoundsByGameId(Long gameId) {
         Game game = gameRepo.findById(gameId).orElse(null);
         if (game == null) {
@@ -65,5 +75,21 @@ public class RoundService {
         rounds.get(0).stateName(), LocalDateTime.now());
 
         return resp;
+    }
+
+    public List<RoundWithoutGame> roundListToRoundListWithoutGameObject(List<Round> rounds) {
+        List<RoundWithoutGame> out = new ArrayList<>();
+        for (Round round : rounds) {
+            RoundWithoutGame rwg = new RoundWithoutGame(round.getId(), round.getCurrentMonth(),
+            round.getStateId(), round.getStateName(), round.getPopulation(), 
+            round.getProductivity(), round.getPublicCapital(), round.getPriceLevel(), 
+            round.getLastInflation(), round.getHouseholdWealth(), round.getGovernmentDebt(), 
+            round.getStability(), round.getTaxRate(), round.getSpendingShare(), 
+            round.getInvestmentShare(), round.getTransferShare());
+
+            out.add(rwg);
+        }
+
+        return out;
     }
 }

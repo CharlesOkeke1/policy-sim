@@ -1,8 +1,8 @@
 package org.cokeke.policysim.services;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
 
 import org.cokeke.policysim.exceptions.GameNotFoundException;
 import org.cokeke.policysim.exceptions.UserNotFoundException;

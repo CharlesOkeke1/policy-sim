@@ -1,160 +1,110 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router';
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router';
+import '../styles/Home.css';
+import lightLogo from '../assets/Policy_Sim_Logo_Light_PNG.png';
+import NavBarItem from '../shared/NavBarItem';
+import homeIcon from '../assets/home.svg';
+import gameIcon from '../assets/game.svg';
+import addIcon from '../assets/add.svg';
+import trophyIcon from '../assets/trophy.svg';
+import compareIcon from '../assets/compare.svg';
+import notificationIcon from '../assets/notification.svg';
+import dropdownIcon from '../assets/dropdown.svg';
+import settingsIcon from '../assets/settings.svg';
+import searchIcon from '../assets/search.svg';
+import { Dashboard } from '../components/Dashboard';
+import { MyGames } from '../components/MyGames';
+import { NewGame } from '../components/NewGame';
+import { GlobalRankings } from '../components/GlobalRankings';
+import { Settings } from '../components/Settings';
 
 const Home = () => {
   const router = useNavigate();
-  const socketRef = useRef<WebSocket | null>(null);
-  const [currentMonth, setCurrentMonth] = useState(0);
-  const [totalRounds, setTotalRounds] = useState(0);
-  const [gameData, setGameData] = React.useState<any>({});
+  const [user, setUser] = useState<any>();
+  const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
     if (sessionStorage.getItem("authToken") == null) {
       router("/login");
     }
 
-    const socket = new WebSocket("ws://localhost:8081");
-    socketRef.current = socket;
-
-    socket.addEventListener("open", () => {
-      console.log("Connected to engine");
-    });
-
-    socket.addEventListener("message", (event) => {
-      console.log("Engine server output =>", JSON.parse(event.data));
-    });
-
-    //return () => { socket.close(); };
+    getUser();
   }, []);
-  const socket = socketRef.current;
 
-  async function getTokens() {
-    await fetch("http://localhost:8080/api/tokens", {
+  async function getUser() {
+    await fetch(`http://localhost:8080/api/users/${sessionStorage.getItem("userId")}`, {
       headers: {
         Authorization: `Bearer ${sessionStorage.getItem("authToken")}`
       }
     }).then((data) => {
-      console.log(data.json());
+      return data.json();
+    }).then((response) => {
+      setUser(response.result);
     })
   }
-
-  async function createGame() {
-    const payload = {
-        stateName: "Abuja",
-        rounds: 50
-    };
-
-    try {
-      const res = await fetch("http://localhost:8080/api/games", {
-          method: "POST",
-          headers: {
-              //"credentials": "include",
-              "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`,
-              "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-          throw new Error(`Game creation failed: ${res.status}`);
-      }
-
-      const data = await res.json();
-      setGameData(data.result);
-      setTotalRounds(data.result.game.noOfRounds);
-
-      const initData = {
-        ...data.result, 
-        authToken: sessionStorage.getItem("authToken")
-      }
-
-      oneTest("INITIALIZE_SESSION", initData);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  async function playRound() {
-    const socket = socketRef.current;
-
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-      console.error("WebSocket is not open");
-      return;
-    }
-
-    if (currentMonth < totalRounds) {
-      const res: any = await new Promise((resolve, reject) => {
-        socket.onmessage = (event) => {
-          resolve(JSON.parse(event.data));
-        };
-
-        socket.send(JSON.stringify({
-          type: "GET_ROUND",
-          payload: gameData
-        }));
-      });
-      setCurrentMonth(res.data.currentMonth);
-      return res;
-    }    
-  }
-
-
-  function closeConnection() {
-    const socket = socketRef.current;
-
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-      console.error("WebSocket is not open");
-      return;
-    }
-
-    socket.close();
-    console.log("Connection successfully closed");
-  }
   
-  function oneTest(type: string, data: any) {
-    const socket = socketRef.current;
-
-    if (!socket) {
-      console.error("WebSocket has not been created");
-      return;
-    }
-
-    if (socket.readyState === WebSocket.CONNECTING) {
-      socket.addEventListener("open", () => {
-        socket.send(JSON.stringify({ type, payload: data }));
-      }, { once: true });
-      return;
-    }
-
-    if (socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ type, payload: data }));
-      return;
-    }
-
-    console.error("WebSocket is closed or closing:", socket.readyState);
-  }
-
   return (
-    <div>
-      <div>
-        Btn
-        <button onClick={() => createGame()}> Start new game</button>
-        <button onClick={() => getTokens()}> Get tokens</button>
-        <button onClick={() => closeConnection()}> Close Connection</button>
+    <div className='home_container'>
+      <div className='left_nav_bar'>
+        <div className='logoBlock'>
+            <img src={lightLogo} className='logoImg'/>
+            <div>
+              <p className='main'>POLICYSIM</p>
+              <p className='supporting'>Build. Govern. Prosper.</p>
+            </div>
+        </div>
+        <NavBarItem onClick={() => setActiveStep(0)} step={0} current_step={activeStep} iconPath={homeIcon} main_text='Dashboard'/>
+        <NavBarItem onClick={() => setActiveStep(1)} step={1} current_step={activeStep} iconPath={gameIcon} main_text='My Games' />
+        <NavBarItem onClick={() => setActiveStep(2)} step={2} current_step={activeStep} iconPath={addIcon} main_text='Play New Game' />
+        <NavBarItem onClick={() => setActiveStep(3)} step={3} current_step={activeStep} iconPath={trophyIcon} main_text='Global Rankings' />
+        <NavBarItem onClick={() => setActiveStep(4)} step={4} current_step={activeStep} iconPath={settingsIcon} main_text='Settings' />
       </div>
-      <div>
-        <p>
-          Current round {
-            socketRef.current?.readyState === WebSocket.OPEN
-              ? currentMonth
-              : "Connection not open"
-          }
-        </p>
-        <button onClick={() => playRound()}> Advance Round</button>
-      </div>
+      <div className='main_app'>
+        <div className='header'>
+          <div className='input_container'>
+            <img src={searchIcon} className='search_icon'/>
+            <input className='search_input' 
+            placeholder='Search for a game or stats'/>
+          </div>
+          
+          <div className='info_section'>
+            <img src={notificationIcon} className='icon'/>
+            <div className='user_section'>
+              <div className='user'>
+                <div className='nameIcon'>
+                  <p className='user_header_text'>
+                    { user ? user.name.charAt(0).toUpperCase() : ""}
+                  </p>
+                </div>
+                <div className='u'>
+                  <p className='u_name'>
+                    { user ? user.name.split(" ")[0] : "N/A"}
+                  </p>
+                  <img src={dropdownIcon} className='icon dropIcon'/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className='active_component'>
+          {(() => {
+            switch(activeStep) {
+              case 0:
+                return <Dashboard/>
 
+              case 1:
+                return <MyGames/>
+              case 2:
+                return <NewGame/>
+              case 3:
+                return <GlobalRankings/>
+              case 4:
+                return <Settings/>
+            }
+          })()}
+        </div>
+      </div>
     </div>
-    
   )
 }
 

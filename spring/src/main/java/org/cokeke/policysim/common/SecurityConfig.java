@@ -18,6 +18,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
@@ -31,6 +33,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, 
     TokenService tokenService) throws Exception {
+        //ObjectMapper objectMapper = new ObjectMapper();
         http
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
@@ -53,7 +56,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     HttpMethod.POST,
-                    "/api/users/new",
+                    "/api/users",
                     "/api/users/login"
                 ).permitAll()
 
@@ -63,7 +66,7 @@ public class SecurityConfig {
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/webjars/**",
-                    "/api/*",
+                    "/api/usernames",
                     "/h2-console/**"
                 ).permitAll()
 

@@ -1,10 +1,60 @@
 package org.cokeke.policysim.models;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "rounds")
 public class Round {
+        // ---------------------------------------------------------------
+    // TODO: fields the UI needs. Uncomment as each screen gets wired.
+    // ---------------------------------------------------------------
+
+    // Ranking (game top bar, Compare States, My Games, Dashboard)
+    // @Column(nullable = false)
+    // private double score;            // from the engine's scoring, 0-100
+    //
+    // @Column(nullable = false)
+    // private int rank;                // 1-8 among the cities in this game and month
+
+    // Flows for the month (from StateFlows); needed to derive the indicators
+    // @Column(nullable = false)
+    // private double output;           // nominal output -> real growth and debt / GDP
+    //
+    // @Column(nullable = false)
+    // private double outputGap;
+    //
+    // @Column(nullable = false)
+    // private double unemployment;     // only exists in PriceResult, not StateEconomy
+    //
+    // @Column(nullable = false)
+    // private double taxes;
+    //
+    // @Column(nullable = false)
+    // private double federalTax;       // "You paid in" on the federal panel
+    //
+    // @Column(nullable = false)
+    // private double allocation;       // "You received" on the federal panel
+    //
+    // @Column(nullable = false)
+    // private double spending;
+    //
+    // @Column(nullable = false)
+    // private double transfers;
+    //
+    // @Column(nullable = false)
+    // private double interest;
+
+    // What the city did this month ("Last policy" column, month report)
+    // @Column(nullable = false, length = 32)
+    // private String policy;           // the PolicyId name, e.g. "EXPAND_SPENDING"
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

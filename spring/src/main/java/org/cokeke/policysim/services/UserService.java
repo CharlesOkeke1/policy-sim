@@ -27,7 +27,7 @@ public class UserService {
         this.tokenGenerator = tokenGenerator;
     }
 
-    public User createUser(String email, String password, String name) {
+    public User createUser(String name, String email, String password) {
         User existingUser = repo.findByEmail(email).orElse(null);
 
         if (existingUser != null) {
@@ -67,7 +67,7 @@ public class UserService {
             user.setEmail(email);
         }
         if (name != null && !name.isEmpty()) {
-            user.setName(name);
+            user.setUserName(name);
         }
 
         return repo.save(user);
@@ -94,7 +94,7 @@ public class UserService {
     public User loginUser(String email, String password) {
         User user = repo.findByEmail(email).orElse(null);
 
-        if (!encoder.matches(password, user.getHash()) || user == null) {
+        if (user == null || !encoder.matches(password, user.getHash())) {
             throw new LoginFailedException("Invalid username or password");
         }      
 
@@ -123,7 +123,12 @@ public class UserService {
     }
 
     public UserResponse userToUserResponse(User u) {
-        return new UserResponse(u.getId(), u.getEmail(), u.getName(), null);
+        return new UserResponse(u.getId(), u.getEmail(), u.getUserName(), null);
+    }
+
+    public List<String> getAllUserNames() {
+        List<String> usernames = repo.findAll().stream().map(user -> user.getUserName()).toList();
+        return usernames;
     }
 
 }
