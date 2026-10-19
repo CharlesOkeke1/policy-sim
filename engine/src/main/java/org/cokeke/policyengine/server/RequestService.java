@@ -13,10 +13,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.cokeke.policyengine.functions.Engine;
 import org.cokeke.policyengine.models.GameConfig;
-import org.cokeke.policyengine.models.RoundData;
 import org.cokeke.policyengine.models.SpringRoundDTO;
 import org.cokeke.policyengine.models.SpringUploadData;
-import org.cokeke.policyengine.models.StateEconomy;
 import org.cokeke.policysimcontracts.GameContractClaims;
 import org.cokeke.policysimcontracts.GameContractService;
 
@@ -28,7 +26,7 @@ public class RequestService {
     private final ObjectMapper mapper = new ObjectMapper();
     private Engine engine;
     public GameConfig gameConfig;
-    List<StateEconomy> pendingUpdates = new ArrayList<>();
+    List<SpringRoundDTO> pendingUpdates = new ArrayList<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     private boolean schedulerStarted = false;
@@ -43,7 +41,7 @@ public class RequestService {
                 initializeSession(payload);
 
             case "GET_ROUND" ->
-                getRound(payload);
+                getRound();
 
             case "GET_GAME_PROGRESS" ->
                 getProgress();
@@ -89,14 +87,11 @@ public class RequestService {
         return "Game successfully initialized";
     }
 
-    private RoundData getRound(JsonNode payload) {
-        // System.out.println("Play Round enpoint called successfully");
-        RoundData rounds = requireEngine().getRound();
-
-        List<StateEconomy> stateList = rounds.getStates();
+    private List<SpringRoundDTO> getRound() {
+        List<SpringRoundDTO> rounds = requireEngine().getRound();
         
-        gameConfig.setCurrentMonth(rounds.getCurrentMonth());
-        pendingUpdates.addAll(stateList);
+        gameConfig.setCurrentMonth(rounds.get(0).currentMonth());
+        pendingUpdates.addAll(rounds);
         return rounds;
     }
 
@@ -138,14 +133,10 @@ public class RequestService {
     */
     public void pushToSpring() {
         String api = "http://localhost:8080/api/games/rounds/batchUpload";
-        List<SpringRoundDTO> list = new ArrayList<>();
-        for (StateEconomy state : pendingUpdates) {
-            list.add(new SpringRoundDTO(state));
-        }
-        SpringUploadData payload = new SpringUploadData(list, gameConfig.getGameId());
+        SpringUploadData payload = new SpringUploadData(pendingUpdates, gameConfig.getGameId());
 
         try {
-            if (list.size() > 0) {
+            if (!pendingUpdates.isEmpty()) {
                 String jsonBody = mapper.writeValueAsString(payload);
                 HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(api))

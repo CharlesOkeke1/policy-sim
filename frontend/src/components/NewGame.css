@@ -1,0 +1,235 @@
+.choose_city {
+    min-width: 0;
+    width: 92%;
+    padding: var(--padding-lg) var(--padding-xl);
+    background: #FFFFFF;
+    border: 1px solid #E4E4E7;
+    gap: var(--gap-10);
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-xxl);
+}
+
+.new_game_block {
+    display: flex;
+    justify-content: center;
+    gap: var(--gap-xxl);
+    width: 100%;
+}
+
+.newgame {
+    padding: 32px 80px 80px;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-page);
+    gap: var(--gap-xl);
+    box-sizing: border-box;
+    width: 100%;
+    height: 100vh;
+    padding-bottom: 160px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+.new_game_left {
+    display: flex;
+    flex-direction: column;
+    width: 65%;
+    gap: var(--gap-xl);
+}
+
+.new_game_right {
+    display: flex;
+    justify-content: flex-start;
+    width: 35%;
+    height: 370px;
+}
+
+.new_game_step_number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: var(--weight-medium);
+}
+
+.states {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--gap-md);
+}
+
+.difficulty_row {
+    display: flex;
+    gap: var(--gap-xxl);
+}
+
+.chosen_state_container { 
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    background: #FAFAFA;
+    border: 1px solid #E4E4E7;
+    border-radius: 12px;
+}
+
+.your_game {
+    flex: 1 1 320px;
+    min-width: 0;
+    width: 100%;
+    padding: var(--padding-lg) var(--padding-xl);
+    background: #FFFFFF;
+    border: 1px solid #E4E4E7;
+    border-radius: var(--radius-xxl);
+    display: flex;
+    gap: var(--gap-10);
+    flex-direction: column;
+}
+
+.state_initials {
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border-radius: 10px;
+    background: #111214;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+}
+
+.chosen_state_name {
+    font-size: 17px;
+    font-weight: var(--weight-semibold);
+}
+
+.chosen_state_diff {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.your_game_summary_item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.startGameBtn {
+    background: none;
+    border: none;
+    color: var(--bg-surface);
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-h2);
+}
+
+.startGameBtnContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--gap-10);
+    height: 52px;
+    border-radius: var(--radius-xl);
+    background: #111214;
+    font-size: var(--text-body);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+    box-shadow: 0 6px 16px rgba(17,18,20,0.18);
+}
+
+.button_supporting {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #6B6B73;
+}
+
+.length_obj {
+    display: inline-flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--padding-sm);
+    gap: 4px;
+    width: 100%;
+    height: 20px;
+    background: #F4F4F5;
+    border: 1px solid #E4E4E7;
+    border-radius: 12px;
+}
+
+.length_obj_element {
+    border-radius: 12px;
+    width: 23%;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    justify-content: center;
+}
+
+.length_container {
+    width: 55%;
+    margin-top: 15px;
+}
+
+.custom_length { 
+    width: 23%;
+}
+
+.seed_container {
+    width: 37%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.length_and_seed_row {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.seed_input_container {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+    box-sizing: border-box;
+    padding: 0 14px;
+    background: #FFFFFF;
+    border: 1px solid #D4D4D8;
+    border-radius: 10px;
+    color: #111214;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    outline: none;
+}
+
+.seed_input {
+    height: 100%;
+    padding: 0;
+    outline: none;
+}
+
+.seed_row {
+    display: flex;
+    align-items: center;
+    gap: var(--padding-lg);
+}
+
+.random_seed_container {
+    width: 36px;
+    height: 36px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #FFFFFF;
+    border: 1px solid #D4D4D8;
+    border-radius: 10px;
+    color: #3F3F46;
+    cursor: pointer;
+}

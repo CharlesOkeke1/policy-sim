@@ -3,9 +3,10 @@ import { StatusPill, type PillType } from './StatusPill';
 
 interface RecentGameProps {
     type: PillType;
+    content: string;
 }
 
-export const RecentGame = ({type}: RecentGameProps) => {
+export const RecentGame = ({type, content}: RecentGameProps) => {
     /**
      * stateIcon will take game.stateName.substring(0,3);
      * stateName takes game.stateName;
@@ -23,7 +24,7 @@ export const RecentGame = ({type}: RecentGameProps) => {
                 <p className='game_date_and_progress'>Month 240/240 · 16 Oct</p>
             </div>
             <p className='score'>88.4</p>
-            <StatusPill content='Completed' type={type}/>
+            <StatusPill content={content} type={type}/>
         </div>
     )
 }

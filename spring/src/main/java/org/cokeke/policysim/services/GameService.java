@@ -4,13 +4,13 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
+import org.cokeke.policysim.dtos.StatePreview;
 import org.cokeke.policysim.exceptions.GameNotFoundException;
 import org.cokeke.policysim.exceptions.UserNotFoundException;
 import org.cokeke.policysim.models.Game;
 import org.cokeke.policysim.models.Round;
 import org.cokeke.policysim.models.User;
 import org.cokeke.policysim.repos.GameRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,8 +18,17 @@ public class GameService {
     private final GameRepository repo;
     private final RoundService roundSvc;
     private final UserService userService;
+    private static final List<StatePreview> STATES = List.of(
+        new StatePreview("birmingham", "Birmingham", 1.15, 1.00, 60, "Even start", "BHM"),
+        new StatePreview("coventry", "Coventry", 0.35, 0.95, 60, "Tough start", "COV"),
+        new StatePreview("edinburgh", "Edinburgh", 0.51, 1.15, 60, "Strong start", "EDI"),
+        new StatePreview("glasgow", "Glasgow", 0.63, 0.95, 60, "Even start", "GLW"),
+        new StatePreview("london", "London", 8.90, 1.30, 60, "Strong start", "LDN"),
+        new StatePreview("manchester", "Manchester", 0.55, 1.05, 60, "Even start", "MAN"),
+        new StatePreview("milton-keynes", "Milton Keynes", 0.29, 1.05, 60, "Even start", "MKC"),
+        new StatePreview("plymouth", "Plymouth", 0.26, 0.90, 60, "Tough start", "PLY")
+    );
 
-    @Autowired
     public GameService(GameRepository gameRepository, UserService userService, RoundService roundSvc) {
         this.repo = gameRepository;
         this.userService = userService;
@@ -70,10 +79,7 @@ public class GameService {
         return repo.save(game);
     }
 
-    public List<String> getStates() {
-        String[] states = {"Coventry", "London", "Birmingham", "Manchester",
-        "Edinburgh", "Glasgow", "Milton Keynes", "Plymouth"};
-
-        return Arrays.asList(states);
+    public List<StatePreview> getStates() {
+        return this.STATES;
     } 
 }

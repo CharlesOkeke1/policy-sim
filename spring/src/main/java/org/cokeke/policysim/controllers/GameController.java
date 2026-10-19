@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.cokeke.policysim.common.ApiResponse;
+import org.cokeke.policysim.dtos.Difficulty;
+import org.cokeke.policysim.dtos.StatePreview;
 import org.cokeke.policysim.common.AuthContextHolder;
 import org.cokeke.policysim.models.Game;
 import org.cokeke.policysim.models.Round;
@@ -46,21 +48,24 @@ public class GameController {
         List<Game> games = gameService.getUserGames(userId);
 
         List<GameResponse> gameResponses = games.stream()
-                .map(game -> new GameResponse(game.getId(), game.getSeed(), game.getTotalRounds(), game.getStateName(), game.getStartDate(), game.getEndDate(), uSvc.userToUserResponse(game.getUser()), roundService.getRoundsWithoutGameObjectByGameId(game.getId()), game.isCompleted()))
+                .map(game -> new GameResponse(game.getId(), game.getSeed(), game.getTotalRounds(), 
+                game.getStateId(), game.getStartDate(), game.getEndDate(), uSvc.userToUserResponse(game.getUser()), 
+                roundService.getRoundsWithoutGameObjectByGameId(game.getId()), game.isCompleted(), game.getScore(), game.getRank()))
                 .toList();
         return ResponseEntity.ok(ApiResponse.ok(gameResponses));
     }
 
     @PostMapping("/api/games")
     public ResponseEntity<ApiResponse<GameSessionResponse>> createGame(@RequestBody CreateGameRequest req) {
-        Game game = gameService.createGame(req.stateName(), holder.getCurrentUserId(), req.rounds());
+        Game game = gameService.createGame(req.stateId(), holder.getCurrentUserId(), req.rounds());
         List<Round> rounds = new ArrayList<>();
 
         String contract = sessionService.getContractService().createContract(game.getUser().getId(), game.getId());
         String sessionId = "Test" + game.getId();
         GameSessionResponse gameResponse = new GameSessionResponse(sessionId, contract,
-            new GameResponse(game.getId(), game.getSeed(), game.getTotalRounds(), game.getStateName(), game.getStartDate(), 
-            game.getEndDate(), uSvc.userToUserResponse(game.getUser()), roundService.roundListToRoundListWithoutGameObject(rounds), game.isCompleted()));
+            new GameResponse(game.getId(), game.getSeed(), game.getTotalRounds(), game.getStateId(), game.getStartDate(), 
+            game.getEndDate(), uSvc.userToUserResponse(game.getUser()), roundService.roundListToRoundListWithoutGameObject(rounds), 
+            game.isCompleted(), game.getScore(), game.getRank()));
         ApiResponse<GameSessionResponse> body = ApiResponse.ok(201, gameResponse);
         return ResponseEntity
                 .created(URI.create("/api/games/" + gameResponse.sessionId()))
@@ -75,8 +80,9 @@ public class GameController {
         for (Game g : games) {
             List<Round> gRounds = roundService.getRoundsByGameId(g.getId());
             GameResponse res = new GameResponse(g.getId(), g.getSeed(), 
-            g.getTotalRounds(), g.getStateName(), g.getStartDate(), g.getEndDate(),
-            uSvc.userToUserResponse(g.getUser()), roundService.roundListToRoundListWithoutGameObject(gRounds), g.isCompleted());
+            g.getTotalRounds(), g.getStateId(), g.getStartDate(), g.getEndDate(),
+            uSvc.userToUserResponse(g.getUser()), roundService.roundListToRoundListWithoutGameObject(gRounds), 
+            g.isCompleted(), g.getScore(), g.getRank());
 
             out.add(res);
         }
@@ -89,7 +95,9 @@ public class GameController {
     public ResponseEntity<ApiResponse<GameResponse>> finishGame(@PathVariable Long gameId) {
         Game game = gameService.finishGame(gameId);
         List<Round> rounds = roundService.getRoundsByGameId(game.getId());
-        GameResponse gameResponse = new GameResponse(game.getId(), game.getSeed(), game.getTotalRounds(), game.getStateName(), game.getStartDate(), game.getEndDate(), uSvc.userToUserResponse(game.getUser()), roundService.roundListToRoundListWithoutGameObject(rounds), game.isCompleted());
+        GameResponse gameResponse = new GameResponse(game.getId(), game.getSeed(), game.getTotalRounds(), game.getStateId(), 
+        game.getStartDate(), game.getEndDate(), uSvc.userToUserResponse(game.getUser()),
+        roundService.roundListToRoundListWithoutGameObject(rounds), game.isCompleted(), game.getScore(), game.getRank());
         return ResponseEntity.ok(ApiResponse.ok(gameResponse));
     }
 
@@ -100,13 +108,22 @@ public class GameController {
             return ResponseEntity.notFound().build();
         }
         List<Round> rounds = roundService.getRoundsByGameId(game.getId());
-        GameResponse gameResponse = new GameResponse(game.getId(), game.getSeed(), game.getTotalRounds(), game.getStateName(), game.getStartDate(), game.getEndDate(), uSvc.userToUserResponse(game.getUser()), roundService.roundListToRoundListWithoutGameObject(rounds), game.isCompleted());
+        GameResponse gameResponse = new GameResponse(game.getId(), game.getSeed(), game.getTotalRounds(), game.getStateId(), game.getStartDate(), game.getEndDate(), uSvc.userToUserResponse(game.getUser()),
+        roundService.roundListToRoundListWithoutGameObject(rounds), game.isCompleted(), game.getScore(), game.getRank());
         return ResponseEntity.ok(ApiResponse.ok(gameResponse));
     }
 
     @GetMapping("/api/games/states")
-    public ResponseEntity<ApiResponse<List<String>>> getStates() {
-        List<String> states = gameService.getStates();
+    public ResponseEntity<ApiResponse<List<StatePreview>>> getStates() {
+        List<StatePreview> states = gameService.getStates();
         return ResponseEntity.ok(ApiResponse.ok(states));
+    }
+
+    @GetMapping("/api/games/difficulty")
+    public ResponseEntity<ApiResponse<List<Difficulty>>> getDifficulties() {
+        List<Difficulty> diffs = List.of(new Difficulty("Easy", "Rivals pick policies loosely and make frequent mistakes."),
+        new Difficulty("Normal", "Rivals react to inflation and debt, but not perfectly."), 
+        new Difficulty("Hard", "Rivals read the numbers every month and rarely slip"));
+        return ResponseEntity.ok(ApiResponse.ok(diffs));
     }
 }

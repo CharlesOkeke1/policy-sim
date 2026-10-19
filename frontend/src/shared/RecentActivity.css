@@ -1,31 +1,31 @@
 .recent_activity_pill {
-    height: 12px;
-    width: 12px;
+    height: var(--text-caption);
+    width: var(--text-caption);
     border-radius: 50%;
 }
 
 .recent_activity_time {
-    font-size: 12px;
-    color: #6B6B73;
+    font-size: var(--text-caption);
+    color: var(--text-muted);
 }
 
 .supporting {
-    font-size: 12px;
-    color: #6B6B73;
+    font-size: var(--text-caption);
+    color: var(--text-muted);
     margin-top: 2px;
 }
 
 .main {
-    font-size: 14px;
+    font-size: var(--text-ui);
 }
 
 .recentActivityComponent {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding:12px 0;
-    gap: 10px;
-    border-bottom: 1px solid #E4E4E7;
+    padding:var(--padding-sm) 0;
+    gap: var(--gap-10);
+    border-bottom: 1px solid var(--line);
     width: 100%;
 }
 
@@ -33,5 +33,5 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px
+    gap: var(--gap-10);
 }

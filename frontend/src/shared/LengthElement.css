@@ -1,0 +1,9 @@
+.lengthElementComponent {
+    border-radius: 12px;
+    width: 23%;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    justify-content: center;
+}

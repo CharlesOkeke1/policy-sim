@@ -2,8 +2,8 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 12px;
-    padding: 15px;
+    gap: var(--gap-md);
+    padding: var(--padding-md);
     border-radius: var(--radius-lg);
     background-color: var(--auth-link);
     color: var(--text-primary);
@@ -11,7 +11,7 @@
     font-size: var(--text-body);
     font-weight: var(--weight-medium);
     width: 200px;
-    height: 30px;
+    height: var(--component-height-small);
     cursor: pointer;
 }
 
@@ -21,10 +21,10 @@
 }
 
 .icon {
-    height: 35px;
-    width: 35px;
+    height: var(--button-height-sm);
+    width: var(--button-height-sm);
 }
 
 .main {
-    font-size: 18px;
+    font-size: var(--text-logo-mark);
 } 

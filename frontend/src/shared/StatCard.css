@@ -1,28 +1,28 @@
 .stat_card {
-    padding: 20px 22px;
-    background: #FFFFFF;
+    padding: var(--padding-lg) var(--padding-xl);
+    background: var(--bg-surface);
     border: 1px solid hsl(240, 6%, 90%);
     border-radius: 14px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
-    width: 253px;
+    width: 248px;
 }
 
 .stat {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 28px;
-    margin-top: 8px;
+    font-size: var(--text-stat-lg);
+    margin-top: var(--gap-sm);
 }
 
 .label {
-    font-size: 13px;
-    color: #6B6B73;
+    font-size: var(--text-small);
+    color: var(--text-muted);
 }
 
 .supporting {
-    font-size: 12px;
-    margin-top: 6px;
-    color: #6B6B73;
+    font-size: var(--text-caption);
+    margin-top: var(--radius-sm);
+    color: var(--text-muted);
 }

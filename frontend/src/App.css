@@ -59,18 +59,45 @@ select {
   --letter-eyebrow: 0.08em; /* uppercase "HOW A GAME WORKS" */
 
   /* Shape */
+  --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 8px;       /* card action buttons, pagination */
   --radius-lg: 10px;      /* inputs, filter buttons, nav items, primary buttons */
-  --radius-xl: 14px;      /* cards, summary strip, panels */
+  --radius-xl: 12px;
+  --radius-xxl: 14px;      /* cards, summary strip, panels */
   --radius-pill: 999px;   /* status pills */
   --logo-mark-radius: 9px;
 
   /* Sizing */
+  --height-sm: 40px;
   --control-height: 44px; /* minimum touch target: buttons, search, filters */
   --input-height: 48px;   /* sign-up fields */
   --button-height-lg: 50px; /* sign-up submit */
+  --button-height-md: 43px; /* sign-up submit */
   --button-height-sm: 36px; /* Resume / View report on cards */
+
+  --gap-sm: 8px;
+  --gap-10: 10px;
+  --gap-md: 12px;
+  --gap-lg: 16px;
+  --gap-xl: 20px;
+  --gap-xxl: 25px;
+  --components-gap-sm: 25px;
+  --components-gap-md: 30px;
+  --components-gap-lg: 40px;
+  --components-gap-xl: 50px;
+
+  --padding-xs: 8px;
+  --padding-sm: 12px;
+  --padding-md: 16px;
+  --padding-lg: 20px;
+  --padding-xl: 24px;
+
+  --commponent-padding-sm: 40px;
+  --commponent-padding-md: 50px;
+  --commponent-padding-lg: 60px;
+
+  --component-height-small: 30px
 }
 
 
@@ -191,6 +218,7 @@ select {
   --auth-input-bg: #141414;
   --auth-input-border: #2E2E2E;  /* also: empty password-strength segments */
   --auth-input-border-focus: #FFFFFF;
+  --auth-input-bg-focus: #1A1A1A;
   --auth-text: #F5F5F5;          /* form title, input text, filled strength segments */
   --auth-label: #D6D6D6;         /* field labels */
   --auth-text-muted: #9E9E9E;    /* "Already have one?" */

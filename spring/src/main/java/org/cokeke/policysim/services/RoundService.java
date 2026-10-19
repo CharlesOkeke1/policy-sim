@@ -25,15 +25,21 @@ public class RoundService {
     }
 
     public Round createRound(Long gameId, int currentMonth, String stateId, String stateName, double population, double productivity,
-                            double publicCapital, double priceLevel, double lastInflation, double householdWealth,
-                            double governmentDebt, double stability, double taxRate, double spendingShare,
-                             double investmentShare, double transferShare) {
+        double publicCapital, double priceLevel, double lastInflation, double householdWealth,
+        double governmentDebt, double stability, double taxRate, double spendingShare,
+        double investmentShare, double transferShare, double output, double outputGap,
+        double unemployment, double federalTax, double allocation, double spending,
+        double transfers, double interest, String policy, double federalResourcePrice,
+        double nationalNetWorth, double federalTaxShare) {
+        
         Game game = gameRepo.findById(gameId).orElse(null);
         if (game == null) {
             throw new GameNotFoundException("Game not found");
         }
         Round round = new Round(currentMonth, stateId, stateName, population, productivity, publicCapital, priceLevel, lastInflation, householdWealth,
-                                governmentDebt, stability, taxRate, spendingShare, investmentShare, transferShare, game);
+            governmentDebt, stability, taxRate, spendingShare, investmentShare, transferShare, game, output, outputGap,
+            unemployment, federalTax, allocation, spending, transfers, interest, policy, federalResourcePrice,
+            nationalNetWorth, federalTaxShare);
         return roundRepo.save(round);
     }
 
@@ -66,7 +72,9 @@ public class RoundService {
         for (SpringRoundDTO r : rounds) {
             Round round = new Round(r.currentMonth(), r.stateId(), r.stateName(), r.population(), r.productivity(),
             r.publicCapital(), r.priceLevel(), r.lastInflation(), r.householdWealth(), r.governmentDebt(),
-            r.stability(), r.taxRate(), r.spendingShare(), r.investmentShare(), r.transferShare(), game);
+            r.stability(), r.taxRate(), r.spendingShare(), r.investmentShare(), r.transferShare(), game, r.output(),
+            r.outputGap(), r.unemployment(), r.federalTax(), r.allocation(), r.spending(), r.transfers(), r.interest(),
+            r.policy(), r.resourcePrice(), r.netWorth(), r.federalTaxShare());
 
             roundRepo.save(round);
         }

@@ -15,9 +15,22 @@ public record SpringRoundDTO(
     double taxRate,
     double spendingShare,
     double investmentShare,
-    double transferShare
-) {
-    public SpringRoundDTO(StateEconomy state) {
+    double transferShare,
+    double output,
+    double outputGap,
+    double unemployment,
+    double federalTax,
+    double allocation,
+    double spending,
+    double transfers,
+    double interest,
+    String policy,
+    double resourcePrice,
+    double netWorth,
+    double federalTaxShare
+    ) {
+
+    public SpringRoundDTO(StateEconomy state, StateFlows sFlows, FederalEconomy fed) {
         this(
             state.currentMonth(),
             state.id().toString(),
@@ -33,7 +46,19 @@ public record SpringRoundDTO(
             state.taxRate(),
             state.spendingShare(),
             state.investmentShare(),
-            state.transferShare()
+            state.transferShare(),
+            sFlows.output(),
+            sFlows.outputGap(),
+            sFlows.unemployment(),
+            sFlows.federalTax(),
+            sFlows.allocation(),
+            sFlows.spending(),
+            sFlows.transfers(),
+            sFlows.interest(),
+            sFlows.policy().toString(),
+            fed.resourcePrice(),
+            fed.netWorth(),
+            fed.federalTaxShare()
         );
     }
 }

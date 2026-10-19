@@ -34,14 +34,18 @@ public class RoundController {
     @PostMapping("/api/games/{gameId}/rounds")
     public ResponseEntity<ApiResponse<RoundResponse>> createRound(@PathVariable Long gameId, @RequestBody RoundRequest req) {
         Round round = roundService.createRound(gameId, req.currentMonth(), req.stateId(), req.stateName(), req.population(), req.productivity(),
-                req.publicCapital(), req.priceLevel(), req.lastInflation(), req.householdWealth(),
-                req.governmentDebt(), req.stability(), req.taxRate(), req.spendingShare(),
-                req.investmentShare(), req.transferShare());
+        req.publicCapital(), req.priceLevel(), req.lastInflation(), req.householdWealth(), req.governmentDebt(), req.stability(),
+        req.taxRate(), req.spendingShare(), req.investmentShare(), req.transferShare(), req.output(), req.outputGap(),
+        req.unemployment(), req.federalTax(), req.allocation(), req.spending(), req.transfers(), req.interest(), req.policy(),
+        req.federalResourcePrice(), req.nationalNetWorth(), req.federalTaxShare());
+
         RoundResponse roundResponse = new RoundResponse(round.getId(), round.getCurrentMonth(), round.getGame().getId(),
-                round.getStateId(), round.getStateName(), round.getPopulation(), round.getProductivity(),
-                round.getPublicCapital(), round.getPriceLevel(), round.getLastInflation(), round.getHouseholdWealth(),
-                round.getGovernmentDebt(), round.getStability(), round.getTaxRate(), round.getSpendingShare(),
-                round.getInvestmentShare(), round.getTransferShare());
+        round.getStateId(), round.getStateName(), round.getPopulation(), round.getProductivity(), round.getPublicCapital(),
+        round.getPriceLevel(), round.getLastInflation(), round.getHouseholdWealth(), round.getGovernmentDebt(),
+        round.getStability(), round.getTaxRate(), round.getSpendingShare(), round.getInvestmentShare(), round.getTransferShare(),
+        round.getOutput(), round.getOutputGap(), round.getUnemployment(), round.getFederalTax(), round.getAllocation(),
+        round.getSpending(), round.getTransfers(), round.getInterest(), round.getPolicy(), round.getFederalResourcePrice(),
+        round.getNationalNetWorth(), round.getFederalTaxShare());
 
         return ResponseEntity.ok(ApiResponse.ok(roundResponse));
     }
@@ -53,10 +57,12 @@ public class RoundController {
             return ResponseEntity.notFound().build();
         }
         RoundResponse roundResponse = new RoundResponse(round.getId(), round.getCurrentMonth(), round.getGame().getId(),
-                round.getStateId(), round.getStateName(), round.getPopulation(), round.getProductivity(),
-                round.getPublicCapital(), round.getPriceLevel(), round.getLastInflation(), round.getHouseholdWealth(),
-                round.getGovernmentDebt(), round.getStability(), round.getTaxRate(), round.getSpendingShare(),
-                round.getInvestmentShare(), round.getTransferShare());
+        round.getStateId(), round.getStateName(), round.getPopulation(), round.getProductivity(), round.getPublicCapital(),
+        round.getPriceLevel(), round.getLastInflation(), round.getHouseholdWealth(), round.getGovernmentDebt(),
+        round.getStability(), round.getTaxRate(), round.getSpendingShare(), round.getInvestmentShare(), round.getTransferShare(),
+        round.getOutput(), round.getOutputGap(), round.getUnemployment(), round.getFederalTax(), round.getAllocation(),
+        round.getSpending(), round.getTransfers(), round.getInterest(), round.getPolicy(), round.getFederalResourcePrice(),
+        round.getNationalNetWorth(), round.getFederalTaxShare());
 
         return ResponseEntity.ok(ApiResponse.ok(roundResponse));
     }

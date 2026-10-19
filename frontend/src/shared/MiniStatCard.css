@@ -1,8 +1,8 @@
 .mini_stat_card {
-    padding: 20px 22px;
-    background: #FFFFFF;
+    padding: var(--padding-lg) var(--padding-xl);
+    background: var(--bg-surface);
     border: 1px solid hsl(240, 6%, 90%);
-    border-radius: 14px;
+    border-radius: var(--radius-xxl);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -12,23 +12,23 @@
 
 .mini_stat_card:hover, 
 .mini_stat_card:active {
-    background-color: #E9E9EC;
+    background-color: var(--bg-active);
     cursor: pointer;
 }
 
 .mini_stat {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 22px;
+    font-size: var(--text-stat);
     margin-top: 6px;
 }
 
 .mini_label {
-    font-size: 12px;
-    color: #6B6B73;
+    font-size: var(--text-caption);
+    color: var(--text-muted);
 }
 
 .mini_supporting {
     font-size: 12px;
     margin-top: 6px;
-    color: #6B6B73;
+    color: var(--text-muted);
 }

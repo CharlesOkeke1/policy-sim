@@ -76,7 +76,7 @@ export const Dashboard = ({userData: userData}: any) => {
 
     async function createGame() {
         const payload = {
-            stateName: "Abuja",
+            stateId: "london",
             rounds: 50
         };
 
@@ -115,7 +115,7 @@ export const Dashboard = ({userData: userData}: any) => {
         const socket = socketRef.current;
 
         if (!socket) {
-        console.error("WebSocket has not been created");
+            console.error("WebSocket has not been created");
         return;
         }
 
@@ -164,19 +164,17 @@ export const Dashboard = ({userData: userData}: any) => {
         if (currentMonth < totalRounds) {
             socket.send(JSON.stringify({
             type: "GET_ROUND",
-            payload: gameData
+            payload: null
             }));
         } else if (currentMonth === totalRounds) {
-            const payload = {
-            gameId: gameData.game.id
-            }
+            const payload = { gameId: gameData.game.id }
             socket.send(JSON.stringify({
             type: "FINISH_GAME",
             payload: payload
             }));
         }
         });
-        setCurrentMonth(res.data.currentMonth);
+        setCurrentMonth(res.data[0].currentMonth);
         return res;
     }
 
@@ -193,49 +191,19 @@ export const Dashboard = ({userData: userData}: any) => {
         console.log("Connection successfully closed");
     }
 
-
+    //Dummy data
     const data: EconomyData[] = [
-    { name: "1", population: 89.0, productivity: 95.6, priceLevel: 78.3, governmentDebt: 82.0, stability: 65.4 },
-    { name: "2", population: 75.0, productivity: 82.4, priceLevel: 62.5, governmentDebt: 45.0, stability: 78.2 },
-    { name: "3", population: 57.0, productivity: 91.3, priceLevel: 69.6, governmentDebt: 56.0, stability: 69.5 },
-    { name: "4", population: 81.0, productivity: 74.8, priceLevel: 59.2, governmentDebt: 29.0, stability: 81.6 },
-    { name: "5", population: 50.0, productivity: 68.2, priceLevel: 55.7, governmentDebt: 31.0, stability: 72.8 },
-    { name: "6", population: 48.0, productivity: 86.1, priceLevel: 65.4, governmentDebt: 27.0, stability: 84.3 },
-    { name: "7", population: 58.0, productivity: 71.5, priceLevel: 57.8, governmentDebt: 34.0, stability: 63.7 },
-    { name: "8", population: 30.0, productivity: 77.9, priceLevel: 60.6, governmentDebt: 22.0, stability: 88.1 },
-    { name: "9", population: 32.0, productivity: 89.2, priceLevel: 67.3, governmentDebt: 49.0, stability: 70.6 },
-    { name: "10", population: 37.0, productivity: 62.7, priceLevel: 53.9, governmentDebt: 18.0, stability: 75.9 },
-    { name: "11", population: 89.0, productivity: 95.6, priceLevel: 78.3, governmentDebt: 82.0, stability: 65.4 },
-    { name: "12", population: 75.0, productivity: 82.4, priceLevel: 62.5, governmentDebt: 45.0, stability: 78.2 },
-    { name: "13", population: 57.0, productivity: 91.3, priceLevel: 69.6, governmentDebt: 56.0, stability: 69.5 },
-    { name: "14", population: 81.0, productivity: 74.8, priceLevel: 59.2, governmentDebt: 29.0, stability: 81.6 },
-    { name: "15", population: 50.0, productivity: 68.2, priceLevel: 55.7, governmentDebt: 31.0, stability: 72.8 },
-    { name: "16", population: 48.0, productivity: 86.1, priceLevel: 65.4, governmentDebt: 27.0, stability: 84.3 },
-    { name: "17", population: 58.0, productivity: 71.5, priceLevel: 57.8, governmentDebt: 34.0, stability: 63.7 },
-    { name: "18", population: 30.0, productivity: 77.9, priceLevel: 60.6, governmentDebt: 22.0, stability: 88.1 },
-    { name: "19", population: 32.0, productivity: 89.2, priceLevel: 67.3, governmentDebt: 49.0, stability: 70.6 },
-    { name: "20", population: 37.0, productivity: 62.7, priceLevel: 53.9, governmentDebt: 18.0, stability: 75.9 },
-    { name: "21", population: 89.0, productivity: 95.6, priceLevel: 78.3, governmentDebt: 82.0, stability: 65.4 },
-    { name: "22", population: 75.0, productivity: 82.4, priceLevel: 62.5, governmentDebt: 45.0, stability: 78.2 },
-    { name: "23", population: 57.0, productivity: 91.3, priceLevel: 69.6, governmentDebt: 56.0, stability: 69.5 },
-    { name: "24", population: 81.0, productivity: 74.8, priceLevel: 59.2, governmentDebt: 29.0, stability: 81.6 },
-    { name: "25", population: 50.0, productivity: 68.2, priceLevel: 55.7, governmentDebt: 31.0, stability: 72.8 },
-    { name: "26", population: 48.0, productivity: 86.1, priceLevel: 65.4, governmentDebt: 27.0, stability: 84.3 },
-    { name: "27", population: 58.0, productivity: 71.5, priceLevel: 57.8, governmentDebt: 34.0, stability: 63.7 },
-    { name: "28", population: 30.0, productivity: 77.9, priceLevel: 60.6, governmentDebt: 22.0, stability: 88.1 },
-    { name: "29", population: 32.0, productivity: 89.2, priceLevel: 67.3, governmentDebt: 49.0, stability: 70.6 },
-    { name: "30", population: 37.0, productivity: 62.7, priceLevel: 53.9, governmentDebt: 18.0, stability: 75.9 },
-    { name: "31", population: 89.0, productivity: 95.6, priceLevel: 78.3, governmentDebt: 82.0, stability: 65.4 },
-    { name: "32", population: 75.0, productivity: 82.4, priceLevel: 62.5, governmentDebt: 45.0, stability: 78.2 },
-    { name: "33", population: 57.0, productivity: 91.3, priceLevel: 69.6, governmentDebt: 56.0, stability: 69.5 },
-    { name: "34", population: 81.0, productivity: 74.8, priceLevel: 59.2, governmentDebt: 29.0, stability: 81.6 },
-    { name: "35", population: 50.0, productivity: 68.2, priceLevel: 55.7, governmentDebt: 31.0, stability: 72.8 },
-    { name: "36", population: 48.0, productivity: 86.1, priceLevel: 65.4, governmentDebt: 27.0, stability: 84.3 },
-    { name: "37", population: 58.0, productivity: 71.5, priceLevel: 57.8, governmentDebt: 34.0, stability: 63.7 },
-    { name: "38", population: 30.0, productivity: 77.9, priceLevel: 60.6, governmentDebt: 22.0, stability: 88.1 },
-    { name: "39", population: 32.0, productivity: 89.2, priceLevel: 67.3, governmentDebt: 49.0, stability: 70.6 },
-    { name: "40", population: 37.0, productivity: 62.7, priceLevel: 53.9, governmentDebt: 18.0, stability: 75.9 }
-];
+        { name: "1", population: 89.0, productivity: 95.6, priceLevel: 78.3, governmentDebt: 82.0, stability: 65.4 },
+        { name: "2", population: 75.0, productivity: 82.4, priceLevel: 62.5, governmentDebt: 45.0, stability: 78.2 },
+        { name: "3", population: 57.0, productivity: 91.3, priceLevel: 69.6, governmentDebt: 56.0, stability: 69.5 },
+        { name: "4", population: 81.0, productivity: 74.8, priceLevel: 59.2, governmentDebt: 29.0, stability: 81.6 },
+        { name: "5", population: 50.0, productivity: 68.2, priceLevel: 55.7, governmentDebt: 31.0, stability: 72.8 },
+        { name: "6", population: 48.0, productivity: 86.1, priceLevel: 65.4, governmentDebt: 27.0, stability: 84.3 },
+        { name: "7", population: 58.0, productivity: 71.5, priceLevel: 57.8, governmentDebt: 34.0, stability: 63.7 },
+        { name: "8", population: 30.0, productivity: 77.9, priceLevel: 60.6, governmentDebt: 22.0, stability: 88.1 },
+        { name: "9", population: 32.0, productivity: 89.2, priceLevel: 67.3, governmentDebt: 49.0, stability: 70.6 },
+        { name: "10", population: 37.0, productivity: 62.7, priceLevel: 53.9, governmentDebt: 18.0, stability: 75.9 },
+    ];
 
     return (
         <div className='dashboard'>
@@ -266,24 +234,24 @@ export const Dashboard = ({userData: userData}: any) => {
                 <StatCard label='Months governed' stat='TODO' supporting='About stat/12 simulated years'></StatCard>
             </div>
             <div>
-                    Btn
-                    <button onClick={() => getTokens()}> Get tokens</button>
-                    <button onClick={() => closeConnection()}> Close Connection</button>
-                  </div>
-                  <div>
-                    <p>
-                      Current round {
-                        socketRef.current?.readyState === WebSocket.OPEN
-                          ? currentMonth
-                          : "Connection not open"
-                      }
-                    </p>
-                    <button onClick={() => playRound()}>
-                      {
-                        currentMonth === totalRounds && currentMonth != 0 ? "Finish Game" : "Advance Round"
-                      }
-                    </button>
-                  </div>
+                Btn
+                <button onClick={() => getTokens()}> Get tokens</button>
+                <button onClick={() => closeConnection()}> Close Connection</button>
+                </div>
+                <div>
+                <p>
+                    Current round {
+                    socketRef.current?.readyState === WebSocket.OPEN
+                        ? currentMonth
+                        : "Connection not open"
+                    }
+                </p>
+                <button onClick={() => playRound()}>
+                    {
+                    currentMonth === totalRounds && currentMonth != 0 ? "Finish Game" : "Advance Round"
+                    }
+                </button>
+            </div>
 
             <div className='previous_games'>
                 <div className='chart_container'>
@@ -313,11 +281,11 @@ export const Dashboard = ({userData: userData}: any) => {
                         <p className='recent_games_text'>Recent games</p>
                         <p className='view_all'>View all</p>
                     </div>
-                    <RecentGame type='SUCCESS'/>
-                    <RecentGame type='INFORMATION'/>
-                    <RecentGame type='WARNING'/>
-                    <RecentGame type='SUCCESS'/>
-                    <RecentGame type='FAILURE'/>
+                    <RecentGame content='Completed' type='SUCCESS'/>
+                    <RecentGame content='Update av.' type='INFORMATION'/>
+                    <RecentGame content='In Progress' type='WARNING'/>
+                    <RecentGame content='Completed' type='SUCCESS'/>
+                    <RecentGame content='Abandoned' type='FAILURE'/>
                 </div>
             </div>
             <div className='previous_games'>

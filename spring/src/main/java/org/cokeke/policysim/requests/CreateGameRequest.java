@@ -1,3 +1,3 @@
 package org.cokeke.policysim.requests;
 
-public record CreateGameRequest(String stateName, int rounds) {}
+public record CreateGameRequest(String stateId, int rounds) {}

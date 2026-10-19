@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router';
+import { Outlet, useNavigate } from 'react-router';
 import '../styles/Home.css';
 import lightLogo from '../assets/Policy_Sim_Logo_Light_PNG.png';
 import NavBarItem from '../shared/NavBarItem';
@@ -47,11 +47,11 @@ const Home = () => {
     <div className='home_container'>
       <div className='left_nav_bar'>
         <div className='logoBlock'>
-            <img src={lightLogo} className='logoImg'/>
-            <div>
-              <p className='main'>POLICYSIM</p>
-              <p className='supporting'>Build. Govern. Prosper.</p>
-            </div>
+          <img src={lightLogo} className='logoImg'/>
+          <div>
+            <p className='main'>POLICYSIM</p>
+            <p className='supporting'>Build. Govern. Prosper.</p>
+          </div>
         </div>
         <NavBarItem onClick={() => setActiveStep(0)} step={0} current_step={activeStep} iconPath={homeIcon} main_text='Dashboard'/>
         <NavBarItem onClick={() => setActiveStep(1)} step={1} current_step={activeStep} iconPath={gameIcon} main_text='My Games' />
@@ -87,11 +87,11 @@ const Home = () => {
           </div>
         </div>
         <div className='active_component'>
+          <Outlet/>
           {(() => {
             switch(activeStep) {
               case 0:
                 return <Dashboard/>
-
               case 1:
                 return <MyGames/>
               case 2:

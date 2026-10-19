@@ -1,0 +1,23 @@
+.difficultyCardComponent {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 14px;
+    min-height: 40px;
+    width: 200px;
+    text-align: left;
+    border-radius: 12px;
+    background: #FFFFFF;         /* --bg-surface */
+    border: 1px solid #E4E4E7;   /* --line */
+    margin: 1px;                 /* makes up for the thicker selected border */
+    cursor: pointer;
+}
+
+.difficulty_sub {
+    margin: 4px 0 0;
+    font-size: var(--text-small);
+    color: var(--text-muted);
+    text-wrap: wrap;
+    max-width: 180px;
+}

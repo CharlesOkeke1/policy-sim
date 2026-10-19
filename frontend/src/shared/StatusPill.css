@@ -2,10 +2,20 @@
     display: flex;
     justify-content: center;
     align-items: center;
-
-    border-radius: 15px;
-    height: 15px;
-    width: 90px;
+    border-radius: var(--radius-xxl);
+    height: var(--text-body);
+    min-width: 90px;
     padding: 5px;
-    border: 1px solid black;
+}
+
+.state_card_stat_label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted); 
+}
+
+.state_card_stat_value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-secondary); 
 }

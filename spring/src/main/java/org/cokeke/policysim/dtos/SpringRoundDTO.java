@@ -15,5 +15,17 @@ public record SpringRoundDTO(
     double taxRate,
     double spendingShare,
     double investmentShare,
-    double transferShare
-) {} 
+    double transferShare,
+    double output,
+    double outputGap,
+    double unemployment,
+    double federalTax,
+    double allocation,
+    double spending,
+    double transfers,
+    double interest,
+    String policy,
+    double resourcePrice,
+    double netWorth,
+    double federalTaxShare
+) {}

@@ -8,4 +8,5 @@ public record TickResult(World next, MonthReport report) {
     }
 
     public World getWorld() { return this.next; }
+    public MonthReport getMonthReport() { return this.report; }
 }

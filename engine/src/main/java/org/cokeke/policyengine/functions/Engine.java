@@ -1,5 +1,6 @@
 package org.cokeke.policyengine.functions;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -13,8 +14,8 @@ import org.cokeke.policyengine.models.MonthReport;
 import org.cokeke.policyengine.models.Policy;
 import org.cokeke.policyengine.models.PolicyId;
 import org.cokeke.policyengine.models.PriceResult;
-import org.cokeke.policyengine.models.RoundData;
 import org.cokeke.policyengine.models.SimConfig;
+import org.cokeke.policyengine.models.SpringRoundDTO;
 import org.cokeke.policyengine.models.StateEconomy;
 import org.cokeke.policyengine.models.StateFlows;
 import org.cokeke.policyengine.models.StateId;
@@ -48,16 +49,33 @@ public final class Engine {
         return initConfig;
     }
 
-    public RoundData getRound() {
+    public List<SpringRoundDTO> getRound() {
         TickResult result = tick(currentState.getWorld(), SeedingEngine.randomPolicies(currentState.getWorld().seed()),
         currentState.getConfig());
 
-        List<StateEconomy> economies = result.getWorld().getStatesList();
+        Map<StateId, StateEconomy> economies = result.getWorld().states();
         FederalEconomy fed = result.getWorld().federal();
         int currentMonth = result.getWorld().getMonth();
+        Map<StateId, StateFlows> flows = result.getMonthReport().states();
+
+        List<SpringRoundDTO> roundOut = new ArrayList<>();
 
         this.currentState.setWorld(result.getWorld());
-        return new RoundData(economies, fed, currentMonth);
+
+        for (StateId id : flows.keySet()) {
+            StateFlows flow = flows.get(id);
+            StateEconomy economy = economies.get(id);
+            SpringRoundDTO out = new SpringRoundDTO(currentMonth, id.toString(), economy.name(), economy.population(), 
+            economy.productivity(), economy.publicCapital(), economy.priceLevel(), economy.lastInflation(),
+            economy.householdWealth(), economy.governmentDebt(), economy.stability(), economy.taxRate(),
+            economy.spendingShare(), economy.investmentShare(), economy.transferShare(), flow.output(), 
+            flow.outputGap(), flow.unemployment(), flow.federalTax(), flow.allocation(), flow.spending(),
+            flow.transfers(), flow.interest(), flow.policy().toString(), fed.resourcePrice(), fed.netWorth(), fed.federalTaxShare());
+
+            roundOut.add(out);
+        }
+
+        return roundOut;        
     }
 
     public double getProgress(int total) {
