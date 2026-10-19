@@ -4,9 +4,10 @@ import AuthenticatedLayout from './layouts/AuthenticatedLayout';
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import SignUp from "./pages/SignUp";
-import { NewGame } from "./components/NewGame";
-import { MyGames } from "./components/MyGames";
-import { Dashboard } from "./components/Dashboard";
+// import { NewGame } from "./components/NewGame";
+// import { MyGames } from "./components/MyGames";
+// import { Dashboard } from "./components/Dashboard";
+import { GameInterface } from "./pages/GameInterface";
 
 export default function AppRoutes() {
   return (
@@ -25,6 +26,7 @@ export default function AppRoutes() {
           <Route path="my-games" element={<MyGames/>}/>
           <Route path="dashboard" element={<Dashboard/>}/> */}
         </Route>
+        <Route path="/game" element={<GameInterface/>}/>
       </Route>
     </Routes>
   );

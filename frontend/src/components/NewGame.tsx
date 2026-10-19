@@ -156,7 +156,7 @@ export const NewGame = () => {
                 </div>
               </div>
               <div className='seed_container'>
-                <p style={{fontSize: '14px', color: 'var(--text-secondary)'}}>Seed</p>
+                <p style={{fontSize: '14px', color: 'var(--text-secondary)'}}>Seed (1-1000)</p>
                 <div className='seed_row'>
                   <div className='seed_input_container'>
                     <input 
@@ -183,26 +183,26 @@ export const NewGame = () => {
             <div className='chosen_state_container'>
               <div className='state_initials'>
                 <p style={{fontWeight: 'var(--weight-semibold)'}}>
-                  { chosenState?.initials }
+                  { chosenState ? chosenState?.initials : "N/A"}
                 </p>
               </div>
               <div>
                 <p className='chosen_state_name'>
-                  { chosenState?.name }
+                  { chosenState ? chosenState?.name : "N/A"}
               </p>
                 <p className='chosen_state_diff'>
-                  { chosenState?.luck }
+                  { chosenState ? chosenState?.luck : "N/A"}
                 </p>
               </div>
             </div>
             <div className='your_game_summary_item'>
               <p>Difficulty</p>
-              <p>{ chosenDifficulty?.difficulty }</p>
+              <p>{ chosenDifficulty ? chosenDifficulty?.difficulty : "N/A" }</p>
               
             </div>
             <div className='your_game_summary_item'>
               <p>Length</p>
-              <p>240 months · 20 years</p>
+              <p>{chosenLength*12} months · {chosenLength} years</p>
             </div>
             <div className='your_game_summary_item'>
               <p>Rivals</p>

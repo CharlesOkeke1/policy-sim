@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router';
 import '../styles/Home.css';
 import lightLogo from '../assets/Policy_Sim_Logo_Light_PNG.png';
@@ -7,7 +7,6 @@ import homeIcon from '../assets/home.svg';
 import gameIcon from '../assets/game.svg';
 import addIcon from '../assets/add.svg';
 import trophyIcon from '../assets/trophy.svg';
-import compareIcon from '../assets/compare.svg';
 import notificationIcon from '../assets/notification.svg';
 import dropdownIcon from '../assets/dropdown.svg';
 import settingsIcon from '../assets/settings.svg';
@@ -21,7 +20,7 @@ import { Settings } from '../components/Settings';
 const Home = () => {
   const router = useNavigate();
   const [user, setUser] = useState<any>();
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeStep, setActiveStep] = useState(Number(sessionStorage.getItem("active_step")) | 0);
 
   useEffect(() => {
     if (sessionStorage.getItem("authToken") == null) {
@@ -42,6 +41,11 @@ const Home = () => {
       setUser(response.result);
     })
   }
+
+  function pushActiveStep(step: number) {
+    setActiveStep(step);
+    sessionStorage.setItem("active_step", JSON.stringify(step))
+  }
   
   return (
     <div className='home_container'>
@@ -53,11 +57,11 @@ const Home = () => {
             <p className='supporting'>Build. Govern. Prosper.</p>
           </div>
         </div>
-        <NavBarItem onClick={() => setActiveStep(0)} step={0} current_step={activeStep} iconPath={homeIcon} main_text='Dashboard'/>
-        <NavBarItem onClick={() => setActiveStep(1)} step={1} current_step={activeStep} iconPath={gameIcon} main_text='My Games' />
-        <NavBarItem onClick={() => setActiveStep(2)} step={2} current_step={activeStep} iconPath={addIcon} main_text='Play New Game' />
-        <NavBarItem onClick={() => setActiveStep(3)} step={3} current_step={activeStep} iconPath={trophyIcon} main_text='Global Rankings' />
-        <NavBarItem onClick={() => setActiveStep(4)} step={4} current_step={activeStep} iconPath={settingsIcon} main_text='Settings' />
+        <NavBarItem onClick={() => pushActiveStep(0)} step={0} current_step={activeStep} iconPath={homeIcon} main_text='Dashboard'/>
+        <NavBarItem onClick={() => pushActiveStep(1)} step={1} current_step={activeStep} iconPath={gameIcon} main_text='My Games' />
+        <NavBarItem onClick={() => pushActiveStep(2)} step={2} current_step={activeStep} iconPath={addIcon} main_text='Play New Game' />
+        <NavBarItem onClick={() => pushActiveStep(3)} step={3} current_step={activeStep} iconPath={trophyIcon} main_text='Global Rankings' />
+        <NavBarItem onClick={() => pushActiveStep(4)} step={4} current_step={activeStep} iconPath={settingsIcon} main_text='Settings' />
       </div>
       <div className='main_app'>
         <div className='header'>

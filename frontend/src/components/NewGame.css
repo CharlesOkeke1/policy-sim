@@ -138,6 +138,11 @@
     font-weight: var(--weight-semibold);
     text-decoration: none;
     box-shadow: 0 6px 16px rgba(17,18,20,0.18);
+    cursor: pointer;
+}
+
+.startGameBtnContainer * {
+    cursor: pointer;
 }
 
 .button_supporting {
@@ -172,7 +177,7 @@
 
 .length_container {
     width: 55%;
-    margin-top: 15px;
+    margin-top: 25px;
 }
 
 .custom_length { 
@@ -183,6 +188,7 @@
     width: 37%;
     display: flex;
     flex-direction: column;
+    gap: var(--gap-sm);
     align-items: flex-start;
 }
 
