@@ -1,6 +1,6 @@
 import './StatusPill.css';
 
-export type PillType = 'SUCCESS' | 'FAILURE' | 'INFORMATION' | 'WARNING';
+export type PillType = 'SUCCESS' | 'FAILURE' | 'INFORMATION' | 'WARNING' | 'NULL';
 
 
 interface PillProps {

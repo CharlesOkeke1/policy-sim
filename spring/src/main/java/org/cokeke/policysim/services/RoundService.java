@@ -30,7 +30,7 @@ public class RoundService {
         double investmentShare, double transferShare, double output, double outputGap,
         double unemployment, double federalTax, double allocation, double spending,
         double transfers, double interest, String policy, double federalResourcePrice,
-        double nationalNetWorth, double federalTaxShare) {
+        double nationalNetWorth, double federalTaxShare, double roundScore, int roundRank) {
         
         Game game = gameRepo.findById(gameId).orElse(null);
         if (game == null) {
@@ -39,7 +39,7 @@ public class RoundService {
         Round round = new Round(currentMonth, stateId, stateName, population, productivity, publicCapital, priceLevel, lastInflation, householdWealth,
             governmentDebt, stability, taxRate, spendingShare, investmentShare, transferShare, game, output, outputGap,
             unemployment, federalTax, allocation, spending, transfers, interest, policy, federalResourcePrice,
-            nationalNetWorth, federalTaxShare);
+            nationalNetWorth, federalTaxShare, roundScore, roundRank);
         return roundRepo.save(round);
     }
 
@@ -74,7 +74,7 @@ public class RoundService {
             r.publicCapital(), r.priceLevel(), r.lastInflation(), r.householdWealth(), r.governmentDebt(),
             r.stability(), r.taxRate(), r.spendingShare(), r.investmentShare(), r.transferShare(), game, r.output(),
             r.outputGap(), r.unemployment(), r.federalTax(), r.allocation(), r.spending(), r.transfers(), r.interest(),
-            r.policy(), r.resourcePrice(), r.netWorth(), r.federalTaxShare());
+            r.policy(), r.resourcePrice(), r.netWorth(), r.federalTaxShare(), r.roundScore(), r.roundRank());
 
             roundRepo.save(round);
         }
@@ -93,7 +93,8 @@ public class RoundService {
             round.getProductivity(), round.getPublicCapital(), round.getPriceLevel(), 
             round.getLastInflation(), round.getHouseholdWealth(), round.getGovernmentDebt(), 
             round.getStability(), round.getTaxRate(), round.getSpendingShare(), 
-            round.getInvestmentShare(), round.getTransferShare());
+            round.getInvestmentShare(), round.getTransferShare(), round.getRoundScore(),
+            round.getRoundRank());
 
             out.add(rwg);
         }

@@ -20,7 +20,7 @@ import { Settings } from '../components/Settings';
 const Home = () => {
   const router = useNavigate();
   const [user, setUser] = useState<any>();
-  const [activeStep, setActiveStep] = useState(Number(sessionStorage.getItem("active_step")) | 0);
+  const [activeStep, setActiveStep] = useState(Number(sessionStorage.getItem("active_step")) ?? 0);
 
   useEffect(() => {
     if (sessionStorage.getItem("authToken") == null) {

@@ -6,14 +6,20 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.cokeke.policyengine.functions.Engine;
+import org.cokeke.policyengine.functions.GameRanking;
+import org.cokeke.policyengine.models.FinishGameDTO;
 import org.cokeke.policyengine.models.GameConfig;
+import org.cokeke.policyengine.models.RankedOutput;
 import org.cokeke.policyengine.models.SpringRoundDTO;
+import org.cokeke.policyengine.models.StateId;
 import org.cokeke.policyengine.models.SpringUploadData;
 import org.cokeke.policysimcontracts.GameContractClaims;
 import org.cokeke.policysimcontracts.GameContractService;
@@ -26,6 +32,7 @@ public class RequestService {
     private final ObjectMapper mapper = new ObjectMapper();
     private Engine engine;
     public GameConfig gameConfig;
+    private Map<String, List<Double>> scoresMap = new HashMap<>();
     List<SpringRoundDTO> pendingUpdates = new ArrayList<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
@@ -47,7 +54,10 @@ public class RequestService {
                 getProgress();
                 
             case "FINISH_GAME" -> 
-                finishGame();
+                finishGame(payload);
+            
+            case "SAVE_GAME" ->
+                saveGame();
 
             default ->
                 throw new IllegalArgumentException(
@@ -68,10 +78,11 @@ public class RequestService {
         int seed = payload.get("game").get("seed").asInt();
         
         int rounds = payload.get("game").get("noOfRounds").asInt();
+        String difficulty = payload.get("game").get("difficulty").asText();
         String token = payload.get("authToken").asText();
 
         this.engine = new Engine(seed);
-        this.gameConfig = new GameConfig(1, rounds, claims.gameId(), seed, token);
+        this.gameConfig = new GameConfig(0, rounds, claims.gameId(), seed, token, difficulty);
 
         if (!schedulerStarted) {
             scheduler.scheduleAtFixedRate(
@@ -92,7 +103,26 @@ public class RequestService {
         
         gameConfig.setCurrentMonth(rounds.get(0).currentMonth());
         pendingUpdates.addAll(rounds);
+
+        for (SpringRoundDTO round : rounds) {
+            if (scoresMap.containsKey(round.stateId())) {
+                List<Double> scores = scoresMap.get(round.stateId());
+                scores.add(round.roundScore());
+                scoresMap.put(round.stateId(), scores);
+            } else {
+                List<Double> scores = new ArrayList<>();
+                scores.add(round.roundScore());
+                scoresMap.put(round.stateId(), scores);
+            }
+        }
         return rounds;
+    }
+
+    public String saveGame() {
+        if (!pendingUpdates.isEmpty()) {
+            pushToSpring();
+        }
+        return "Game saved Successfully";
     }
 
     /**
@@ -100,19 +130,25 @@ public class RequestService {
      * 
      * @return
      */
-    private String finishGame() {
+    private String finishGame(JsonNode payload) {
         Long gameId = gameConfig.getGameId();
+        String stateId = payload.get("stateId").asText();
+        RankedOutput rankedState = GameRanking.rank(scoresMap, stateId);
+
+        double score = rankedState.score();
+        int rank = rankedState.rank();
         
         String api = "http://localhost:8080/api/games/" + gameId;
         if (!pendingUpdates.isEmpty()) {
             pushToSpring();
         }
         try {
+            String body = mapper.writeValueAsString(new FinishGameDTO(score, rank));
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(api))
                 .header("Authorization", "Bearer " + this.gameConfig.getAuthToken())
                 .header("Content-Type", "application/json")
-                .PUT(HttpRequest.BodyPublishers.noBody())
+                .PUT(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
             System.out.println("FINISH GAME [PUT]=>" + api + " at " + LocalDateTime.now());
@@ -128,6 +164,7 @@ public class RequestService {
             throw new IllegalArgumentException("Payload doesnt meet requirements");
         }  
     }
+
     /**
      * Function should be called every minute using the batched queue
     */

@@ -29,7 +29,7 @@ export const NewGame = () => {
   const [activeLength, setActiveLength] = useState<number>(0);
   const [chosenLength, setChosenLength] = useState(0);
   const [seed, setSeed] = useState(0);
-
+  const [luckColor, setLuckColor] = useState("");
 
   useEffect(() => {
     getStatesPreview();
@@ -40,6 +40,22 @@ export const NewGame = () => {
     setChosenState(statesList[activeState]);
     setChosenDifficulty(difficultyList[activeDifficulty]);
   }, [statesList, activeState, difficultyList, activeDifficulty]);
+
+  useEffect(() => {
+    switch (chosenState?.luck) {
+      case "Strong start": 
+        setLuckColor("var(--status-good)");
+        break;
+      case "Even start": 
+        setLuckColor("var(--status-warn)");
+        break;
+      case "Tough start": 
+        setLuckColor("var(--status-bad)");
+        break;
+      default:
+        setLuckColor("");
+    }
+  }, [chosenState]);
 
   async function getStatesPreview() {
     const api = "http://localhost:8080/api/games/states";
@@ -57,7 +73,6 @@ export const NewGame = () => {
       setStatesList(data.result);
     })
   }
-
 
   async function getDifficulty() {
     const api = "http://localhost:8080/api/games/difficulty";
@@ -81,6 +96,18 @@ export const NewGame = () => {
     setSeed(s);
   }
 
+  function startGame() {
+    router("/game", {
+      state: {
+        seed: seed,
+        state: chosenState,
+        difficulty: chosenDifficulty?.difficulty,
+        noOfRounds: chosenLength * 12,    
+        noOfStates: statesList.length
+      }
+    });
+  }
+
   return (
     <div className='newgame'>
       <div className='dashboard_row'>
@@ -99,8 +126,7 @@ export const NewGame = () => {
                 <p className='new_game_step_number'>01</p>
                 <p className='chart_header'>Choose your city</p>
               </div>
-              <p className='chart_sub_header'>Each city starts with its own economy. 
-                <a style={{fontWeight: 'var(--weight-semibold)'}}>These baseline values represent the state's initial conditions before seeding.</a></p>
+              <p className='chart_sub_header' style={{fontWeight: 'var(--weight-medium)'}}>Each city has its own baseline economic conditions</p>
             </div>
 
             <div className='states'>
@@ -165,7 +191,7 @@ export const NewGame = () => {
                     value={seed}
                     onChange={(event) => {
                       const val = event.target.value;
-                      setSeed(Number(val));
+                      setSeed(Number(val.trim()));
                     }}
                     />
                   </div>
@@ -190,7 +216,7 @@ export const NewGame = () => {
                 <p className='chosen_state_name'>
                   { chosenState ? chosenState?.name : "N/A"}
               </p>
-                <p className='chosen_state_diff'>
+                <p className='chosen_state_diff' style={{color: luckColor}}>
                   { chosenState ? chosenState?.luck : "N/A"}
                 </p>
               </div>
@@ -198,7 +224,6 @@ export const NewGame = () => {
             <div className='your_game_summary_item'>
               <p>Difficulty</p>
               <p>{ chosenDifficulty ? chosenDifficulty?.difficulty : "N/A" }</p>
-              
             </div>
             <div className='your_game_summary_item'>
               <p>Length</p>
@@ -212,7 +237,7 @@ export const NewGame = () => {
               <p>Seed</p>
               <p>{seed}</p>
             </div>
-            <div className='startGameBtnContainer'>
+            <div className='startGameBtnContainer' onClick={() => startGame()}>
               <button className='startGameBtn'>
                 <p>Start Game</p>
               </button>

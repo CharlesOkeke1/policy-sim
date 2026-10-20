@@ -98,6 +98,12 @@ public class Round {
     @Column(nullable = false)
     private double federalTaxShare;
 
+    @Column(nullable = false)
+    private double roundScore;
+
+    @Column(nullable = false)
+    private int roundRank;
+
     @ManyToOne
     @JoinColumn(name = "game_id", nullable = false)
     private Game game;
@@ -131,6 +137,8 @@ public class Round {
     public double getFederalResourcePrice() { return this.federalResourcePrice; }
     public double getNationalNetWorth() { return this.nationalNetWorth; }
     public double getFederalTaxShare() { return this.federalTaxShare; }
+    public double getRoundScore() { return roundScore; }
+    public int getRoundRank() { return roundRank; }
 
     public void setCurrentMonth(int currentMonth) { this.currentMonth = currentMonth; }
     public void setGame(Game game) { this.game = game; }
@@ -143,7 +151,7 @@ public class Round {
              double investmentShare, double transferShare, Game game, double output, double outputGap,
              double unemployment, double federalTax, double allocation, double spending,
              double transfers, double interest, String policy, double federalResourcePrice,
-             double nationalNetWorth, double federalTaxShare) {
+             double nationalNetWorth, double federalTaxShare, double score, int rank) {
         this.currentMonth = currentMonth;
         this.stateId = stateId;
         this.stateName = stateName;
@@ -172,5 +180,7 @@ public class Round {
         this.nationalNetWorth = nationalNetWorth;
         this.federalTaxShare = federalTaxShare;
         this.game = game;
+        this.roundScore = score;
+        this.roundRank = rank;
     }
 }

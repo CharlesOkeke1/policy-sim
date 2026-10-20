@@ -143,7 +143,7 @@ public final class SeedingEngine {
                 1.0, c.inflationTarget(),       // priceLevel, lastInflation
                 debt, debt,                     // householdWealth = governmentDebt
                 stability,
-                taxRate, spendingShare, investment, transfers);
+                taxRate, spendingShare, investment, transfers, 0, 0);
     }
 
     /** Runs the real engine on HOLD so stocks settle; month and history are discarded. */
@@ -155,8 +155,10 @@ public final class SeedingEngine {
         }
         SortedMap<StateId, StateEconomy> settled = new TreeMap<>();
         for (StateEconomy s : world.states().values()) {
-            // Keep the settled stocks; restore the seeded stability (burn-in is not played history)
-            settled.put(s.id(), s.withStability(states.get(s.id()).stability()).withCurrentMonth(0));
+            // Keep the settled stocks; restore the seeded stability and clear the burn-in rank
+            // (burn-in is not played history)
+            settled.put(s.id(), s.withStability(states.get(s.id()).stability()).withCurrentMonth(0)
+                    .withRoundAndScore(0, 0));
         }
         return Collections.unmodifiableSortedMap(settled);
     }

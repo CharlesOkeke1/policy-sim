@@ -2,28 +2,46 @@ import './RecentGame.css';
 import { StatusPill, type PillType } from './StatusPill';
 
 interface RecentGameProps {
-    type: PillType;
     content: string;
+    name: string;
+    currentMonth: number;
+    totalRounds: number;
+    startDate: string;
+    score: string
 }
 
-export const RecentGame = ({type, content}: RecentGameProps) => {
-    /**
-     * stateIcon will take game.stateName.substring(0,3);
-     * stateName takes game.stateName;
-     * game_date_and_progress will take currentRound/totalRounds and start date (day and month)
-     * score will take a variable (yet to be added) game.score
-     * type 
-     */
+
+export const RecentGame = ({content, name, currentMonth, totalRounds, 
+    startDate, score
+}: RecentGameProps) => {
+    let type: PillType = 'NULL';
+
+    switch(content) {
+        case "Completed":
+            type = "SUCCESS";
+            break;
+        case "In progress":
+            type = "WARNING";
+            break;
+        case "Abandoned":
+            type = "FAILURE";
+            break;
+        case "Information":
+            type = "INFORMATION";
+            break;
+
+    }
+
     return (
         <div className='recentGameComponent'>
             <div className='stateIcon'>
-                <p>Lon</p>
+                <p>{name.substring(0,3)}</p>
             </div>
             <div className='game_state_name_block'>
-                <p className='stateName'>London</p>
-                <p className='game_date_and_progress'>Month 240/240 · 16 Oct</p>
+                <p className='stateName'>{name}</p>
+                <p className='game_date_and_progress'>Month {currentMonth} / {totalRounds} · {startDate}</p>
             </div>
-            <p className='score'>88.4</p>
+            <p className='score'>{score}</p>
             <StatusPill content={content} type={type}/>
         </div>
     )

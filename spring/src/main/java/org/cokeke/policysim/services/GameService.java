@@ -1,7 +1,6 @@
 package org.cokeke.policysim.services;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 
 import org.cokeke.policysim.dtos.StatePreview;
@@ -35,9 +34,9 @@ public class GameService {
         this.roundSvc = roundSvc;
     }
 
-    public Game createGame(String stateName, Long userId, int totalRounds) {
+    public Game createGame(String stateName, Long userId, int totalRounds, int seed, String difficulty) {
         User user = userService.getUserById(userId);
-        Game game = new Game(stateName, user, totalRounds);
+        Game game = new Game(stateName, user, totalRounds, seed, difficulty);
         return repo.save(game);
     }
 
@@ -68,7 +67,7 @@ public class GameService {
         return rounds;
     }
 
-    public Game finishGame(Long gameId) {
+    public Game finishGame(Long gameId, double score, int rank) {
         Game game = repo.findById(gameId).orElse(null);
         if (game == null) {
             throw new GameNotFoundException("Game not found");
@@ -76,10 +75,19 @@ public class GameService {
 
         game.setCompleted(true);
         game.setEndDate(Instant.now());
+        game.setScore(score);
+        game.setRank(rank);
         return repo.save(game);
     }
 
     public List<StatePreview> getStates() {
         return this.STATES;
     } 
+
+    public String getStateName(String stateId) {
+        StatePreview state = this.STATES.stream().filter(s -> s.id().equals(stateId)).findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("State not found"));
+
+        return state.name();
+    }
 }

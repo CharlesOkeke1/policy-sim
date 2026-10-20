@@ -6,6 +6,8 @@
     height: var(--text-body);
     min-width: 90px;
     padding: 5px;
+    font-size: 14px;
+    font-weight: var(--weight-medium);
 }
 
 .state_card_stat_label {

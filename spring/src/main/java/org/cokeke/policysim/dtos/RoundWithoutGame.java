@@ -16,5 +16,7 @@ public record RoundWithoutGame(
         double taxRate,
         double spendingShare,
         double investmentShare,
-        double transferShare
+        double transferShare,
+        double roundScore,
+        int roundRank
 ) {}

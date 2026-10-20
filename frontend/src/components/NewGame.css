@@ -68,15 +68,15 @@
     align-items: center;
     gap: 14px;
     padding: 16px;
-    background: #FAFAFA;
-    border: 1px solid #E4E4E7;
+    background: var(--bg-footer);
+    border: 1px solid var(--line);
     border-radius: 12px;
 }
 
 .your_game {
     flex: 1 1 320px;
     min-width: 0;
-    width: 100%;
+    width: 23%;
     padding: var(--padding-lg) var(--padding-xl);
     background: #FFFFFF;
     border: 1px solid #E4E4E7;
@@ -84,6 +84,7 @@
     display: flex;
     gap: var(--gap-10);
     flex-direction: column;
+    position: fixed;
 }
 
 .state_initials {

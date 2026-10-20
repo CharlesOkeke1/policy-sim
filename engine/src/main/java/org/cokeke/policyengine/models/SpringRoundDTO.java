@@ -27,7 +27,9 @@ public record SpringRoundDTO(
     String policy,
     double resourcePrice,
     double netWorth,
-    double federalTaxShare
+    double federalTaxShare,
+    double roundScore,
+    int roundRank
     ) {
 
     public SpringRoundDTO(StateEconomy state, StateFlows sFlows, FederalEconomy fed) {
@@ -58,7 +60,9 @@ public record SpringRoundDTO(
             sFlows.policy().toString(),
             fed.resourcePrice(),
             fed.netWorth(),
-            fed.federalTaxShare()
+            fed.federalTaxShare(),
+            state.roundScore(),
+            state.roundRank()
         );
     }
 }

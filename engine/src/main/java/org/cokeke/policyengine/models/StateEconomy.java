@@ -21,7 +21,11 @@ public record StateEconomy(
     double taxRate,
     double spendingShare,
     double investmentShare,
-    double transferShare
+    double transferShare,
+
+    // Rank
+    double roundScore,
+    int roundRank
 ) {
     public StateEconomy {
         Objects.requireNonNull(id, "ID cannot be null");
@@ -35,6 +39,7 @@ public record StateEconomy(
         Checks.finite(p + "householdWealth", householdWealth);
         Checks.finite(p + "governmentDebt", governmentDebt);
         Checks.inRange(p + "stability", stability, 0, 100);
+        Checks.inRange(p + "roundScore", roundScore, 0, 100);
         checkLever(p, taxRate, Lever.TAX_RATE);
         checkLever(p, spendingShare, Lever.SPENDING_SHARE);
         checkLever(p, investmentShare, Lever.INVESTMENT_SHARE);
@@ -57,41 +62,47 @@ public record StateEconomy(
 
     public StateEconomy withLever(Lever lever, double value) {
         return switch (lever) {
-            case TAX_RATE -> new StateEconomy(id, name,  currentMonth, population, productivity, publicCapital, priceLevel, lastInflation, householdWealth, governmentDebt, stability, value, spendingShare, investmentShare, transferShare);
-            case SPENDING_SHARE -> new StateEconomy(id, name,  currentMonth, population, productivity, publicCapital, priceLevel, lastInflation, householdWealth, governmentDebt, stability, taxRate, value, investmentShare, transferShare);
-            case INVESTMENT_SHARE -> new StateEconomy(id, name,  currentMonth, population, productivity, publicCapital, priceLevel, lastInflation, householdWealth, governmentDebt, stability, taxRate, spendingShare, value, transferShare);
-            case TRANSFER_SHARE -> new StateEconomy(id, name,  currentMonth, population, productivity, publicCapital, priceLevel, lastInflation, householdWealth, governmentDebt, stability, taxRate, spendingShare, investmentShare,value);
-            case DEBT -> new StateEconomy(id,name, currentMonth, population ,productivity ,publicCapital ,priceLevel ,lastInflation ,householdWealth ,value ,stability ,taxRate ,spendingShare ,investmentShare ,transferShare);
+            case TAX_RATE -> new StateEconomy(id, name,  currentMonth, population, productivity, publicCapital, priceLevel, lastInflation, householdWealth, governmentDebt, stability, value, spendingShare, investmentShare, transferShare, roundScore, roundRank);
+            case SPENDING_SHARE -> new StateEconomy(id, name,  currentMonth, population, productivity, publicCapital, priceLevel, lastInflation, householdWealth, governmentDebt, stability, taxRate, value, investmentShare, transferShare, roundScore, roundRank);
+            case INVESTMENT_SHARE -> new StateEconomy(id, name,  currentMonth, population, productivity, publicCapital, priceLevel, lastInflation, householdWealth, governmentDebt, stability, taxRate, spendingShare, value, transferShare, roundScore, roundRank);
+            case TRANSFER_SHARE -> new StateEconomy(id, name,  currentMonth, population, productivity, publicCapital, priceLevel, lastInflation, householdWealth, governmentDebt, stability, taxRate, spendingShare, investmentShare,value, roundScore, roundRank);
+            case DEBT -> new StateEconomy(id,name, currentMonth, population ,productivity ,publicCapital ,priceLevel ,lastInflation ,householdWealth ,value ,stability ,taxRate ,spendingShare ,investmentShare ,transferShare, roundScore, roundRank);
         };
     }
 
     public StateEconomy withAccounts(double newHouseholdWealth, double newGovernmentDebt) {
         return new StateEconomy(id, name, currentMonth, population, productivity, publicCapital, priceLevel, lastInflation,
                 newHouseholdWealth, newGovernmentDebt, stability,
-                taxRate, spendingShare, investmentShare, transferShare);
+                taxRate, spendingShare, investmentShare, transferShare, roundScore, roundRank);
     }
 
     public StateEconomy withSupply(double newPopulation, double newProductivity, double newPublicCapital) {
         return new StateEconomy(id, name, currentMonth, newPopulation, newProductivity, newPublicCapital, priceLevel, lastInflation,
                 householdWealth, governmentDebt, stability,
-                taxRate, spendingShare, investmentShare, transferShare);
+                taxRate, spendingShare, investmentShare, transferShare, roundScore, roundRank);
     }
 
     public StateEconomy withPrices(double newPriceLevel, double newLastInflation) {
         return new StateEconomy(id, name, currentMonth, population, productivity, publicCapital, newPriceLevel, newLastInflation,
                 householdWealth, governmentDebt, stability,
-                taxRate, spendingShare, investmentShare, transferShare);
+                taxRate, spendingShare, investmentShare, transferShare, roundScore, roundRank);
     }
 
     public StateEconomy withStability(double newStability) {
         return new StateEconomy(id, name, currentMonth, population, productivity, publicCapital, priceLevel, lastInflation,
                 householdWealth, governmentDebt, newStability,
-                taxRate, spendingShare, investmentShare, transferShare);
+                taxRate, spendingShare, investmentShare, transferShare, roundScore, roundRank);
     }
 
     public StateEconomy withCurrentMonth(int newMonth) {
         return new StateEconomy(id, name, newMonth, population, productivity, publicCapital, priceLevel, lastInflation,
                 householdWealth, governmentDebt, stability,
-                taxRate, spendingShare, investmentShare, transferShare);
+                taxRate, spendingShare, investmentShare, transferShare, roundScore, roundRank);
+    }
+
+    public StateEconomy withRoundAndScore(double score, int rank) {
+        return new StateEconomy(id, name, currentMonth, population, productivity, publicCapital, priceLevel, lastInflation,
+                householdWealth, governmentDebt, stability,
+                taxRate, spendingShare, investmentShare, transferShare, score, rank);
     }
 }

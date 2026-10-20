@@ -70,7 +70,8 @@ public final class Engine {
             economy.householdWealth(), economy.governmentDebt(), economy.stability(), economy.taxRate(),
             economy.spendingShare(), economy.investmentShare(), economy.transferShare(), flow.output(), 
             flow.outputGap(), flow.unemployment(), flow.federalTax(), flow.allocation(), flow.spending(),
-            flow.transfers(), flow.interest(), flow.policy().toString(), fed.resourcePrice(), fed.netWorth(), fed.federalTaxShare());
+            flow.transfers(), flow.interest(), flow.policy().toString(), fed.resourcePrice(), fed.netWorth(), fed.federalTaxShare(),
+            economy.roundScore(), economy.roundRank());
 
             roundOut.add(out);
         }
@@ -144,7 +145,11 @@ public final class Engine {
             states.put(s.id(), s.withCurrentMonth(month));
         }
         MonthReport report = buildReport(month, start, demand, fed, prices, applied, resourceRevenue);
-        World next = new World(month, world.seed(), states, fed.next(), world.baseline());
+
+        // 12. Ranking (needs the report's flows, so it runs after phase 11)
+        Map<StateId, StateEconomy> ranked = RankingPhase.rank(start, states, report.states(), config);
+
+        World next = new World(month, world.seed(), ranked, fed.next(), world.baseline());
         return new TickResult(next, report);
     }
 

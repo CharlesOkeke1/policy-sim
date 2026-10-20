@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { use, useEffect, useRef, useState } from 'react'
 import plusIcon from '../assets/add.svg';
 import dropdownIcon from '../assets/dropdown.svg';
 import './Dashboard.css';
@@ -33,33 +33,44 @@ export interface EconomyData {
     stability: number;
 }
 
+interface userIdInterface {
+    id?: number;
+}
+
 //Should take user as prop
-export const Dashboard = ({userData: userData}: any) => {
-    const socketRef = useRef<WebSocket | null>(null);
-    const [currentMonth, setCurrentMonth] = useState(0);
-    const [totalRounds, setTotalRounds] = useState(0);
-    const [gameData, setGameData] = useState<any>({});
-    const [user, setUser] = useState<any>();
-
-    useEffect(() => {
-        
-        const socket = new WebSocket("ws://localhost:8081");
-        socketRef.current = socket;
-    
-        socket.addEventListener("open", () => {
-          console.log("Connected to engine");
-        });
-    
-        socket.addEventListener("message", (event) => {
-          console.log("Engine server output =>", JSON.parse(event.data));
-        });
-      }, [])
-
+export const Dashboard = ({id}: userIdInterface) => {
+    const [userGames, setUserGames] = useState<any[]>();
+    const router = useNavigate();
     const outcomes = [
         { name: 'Completed', value: 12 },
         { name: 'In Progress', value: 2 },
         { name: 'Abandoned', value: 3 },
     ];
+
+    useEffect(() => {
+        getUserData();
+    }, []);
+
+    async function getUserData() {
+        const api = `http://localhost:8080/api/users${sessionStorage.getItem("userId")}/games`;
+
+        await fetch(api, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
+            }
+        })
+        .then((res) => {
+            return res.json();
+        })
+        .then((data) => {
+            setUserGames(data.result);
+            console.log(data.result);
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+    }
 
     const bars = [
         { name: '#1', count: 4},
@@ -72,124 +83,15 @@ export const Dashboard = ({userData: userData}: any) => {
         { name: '#8', count: 0},
     ];
 
+    function formatDate(date: string): string {
+        return new Date(date).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            timeZone: "UTC"
+        });
+    }
+
     const COLORS = ['#16A34A', '#D97706', '#EF4444'];
-
-    async function createGame() {
-        const payload = {
-            stateId: "london",
-            rounds: 50
-        };
-
-        try {
-        const res = await fetch("http://localhost:8080/api/games", {
-            method: "POST",
-            headers: {
-                //"credentials": "include",
-                "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) {
-            throw new Error(`Game creation failed: ${res.status}`);
-        }
-
-        const data = await res.json();
-        setGameData(data.result);
-        setUser(data.result.game.user);
-        setTotalRounds(data.result.game.noOfRounds);
-
-        const initData = {
-            ...data.result, 
-            authToken: sessionStorage.getItem("authToken")
-        }
-
-        oneTest("INITIALIZE_SESSION", initData);
-        } catch (error) {
-        console.error(error);
-        }
-    }
-
-    function oneTest(type: string, data: any) {
-        const socket = socketRef.current;
-
-        if (!socket) {
-            console.error("WebSocket has not been created");
-        return;
-        }
-
-        if (socket.readyState === WebSocket.CONNECTING) {
-        socket.addEventListener("open", () => {
-            socket.send(JSON.stringify({ type, payload: data }));
-        }, { once: true });
-        return;
-        }
-
-        if (socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ type, payload: data }));
-        return;
-        }
-
-        console.error("WebSocket is closed or closing:", socket.readyState);
-    }
-
-     async function getTokens() {
-        await fetch("http://localhost:8080/api/tokens", {
-        headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("authToken")}`
-        }
-        }).then((data) => {
-        console.log(data.json());
-        })
-    }
-
-    async function playRound() {
-        const socket = socketRef.current;
-
-        if (!socket || socket.readyState !== WebSocket.OPEN) {
-        console.error("WebSocket is not open");
-        return;
-        }
-
-        const res: any = await new Promise((resolve, reject) => {
-        socket.onmessage = (event) => {
-            resolve(JSON.parse(event.data));
-        };
-
-        socket.onerror = () => {
-            reject();
-        }
-
-        if (currentMonth < totalRounds) {
-            socket.send(JSON.stringify({
-            type: "GET_ROUND",
-            payload: null
-            }));
-        } else if (currentMonth === totalRounds) {
-            const payload = { gameId: gameData.game.id }
-            socket.send(JSON.stringify({
-            type: "FINISH_GAME",
-            payload: payload
-            }));
-        }
-        });
-        setCurrentMonth(res.data[0].currentMonth);
-        return res;
-    }
-
-
-    function closeConnection() {
-        const socket = socketRef.current;
-
-        if (!socket || socket.readyState !== WebSocket.OPEN) {
-        console.error("WebSocket is not open");
-        return;
-        }
-
-        socket.close();
-        console.log("Connection successfully closed");
-    }
 
     //Dummy data
     const data: EconomyData[] = [
@@ -205,6 +107,11 @@ export const Dashboard = ({userData: userData}: any) => {
         { name: "10", population: 37.0, productivity: 62.7, priceLevel: 53.9, governmentDebt: 18.0, stability: 75.9 },
     ];
 
+    function toNewGame() {
+        sessionStorage.setItem("current_step", JSON.stringify(2));
+        router("/home");
+    }
+
     return (
         <div className='dashboard'>
             <div className='dashboard_row'>
@@ -218,76 +125,69 @@ export const Dashboard = ({userData: userData}: any) => {
                         <input className='date_input' type='date'/>
                         <img src={dropdownIcon} className='date_icon'/>
                     </div>
-                    <div className='new_game_btn' onClick={() => createGame()}>
+                    <div className='new_game_btn' onClick={() => toNewGame()}>
                         <div className='icon_bg'>
                             <img src={plusIcon} className='plusIcon'/>
                         </div>
                         Start a new game
                     </div>
                 </div>
-
             </div>
+
             <div className='stats'>
-                <StatCard label='Games played' stat='TODO' supporting='Up 2 vs previous 30 days'></StatCard>
+                <StatCard label='Games played' stat={userGames?.length ?? "N/A"} supporting='Up 2 vs previous 30 days'></StatCard>
                 <StatCard label='Average score' stat='TODO' supporting='Up 4.3 vs previous 30 days'></StatCard>
                 <StatCard label='Finished ranked #1' stat='TODO' supporting='Up 1 vs previous 30 days'></StatCard>
                 <StatCard label='Months governed' stat='TODO' supporting='About stat/12 simulated years'></StatCard>
             </div>
-            <div>
-                Btn
-                <button onClick={() => getTokens()}> Get tokens</button>
-                <button onClick={() => closeConnection()}> Close Connection</button>
-                </div>
-                <div>
-                <p>
-                    Current round {
-                    socketRef.current?.readyState === WebSocket.OPEN
-                        ? currentMonth
-                        : "Connection not open"
-                    }
-                </p>
-                <button onClick={() => playRound()}>
-                    {
-                    currentMonth === totalRounds && currentMonth != 0 ? "Finish Game" : "Advance Round"
-                    }
-                </button>
-            </div>
 
             <div className='previous_games'>
                 <div className='chart_container'>
-                        <div>
-                            <p className='chart_header'>Final score and stability, by game</p>
-                            <p className='chart_sub_header'>Your last 12 games, oldest first. Both on a 0–100 scale.</p>
-                        </div>
-                        <div style={{ width: '100%', height: 300}}>
-                            <ResponsiveContainer>
-                                <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name"/>
-                                <YAxis />
-                                <Tooltip />
-                                <Legend />
-                                <Line type="monotone" name="Population" dataKey="population" stroke="#8884d8"/>
-                                <Line type="monotone" name="Productivity" dataKey="productivity" stroke="#82ca9d"/>
-                                <Line type="monotone" name="Price Level" dataKey="priceLevel" stroke="#ffc658"/>
-                                <Line type="monotone" name="Government Debt" dataKey="governmentDebt" stroke="#ff8042"/>
-                                <Line type="monotone" name="Stability" dataKey="stability" stroke="#0088fe"/>
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>    
+                    <div>
+                        <p className='chart_header'>Final score and stability, by game</p>
+                        <p className='chart_sub_header'>Your last 12 games, oldest first. Both on a 0–100 scale.</p>
+                    </div>
+                    <div style={{ width: '100%', height: 300}}>
+                        <ResponsiveContainer>
+                            <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name"/>
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Line type="monotone" name="Population" dataKey="population" stroke="#8884d8"/>
+                            <Line type="monotone" name="Productivity" dataKey="productivity" stroke="#82ca9d"/>
+                            <Line type="monotone" name="Price Level" dataKey="priceLevel" stroke="#ffc658"/>
+                            <Line type="monotone" name="Government Debt" dataKey="governmentDebt" stroke="#ff8042"/>
+                            <Line type="monotone" name="Stability" dataKey="stability" stroke="#0088fe"/>
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>    
                 </div>
                 <div className='recent_games'>
                     <div className='recent_games_header'>
                         <p className='recent_games_text'>Recent games</p>
                         <p className='view_all'>View all</p>
                     </div>
-                    <RecentGame content='Completed' type='SUCCESS'/>
-                    <RecentGame content='Update av.' type='INFORMATION'/>
-                    <RecentGame content='In Progress' type='WARNING'/>
-                    <RecentGame content='Completed' type='SUCCESS'/>
-                    <RecentGame content='Abandoned' type='FAILURE'/>
+                    {
+                        userGames ? 
+                        userGames.slice(0,5)?.map((game: any) => (
+                            <RecentGame
+                            content={game.completed ? "Completed" : "In progress"}
+                            name={game.stateName}
+                            currentMonth={game.rounds?.at(-1)?.currentMonth}
+                            totalRounds={game.noOfRounds}
+                            startDate={formatDate(game.startDate)}
+                            score={game.score ? game.score.toFixed(2) : "N/A"}
+                        />
+                        )) : 
+                        <div className='recent_games_container'>
+                            <p>No recent games to show</p>
+                        </div> 
+                    }                                       
                 </div>
             </div>
+
             <div className='previous_games'>
                 <div className='mini_stats_container'>
                     <div>
@@ -317,6 +217,7 @@ export const Dashboard = ({userData: userData}: any) => {
                     <RecentActivity main='Finished London, ranked #1' supporting='Final score 88.4' type='Completed' time='2h ago'/>
                 </div>
             </div>
+
             <div className='game_outcomes'>
                 <div>
                     <p className='chart_header'>Game outcomes</p>

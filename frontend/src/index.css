@@ -144,7 +144,7 @@
   --status-good: #15803D;
   --status-good-bg: rgba(21, 128, 61, 0.08);
   --status-warn: #B45309;
-  --status-warn-bg: rgba(180, 83, 9, 0.08);
+  --status-warn-bg: rgba(10, 10, 10, 0.08);
   --status-bad: #B91C1C;
   --status-bad-bg: rgba(185, 28, 28, 0.08);
   /* Pill border = status colour at ~27% alpha (append "44" to the hex) */

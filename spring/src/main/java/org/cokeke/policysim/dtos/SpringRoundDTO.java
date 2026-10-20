@@ -27,5 +27,7 @@ public record SpringRoundDTO(
     String policy,
     double resourcePrice,
     double netWorth,
-    double federalTaxShare
+    double federalTaxShare,
+    double roundScore,
+    int roundRank
 ) {}

@@ -11,7 +11,9 @@ import org.cokeke.policysim.common.AuthContextHolder;
 import org.cokeke.policysim.models.Game;
 import org.cokeke.policysim.models.Round;
 import org.cokeke.policysim.requests.CreateGameRequest;
+import org.cokeke.policysim.requests.FinishGameRequest;
 import org.cokeke.policysim.responses.GameResponse;
+import org.cokeke.policysim.responses.GetUserGames;
 import org.cokeke.policysim.responses.GameSessionResponse;
 import org.cokeke.policysim.services.GameService;
 import org.cokeke.policysim.services.GameSessionService;
@@ -43,21 +45,22 @@ public class GameController {
         this.uSvc = uSvc;
     }
 
-    @GetMapping("/api/games/{userId}")
-    public ResponseEntity<ApiResponse<List<GameResponse>>> getUserGames(@PathVariable Long userId) {
+    @GetMapping("/api/users{userId}/games")
+    public ResponseEntity<ApiResponse<List<GetUserGames>>> getUserGames(@PathVariable Long userId) {
         List<Game> games = gameService.getUserGames(userId);
 
-        List<GameResponse> gameResponses = games.stream()
-                .map(game -> new GameResponse(game.getId(), game.getSeed(), game.getTotalRounds(), 
-                game.getStateId(), game.getStartDate(), game.getEndDate(), uSvc.userToUserResponse(game.getUser()), 
-                roundService.getRoundsWithoutGameObjectByGameId(game.getId()), game.isCompleted(), game.getScore(), game.getRank()))
+        List<GetUserGames> gameResponses = games.stream()
+                .map(game -> new GetUserGames(game.getId(), game.getSeed(), game.getTotalRounds(), 
+                gameService.getStateName(game.getStateId()), game.getStartDate(), game.getEndDate(),
+                 roundService.getRoundsWithoutGameObjectByGameId(game.getId()), game.isCompleted(), game.getScore(), 
+                game.getRank(), game.getDifficulty()))
                 .toList();
         return ResponseEntity.ok(ApiResponse.ok(gameResponses));
     }
 
     @PostMapping("/api/games")
     public ResponseEntity<ApiResponse<GameSessionResponse>> createGame(@RequestBody CreateGameRequest req) {
-        Game game = gameService.createGame(req.stateId(), holder.getCurrentUserId(), req.rounds());
+        Game game = gameService.createGame(req.stateId(), holder.getCurrentUserId(), req.rounds(), req.seed(), req.difficulty());
         List<Round> rounds = new ArrayList<>();
 
         String contract = sessionService.getContractService().createContract(game.getUser().getId(), game.getId());
@@ -65,7 +68,7 @@ public class GameController {
         GameSessionResponse gameResponse = new GameSessionResponse(sessionId, contract,
             new GameResponse(game.getId(), game.getSeed(), game.getTotalRounds(), game.getStateId(), game.getStartDate(), 
             game.getEndDate(), uSvc.userToUserResponse(game.getUser()), roundService.roundListToRoundListWithoutGameObject(rounds), 
-            game.isCompleted(), game.getScore(), game.getRank()));
+            game.isCompleted(), game.getScore(), game.getRank(), game.getDifficulty()));
         ApiResponse<GameSessionResponse> body = ApiResponse.ok(201, gameResponse);
         return ResponseEntity
                 .created(URI.create("/api/games/" + gameResponse.sessionId()))
@@ -82,7 +85,7 @@ public class GameController {
             GameResponse res = new GameResponse(g.getId(), g.getSeed(), 
             g.getTotalRounds(), g.getStateId(), g.getStartDate(), g.getEndDate(),
             uSvc.userToUserResponse(g.getUser()), roundService.roundListToRoundListWithoutGameObject(gRounds), 
-            g.isCompleted(), g.getScore(), g.getRank());
+            g.isCompleted(), g.getScore(), g.getRank(), g.getDifficulty());
 
             out.add(res);
         }
@@ -92,12 +95,12 @@ public class GameController {
     
 
     @PutMapping("/api/games/{gameId}")
-    public ResponseEntity<ApiResponse<GameResponse>> finishGame(@PathVariable Long gameId) {
-        Game game = gameService.finishGame(gameId);
+    public ResponseEntity<ApiResponse<GameResponse>> finishGame(@PathVariable Long gameId, @RequestBody FinishGameRequest req) {
+        Game game = gameService.finishGame(gameId, req.score(), req.rank());
         List<Round> rounds = roundService.getRoundsByGameId(game.getId());
         GameResponse gameResponse = new GameResponse(game.getId(), game.getSeed(), game.getTotalRounds(), game.getStateId(), 
         game.getStartDate(), game.getEndDate(), uSvc.userToUserResponse(game.getUser()),
-        roundService.roundListToRoundListWithoutGameObject(rounds), game.isCompleted(), game.getScore(), game.getRank());
+        roundService.roundListToRoundListWithoutGameObject(rounds), game.isCompleted(), game.getScore(), game.getRank(), game.getDifficulty());
         return ResponseEntity.ok(ApiResponse.ok(gameResponse));
     }
 
@@ -109,7 +112,7 @@ public class GameController {
         }
         List<Round> rounds = roundService.getRoundsByGameId(game.getId());
         GameResponse gameResponse = new GameResponse(game.getId(), game.getSeed(), game.getTotalRounds(), game.getStateId(), game.getStartDate(), game.getEndDate(), uSvc.userToUserResponse(game.getUser()),
-        roundService.roundListToRoundListWithoutGameObject(rounds), game.isCompleted(), game.getScore(), game.getRank());
+        roundService.roundListToRoundListWithoutGameObject(rounds), game.isCompleted(), game.getScore(), game.getRank(), game.getDifficulty());
         return ResponseEntity.ok(ApiResponse.ok(gameResponse));
     }
 

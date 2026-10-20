@@ -44,6 +44,9 @@ public class Game {
     @Column(nullable = true)
     private int rank;                // 1-8 among the cities in this game and month
 
+    @Column(nullable = true)
+    private String difficulty; 
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -59,6 +62,7 @@ public class Game {
     public int getRank() { return this.rank; }
     public int getTotalRounds() { return this.totalRounds; }
     public User getUser() { return this.user; }
+    public String getDifficulty() { return this.difficulty; }
 
     public void setStateId(String stateName) { this.stateId = stateName; }
     public void setStartDate(Instant startDate) { this.startDate = startDate; }
@@ -66,11 +70,13 @@ public class Game {
     public void setCompleted(boolean completed) { this.completed = completed; }
     public void setUser(User user) { this.user = user; }
     public void setScore(double score) { this.score = score; }
+    public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
     public void setRank(int rank) { this.rank = rank; }
 
     protected Game() {}
 
-    public Game(String stateName, User user, int total) {
+    public Game(String stateName, User user, 
+        int total, int seed, String diff) {
         this.stateId = stateName;
         this.startDate = Instant.now();
         this.endDate = null;
@@ -79,6 +85,7 @@ public class Game {
         this.completed = false;
         this.user = user;
         this.totalRounds = total;
-        this.seed = GenerateSeed.getRandomSeed();
+        this.seed = seed;
+        this.difficulty = diff;
     }
 }

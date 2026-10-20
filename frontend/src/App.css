@@ -8,7 +8,11 @@
 html,
 body,
 #root {
-    font-family: var(--font-sans);
+  font-family: var(--font-sans);
+}
+
+::-webkit-scrollbar {
+  display: none;
 }
 
 button,
@@ -20,7 +24,7 @@ select {
 
 /* ==========================================================================
    PolicySim design tokens
-   Source of truth for the sign-up, My Games (dark + light) and Dashboard
+   Source of truth for the UI components
    mockups. Drop into src/styles/ and import once from index.css.
 
    Themes:
@@ -76,6 +80,7 @@ select {
   --button-height-md: 43px; /* sign-up submit */
   --button-height-sm: 36px; /* Resume / View report on cards */
 
+  --gap-xs: 6px;
   --gap-sm: 8px;
   --gap-10: 10px;
   --gap-md: 12px;
@@ -185,7 +190,7 @@ select {
   --status-warn: #B45309;
   --status-warn-bg: rgba(180, 83, 9, 0.08);
   --status-bad: #B91C1C;
-  --status-bad-bg: rgba(185, 28, 28, 0.08);
+  --status-bad-bg: rgba(7, 7, 7, 0.08);
   --status-info: #1D4ED8;
   --status-info-bg: rgba(29, 78, 216, 0.08);
   /* Pill border = status colour at ~27% alpha (append "44" to the hex) */
@@ -197,15 +202,7 @@ select {
    Two-series palette, checked for colour-blind separation on white.
    One axis only: never put inflation (%) on the 0-100 score axis.
    -------------------------------------------------------------------------- */
-:root,
-[data-theme="light"] {
-  --chart-1: #2563EB;        /* Score line, final-rank bars */
-  --chart-2: #EA580C;        /* Stability line */
-  --chart-empty: #E4E4E7;    /* zero-value bar stub */
-  --chart-line-width: 2px;
-  --chart-dot-radius: 4px;   /* with a 2px surface-coloured ring */
-  /* Donut segments use the status colours (Completed / In progress / Abandoned) */
-}
+
 
 
 /* --------------------------------------------------------------------------
