@@ -52,7 +52,7 @@ public final class GameContractService {
         this.lifetimeSeconds = lifetimeSeconds;
     }
 
-    public String createContract(Long userId, Long gameId) {
+    public SpringContractClaims createContract(Long userId, Long gameId) {
         if (userId == null || gameId == null) {
             throw new IllegalArgumentException(
                     "User ID and game ID are required"
@@ -61,7 +61,9 @@ public final class GameContractService {
 
         long now = Instant.now().getEpochSecond();
 
-        GameContractClaims claims = new GameContractClaims(UUID.randomUUID().toString(),
+        String contractId = UUID.randomUUID().toString();
+
+        GameContractClaims claims = new GameContractClaims(contractId,
         userId, gameId, issuer, audience, now, now + lifetimeSeconds);
 
         try {
@@ -73,8 +75,8 @@ public final class GameContractService {
                     sign(payload.getBytes(StandardCharsets.US_ASCII))
             );
 
-            // Format: payload.signature
-            return payload + "." + signature;
+            // Format: payload.signature, id
+            return new SpringContractClaims(payload + "." + signature, contractId);
 
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Could not serialize game contract", e);

@@ -1,0 +1,33 @@
+.economyStatComponent {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: var(--padding-sm) 0;
+    border-bottom: 1px solid #F0F0F2;
+    width: 100%;
+}
+
+.change_row {
+    display: flex;
+    align-items: center;
+    align-self: flex-end;
+    justify-content: center;
+    width: 25%;    
+}
+
+.left_side {
+    display: inline;
+    width: 56%;
+    color: var(--text-secondary);
+}
+
+.right_side {
+    width: 36%;
+    justify-content: space-between;
+    display: flex;
+    padding: 0;
+}
+
+.right_side p {
+    font-weight: var(--weight-medium);
+}

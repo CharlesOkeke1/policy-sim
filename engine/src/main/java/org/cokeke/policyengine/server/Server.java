@@ -83,6 +83,14 @@ public class Server extends WebSocketServer {
     @Override
     public void onError(WebSocket conn, Exception ex) {
         ex.printStackTrace();
+
+        if (conn != null) {
+            RequestService service = new RequestService(contractService);
+
+            if (service != null) {
+                service.cleanUp();
+            }
+        }
     }
 
     public static void main(String[] args) {

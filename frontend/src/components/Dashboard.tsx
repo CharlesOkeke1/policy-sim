@@ -22,7 +22,7 @@ import {
 } from 'recharts';
 import { PieChartLegend } from '../shared/PieChartLegend';
 import { RecentActivity } from '../shared/RecentActivity';
-import { useNavigate } from 'react-router';
+import { customFetch } from '../utils/FetchWrapper';
 
 export interface EconomyData {
     name: string;
@@ -33,14 +33,13 @@ export interface EconomyData {
     stability: number;
 }
 
-interface userIdInterface {
-    id?: number;
-}
+// interface userIdInterface {
+//     id: number;
+// }
 
 //Should take user as prop
-export const Dashboard = ({id}: userIdInterface) => {
+export const Dashboard = () => {
     const [userGames, setUserGames] = useState<any[]>();
-    const router = useNavigate();
     const outcomes = [
         { name: 'Completed', value: 12 },
         { name: 'In Progress', value: 2 },
@@ -50,26 +49,12 @@ export const Dashboard = ({id}: userIdInterface) => {
     useEffect(() => {
         getUserData();
     }, []);
+    
 
     async function getUserData() {
-        const api = `http://localhost:8080/api/users${sessionStorage.getItem("userId")}/games`;
-
-        await fetch(api, {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
-            }
-        })
-        .then((res) => {
-            return res.json();
-        })
-        .then((data) => {
-            setUserGames(data.result);
-            console.log(data.result);
-        })
-        .catch((error) => {
-            console.error(error);
-        });
+        const api = `http://localhost:8080/api/users/${sessionStorage.getItem("userId")}/games`;
+        const res: any = await customFetch({method: "GET", url: api});
+        setUserGames(res.result);
     }
 
     const bars = [
@@ -108,8 +93,7 @@ export const Dashboard = ({id}: userIdInterface) => {
     ];
 
     function toNewGame() {
-        sessionStorage.setItem("current_step", JSON.stringify(2));
-        router("/home");
+        sessionStorage.setItem("active_step", JSON.stringify(2));
     }
 
     return (
@@ -170,7 +154,7 @@ export const Dashboard = ({id}: userIdInterface) => {
                         <p className='view_all'>View all</p>
                     </div>
                     {
-                        userGames ? 
+                        userGames?.length ? 
                         userGames.slice(0,5)?.map((game: any) => (
                             <RecentGame
                             content={game.completed ? "Completed" : "In progress"}

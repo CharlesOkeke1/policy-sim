@@ -7,8 +7,8 @@ interface LengthEl {
     onClick: () => void;
 }
 
-type Length = {
-  color: string;
+export type Length = {
+  color?: string;
   fontWeight: string;
   bgColor: string;
 }

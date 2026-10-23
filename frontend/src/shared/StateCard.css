@@ -15,15 +15,22 @@
     width: 200px;
     text-align: left;
     border-radius: 12px;
-    background: #FFFFFF;         /* --bg-surface */
-    border: 1px solid #E4E4E7;   /* --line */
-    margin: 1px;                 /* makes up for the thicker selected border */
+    background: #FFFFFF;        
+    border: 1px solid #E4E4E7;  
+    margin: 1px;                 
     cursor: pointer;
 }
 
-.state_card_header_text   { font-size: 15px; font-weight: 600; color: #111214; }
+.state_card_header_text   { 
+    font-size: 15px; 
+    font-weight: 600; 
+    color: #111214; 
+}
 
-.state_difficulty  { font-size: 12px; font-weight: 500; }  /* green #15803D / amber #B45309 / red #B91C1C */
+.state_difficulty  { 
+    font-size: 12px; 
+    font-weight: 500; 
+}  
 
 .circular_checkbox {
     appearance: none;

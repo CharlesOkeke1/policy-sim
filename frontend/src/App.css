@@ -11,6 +11,11 @@ body,
   font-family: var(--font-sans);
 }
 
+body {
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
 ::-webkit-scrollbar {
   display: none;
 }
@@ -28,9 +33,13 @@ select {
    mockups. Drop into src/styles/ and import once from index.css.
 
    Themes:
-     :root                     -> dark app theme (default)
-     [data-theme="light"]      -> light app theme
+     :root                     -> light app theme (default)
+     [data-theme="dark"]       -> dark app theme
      .auth                     -> sign-up / sign-in pages (black and white)
+
+   Set the theme on <html>: document.documentElement.dataset.theme = 'dark'.
+   For light, set 'light' or remove the attribute; both give light.
+   The value must be lowercase: attribute selectors are case-sensitive.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
@@ -107,9 +116,69 @@ select {
 
 
 /* --------------------------------------------------------------------------
-   2. Dark app theme (My Games, dark) - default
+   2. Light app theme - default
    -------------------------------------------------------------------------- */
-:root {
+:root,
+[data-theme="light"] {
+  color-scheme: light;       /* native controls (scrollbars, date pickers) match */
+
+  /* Surfaces */
+  --bg-page: #F4F4F5;        /* page background, search field fill */
+  --bg-footer: #FAFAFA;      /* card footer strip, dashboard metric tiles */
+  --bg-surface: #FFFFFF;     /* cards, sidebar, header, panels */
+  --bg-inset: #F4F4F5;       /* city monogram square */
+  --bg-active: #E9E9EC;      /* active nav item, current page, avatar */
+
+  /* Lines */
+  --line: #E4E4E7;           /* all borders and dividers */
+  --line-strong: #E4E4E7;    /* card borders, progress track */
+  --line-control: #D4D4D8;   /* filter buttons, outlined buttons */
+  --line-emphasis: #D4D4D8;  /* monogram border, "View report" */
+  --line-subtle: #F0F0F2;    /* list row dividers on the dashboard */
+  --chart-grid: #EDEDF0;     /* chart gridlines */
+
+  /* Text */
+  --text-primary: #111214;   /* headings, values, active nav */
+  --text-secondary: #3F3F46; /* healthy indicator values, legend text */
+  --text-nav: #52525B;       /* inactive nav links, header icons */
+  --text-muted: #6B6B73;     /* labels, meta, dates */
+
+  /* Links */
+  --link: #111214;
+  --link-hover: #52525B;
+
+  /* Buttons */
+  --btn-primary-bg: #111214;   /* "New game", "Resume" */
+  --btn-primary-text: #FFFFFF;
+  --btn-secondary-border: #D4D4D8;
+  --btn-secondary-text: #3F3F46;
+  --logo-mark-bg: #111214;
+  --logo-mark-text: #FFFFFF;
+
+  /* Status: darker shades so text passes contrast on white */
+  --status-good: #15803D;            /* Completed, score up */
+  --status-good-bg: rgba(21, 128, 61, 0.08);
+  --status-warn: #B45309;            /* In progress, indicator outside healthy range */
+  --status-warn-bg: rgba(180, 83, 9, 0.08);
+  --status-bad: #B91C1C;             /* Abandoned, score down */
+  --status-bad-bg: rgba(185, 28, 28, 0.08);
+  --status-info: #1D4ED8;
+  --status-info-bg: rgba(29, 78, 216, 0.08);
+  /* Pill border = status colour at ~27% alpha (append "44" to the hex) */
+
+  /* Charts */
+  --chart-1: #2563EB;        /* Score line, final-rank bars */
+  --chart-2: #EA580C;        /* Stability line */
+  --chart-empty: #E4E4E7;    /* zero-value bar stub */
+}
+
+
+/* --------------------------------------------------------------------------
+   3. Dark app theme
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] {
+  color-scheme: dark;
+
   /* Surfaces, darkest to lightest */
   --bg-page: #121316;        /* page background */
   --bg-footer: #16171A;      /* card footer strip (date + action) */
@@ -122,6 +191,8 @@ select {
   --line-strong: #2A2B31;    /* card and summary-strip borders, progress track */
   --line-control: #34353C;   /* search + filter button borders */
   --line-emphasis: #3A3B42;  /* monogram border, outlined "View report" button */
+  --line-subtle: #202126;    /* list row dividers on the dashboard */
+  --chart-grid: #26272C;     /* chart gridlines */
 
   /* Text */
   --text-primary: #F5F5F5;   /* headings, values, active nav */
@@ -141,66 +212,30 @@ select {
   --logo-mark-bg: #F5F5F5;
   --logo-mark-text: #121316;
 
-  /* Status: pill text/border, pill fill, progress bar, deltas */
-  --status-good: #3DD68C;            /* Completed, score up */
+  /* Status: brighter shades so they read on charcoal */
+  --status-good: #3DD68C;
   --status-good-bg: rgba(61, 214, 140, 0.12);
-  --status-warn: #F0B04A;            /* In progress, indicator outside healthy range */
+  --status-warn: #F0B04A;
   --status-warn-bg: rgba(240, 176, 74, 0.12);
-  --status-bad: #F2776A;             /* Abandoned, score down */
+  --status-bad: #F2776A;
   --status-bad-bg: rgba(242, 119, 106, 0.12);
+  --status-info: #60A5FA;
+  --status-info-bg: rgba(96, 165, 250, 0.12);
   /* Pill border = status colour at ~33% alpha (append "55" to the hex) */
+
+  /* Charts: checked for colour-blind separation and contrast on #191A1E */
+  --chart-1: #3B82F6;
+  --chart-2: #EA580C;
+  --chart-empty: #2A2B31;
 }
 
 
 /* --------------------------------------------------------------------------
-   3. Light app theme (My Games light, Dashboard light)
-   -------------------------------------------------------------------------- */
-[data-theme="light"] {
-  --bg-page: #F4F4F5;        /* page background, search field fill */
-  --bg-footer: #FAFAFA;      /* card footer strip, dashboard metric tiles */
-  --bg-surface: #FFFFFF;     /* cards, sidebar, header, panels */
-  --bg-inset: #F4F4F5;       /* city monogram square */
-  --bg-active: #E9E9EC;      /* active nav item, current page, avatar */
-
-  --line: #E4E4E7;           /* all borders and dividers */
-  --line-strong: #E4E4E7;
-  --line-control: #D4D4D8;   /* filter buttons, outlined buttons */
-  --line-emphasis: #D4D4D8;
-  --line-subtle: #F0F0F2;    /* list row dividers on the dashboard */
-  --chart-grid: #EDEDF0;     /* chart gridlines */
-
-  --text-primary: #111214;
-  --text-secondary: #3F3F46; /* healthy indicator values, legend text */
-  --text-nav: #52525B;
-  --text-muted: #6B6B73;
-
-  --link: #111214;
-  --link-hover: #52525B;
-
-  --btn-primary-bg: #111214;   /* "New game", "Resume" */
-  --btn-primary-text: #FFFFFF;
-  --btn-secondary-border: #D4D4D8;
-  --btn-secondary-text: #3F3F46;
-  --logo-mark-bg: #111214;
-  --logo-mark-text: #FFFFFF;
-
-  /* Status: darker shades so text passes contrast on white */
-  --status-good: #15803D;
-  --status-good-bg: rgba(21, 128, 61, 0.08);
-  --status-warn: #B45309;
-  --status-warn-bg: rgba(180, 83, 9, 0.08);
-  --status-bad: #B91C1C;
-  --status-bad-bg: rgba(7, 7, 7, 0.08);
-  --status-info: #1D4ED8;
-  --status-info-bg: rgba(29, 78, 216, 0.08);
-  /* Pill border = status colour at ~27% alpha (append "44" to the hex) */
-}
-
-
-/* --------------------------------------------------------------------------
-   4. Charts (Dashboard)
-   Two-series palette, checked for colour-blind separation on white.
-   One axis only: never put inflation (%) on the 0-100 score axis.
+   4. Charts
+   Tokens live in each theme above. Rules for using them:
+   - One axis only: never put inflation (%) on the 0-100 score axis.
+   - Straight lines between games (type="linear"); games are discrete.
+   - Legend and tooltip text uses --text-secondary, not the series colour.
    -------------------------------------------------------------------------- */
 
 

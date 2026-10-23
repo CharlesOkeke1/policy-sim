@@ -6,6 +6,7 @@ import { DifficultyCard } from '../shared/DifficultyCard';
 import { useEffect, useState } from 'react';
 import { LengthElement } from '../shared/LengthElement';
 import diceIcon from '../assets/dice.svg';
+import { customFetch } from '../utils/FetchWrapper';
 
 type Length = {
   color: string;
@@ -27,7 +28,7 @@ export const NewGame = () => {
   const [chosenState, setChosenState] = useState<any>(null);
   const [chosenDifficulty, setChosenDifficulty] = useState<Difficulty>();
   const [activeLength, setActiveLength] = useState<number>(0);
-  const [chosenLength, setChosenLength] = useState(0);
+  const [chosenLength, setChosenLength] = useState(1);
   const [seed, setSeed] = useState(0);
   const [luckColor, setLuckColor] = useState("");
 
@@ -59,36 +60,14 @@ export const NewGame = () => {
 
   async function getStatesPreview() {
     const api = "http://localhost:8080/api/games/states";
-
-    fetch(api, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
-      }
-    })
-    .then((res) => {
-      return res.json();
-    })
-    .then((data) => {
-      setStatesList(data.result);
-    })
+    const res: any = await customFetch({method: "GET", url: api});
+    setStatesList(res.result);
   }
 
   async function getDifficulty() {
     const api = "http://localhost:8080/api/games/difficulty";
-
-    fetch(api, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${sessionStorage.getItem("authToken")}`
-      }
-    })
-    .then((res) => {
-      return res.json();
-    })
-    .then((data) => {
-      setDifficultyList(data.result);
-    })
+    const res: any = await customFetch({method: "GET", url: api});
+    setDifficultyList(res.result);
   }
 
   function generateRandomSeed() {

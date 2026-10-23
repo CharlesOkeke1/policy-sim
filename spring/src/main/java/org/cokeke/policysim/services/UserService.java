@@ -2,15 +2,16 @@ package org.cokeke.policysim.services;
 
 import java.util.List;
 
-import org.cokeke.policysim.common.TokenGenerator;
+import org.cokeke.policysim.dtos.LoginUserServiceRes;
 import org.cokeke.policysim.exceptions.InvalidCredentialsException;
 import org.cokeke.policysim.exceptions.LoginFailedException;
 import org.cokeke.policysim.exceptions.UserAlreadyExistsException;
 import org.cokeke.policysim.exceptions.UserNotFoundException;
+import org.cokeke.policysim.models.AppSession;
 import org.cokeke.policysim.models.User;
 import org.cokeke.policysim.repos.UserRepository;
+import org.cokeke.policysim.responses.LoginResponse;
 import org.cokeke.policysim.responses.UserResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,25 +19,24 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final UserRepository repo;
     private final PasswordEncoder encoder;
-    private final TokenGenerator tokenGenerator;
+    private final AppSessionService sessionSvc;
+    private final TokenService tokenSvc;
 
-    @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenGenerator tokenGenerator) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+        AppSessionService sessionSvc, TokenService tokenSvc
+    ) {
         this.repo = userRepository;
         this.encoder = passwordEncoder;
-        this.tokenGenerator = tokenGenerator;
+        this.sessionSvc = sessionSvc;
+        this.tokenSvc = tokenSvc;
     }
 
     public User createUser(String name, String email, String password) {
         User existingUser = repo.findByEmail(email).orElse(null);
 
         if (existingUser != null) {
-            throw new UserAlreadyExistsException("User with this email already exists");
+            throw new UserAlreadyExistsException("User with this username already exists");
         }
-
-        if (email == null) throw new IllegalArgumentException("Email is required");
-        if (name == null) throw new IllegalArgumentException("Name is required");
-        if (password == null) throw new IllegalArgumentException("Password is required");
 
         String passwordHash = encoder.encode(password.trim());
         User user = new User(email.trim().toLowerCase(), passwordHash, name);
@@ -91,14 +91,21 @@ public class UserService {
         repo.deleteById(id);
     }
 
-    public User loginUser(String email, String password) {
+    public LoginUserServiceRes loginUser(String email, String password, String ipAddress, String deviceInfo) {
         User user = repo.findByEmail(email).orElse(null);
 
         if (user == null || !encoder.matches(password, user.getHash())) {
             throw new LoginFailedException("Invalid username or password");
         }      
 
-        return user;
+        AppSession session = sessionSvc.createNewSession(user.getId(), ipAddress, deviceInfo);
+        return new LoginUserServiceRes(user, session);
+    }
+
+    public void logoutUser(String token, String refreshToken) {
+        User user = tokenSvc.getAuthenticatedUser(token);
+        tokenSvc.inalidateToken(token);
+        sessionSvc.revokeSession(refreshToken);
     }
 
     private User getUser(String email) {

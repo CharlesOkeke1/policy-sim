@@ -6,11 +6,15 @@ import org.cokeke.policysim.common.ApiResponse;
 import org.cokeke.policysim.models.Token;
 import org.cokeke.policysim.services.TokenService;
 import org.springframework.http.ResponseEntity;
+import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
+@Tag(name = "Tokens", description = "Handles all token operations for user authentication")
+
 public class TokenController {
     private final TokenService tokenService;
 

@@ -12,8 +12,14 @@ public class TokenGenerator {
         byte[] bytes = new byte[32];
         random.nextBytes(bytes);
 
-        return Base64.getUrlEncoder()
-                .withoutPadding()
-                .encodeToString(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    public static String generateRefreshToken() {
+        byte[] bytes = new byte[24]; 
+        random.nextBytes(bytes);
+
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 }
+

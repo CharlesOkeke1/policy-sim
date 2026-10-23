@@ -2,8 +2,10 @@ package org.cokeke.policysim.services;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import org.cokeke.policysim.dtos.StatePreview;
+import org.cokeke.policysim.dtos.Policy;
 import org.cokeke.policysim.exceptions.GameNotFoundException;
 import org.cokeke.policysim.exceptions.UserNotFoundException;
 import org.cokeke.policysim.models.Game;
@@ -28,6 +30,28 @@ public class GameService {
         new StatePreview("plymouth", "Plymouth", 0.26, 0.90, 60, "Tough start", "PLY")
     );
 
+    public static final List<Policy> POLICIES = List.of(
+        new Policy("Hold", "HOLD", 0.0, 0.0, "None"),
+        new Policy("Raise taxes", "RAISE_TAXES", -1.5, 1.0, "Tax rate"),
+        new Policy("Cut taxes", "CUT_TAXES", 1.0, -1.0, "Tax rate"),
+        new Policy("Expand spending", "EXPAND_SPENDING", 1.0, 5.0, "Spending"),
+        new Policy("Austerity", "AUSTERITY", -2.0, -5.0, "Spending"),
+        new Policy("Invest in infrastructure", "INVEST_INFRASTRUCTURE", 0.5, 5.0, "Investment"),
+        new Policy("Household support", "HOUSEHOLD_SUPPORT", 1.5, 1.0, "Transfer"),
+        new Policy("Debt restructuring", "DEBT_RESTRUCTURING", -3.0, -10.0, "Government debt")
+    );
+
+    private static final Map<String, String> STATES_MAP = Map.of(
+        "birmingham", "Birmingham",
+        "coventry", "Coventry",
+        "edinburgh", "Edinburgh",
+        "glasgow", "Glasgow",
+        "london", "London",
+        "manchester", "Manchester",
+        "milton-keynes", "Milton Keynes",
+        "plymouth", "Plymouth"
+    );
+
     public GameService(GameRepository gameRepository, UserService userService, RoundService roundSvc) {
         this.repo = gameRepository;
         this.userService = userService;
@@ -38,6 +62,13 @@ public class GameService {
         User user = userService.getUserById(userId);
         Game game = new Game(stateName, user, totalRounds, seed, difficulty);
         return repo.save(game);
+    }
+
+    public void saveGameContractId(Long gameId, String contractId) {
+        Game game = getGameById(gameId);
+        game.setContractId(contractId);
+
+        repo.save(game);
     }
 
     public Game getGameById(Long id) {
@@ -85,9 +116,10 @@ public class GameService {
     } 
 
     public String getStateName(String stateId) {
-        StatePreview state = this.STATES.stream().filter(s -> s.id().equals(stateId)).findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("State not found"));
+        return STATES_MAP.get(stateId);
+    }
 
-        return state.name();
+    public List<Policy> getPolicies() {
+        return POLICIES;
     }
 }

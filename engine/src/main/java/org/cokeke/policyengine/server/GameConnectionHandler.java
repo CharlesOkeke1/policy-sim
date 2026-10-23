@@ -1,8 +1,6 @@
 package org.cokeke.policyengine.server;
 
-import org.cokeke.policysimcontracts.GameContractClaims;
 import org.cokeke.policysimcontracts.GameContractService;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class GameConnectionHandler {

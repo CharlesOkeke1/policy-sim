@@ -3,7 +3,6 @@ package org.cokeke.policyengine.functions;
 import org.cokeke.policyengine.models.DemandResult;
 import org.cokeke.policyengine.models.SimConfig;
 import org.cokeke.policyengine.models.FederalEconomy;
-import org.cokeke.policyengine.models.SimConfig;
 import org.cokeke.policyengine.models.StateEconomy;
 import org.cokeke.policyengine.models.StateId;
 import org.cokeke.policyengine.models.World;

@@ -1,0 +1,64 @@
+.policyCardComponent {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: var(--padding-sm) var(--padding-lg);
+    min-height: 40px;
+    width: 200px;
+    text-align: left;
+    border-radius: 12px;
+    background: #FFFFFF;        
+    border: 1px solid #E4E4E7;  
+    margin: 1px;                 
+    cursor: pointer;
+}
+
+.policy_card_header {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.policy_card_header_text   { 
+    font-size: 15px; 
+    font-weight: 600; 
+    color: #111214; 
+}
+
+
+.circular_checkbox {
+    appearance: none;
+    width: 20px; 
+    height: 20px; 
+    flex: none; 
+    border-radius: 10px;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    box-sizing: border-box;
+}
+.circular_checkbox:checked {
+    background: #111214;
+    color: white;
+    border: 1px solid var(--line); 
+}
+
+.circular_checkbox:checked::after {
+    content: "✓";
+    color: white;
+    font-size: 14px;
+}
+
+.circular_container {
+    width: 20px; 
+    height: 20px; 
+    border-radius: 10px;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    border: 1px solid var(--line); 
+    box-sizing: border-box;
+}

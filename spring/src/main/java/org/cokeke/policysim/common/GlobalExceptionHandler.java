@@ -5,78 +5,46 @@ import org.cokeke.policysim.exceptions.LoginFailedException;
 import org.cokeke.policysim.exceptions.TokenExpiredException;
 import org.cokeke.policysim.exceptions.UserAlreadyExistsException;
 import org.cokeke.policysim.exceptions.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
     @ExceptionHandler(UserNotFoundException.class)
-    public ProblemDetail handleUserNotFound(UserNotFoundException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-            HttpStatus.NOT_FOUND, 
-            ex.getMessage()
-        );
-        
-        problemDetail.setTitle("User Not Found");
-        // problemDetail.setType(URI.create("https://policysim.com"));
-        // problemDetail.setInstance(URI.create("/api/users/login"));
-        
-        return problemDetail;
+    public ResponseEntity<ApiResponse<String>> handleUserNotFound(UserNotFoundException ex) {
+        return ResponseEntity
+            .status(HttpStatus.valueOf(400))
+            .body(ApiResponse.error(400, ex.getMessage()));
     }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ProblemDetail handleUserAlreadyExists(UserAlreadyExistsException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-            HttpStatus.CONFLICT, 
-            ex.getMessage()
-        );
-        
-        problemDetail.setTitle("User Already Exists");
-        // problemDetail.setType(URI.create("https://policysim.com"));
-        // problemDetail.setInstance(URI.create("/api/users/new"));
-        
-        return problemDetail;
+    public ResponseEntity<ApiResponse<String>>  handleUserAlreadyExists(UserAlreadyExistsException ex) {        
+        return ResponseEntity
+            .status(HttpStatus.valueOf(400))
+            .body(ApiResponse.error(400, ex.getMessage()));
     }
 
 
     @ExceptionHandler(GameNotFoundException.class)
-    public ProblemDetail handleGameNotFound(GameNotFoundException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-            HttpStatus.NOT_FOUND, 
-            ex.getMessage()
-        );
-        
-        problemDetail.setTitle("Game Not Found");
-        // problemDetail.setType(URI.create("https://policysim.com"));
-        // problemDetail.setInstance(URI.create("/api/games"));
-        
-        return problemDetail;
+    public ResponseEntity<ApiResponse<String>> handleGameNotFound(GameNotFoundException ex) {
+        return ResponseEntity
+            .status(HttpStatus.valueOf(400))
+            .body(ApiResponse.error(400, ex.getMessage()));
     }
 
     @ExceptionHandler(LoginFailedException.class)
     public ResponseEntity<ApiResponse<String>> handleLoginFailed(RuntimeException ex) {
-        log.warn("Login attempt failed", ex.getMessage());
         return ResponseEntity
             .status(HttpStatus.UNAUTHORIZED)
             .body(ApiResponse.error(401, ex.getMessage()));
     }
 
     @ExceptionHandler(TokenExpiredException.class)
-    public ProblemDetail handleTokenExpired(TokenExpiredException ex) {
-        ProblemDetail detail = ProblemDetail.forStatusAndDetail(
-            HttpStatusCode.valueOf(500),
-            "Token has expired"
-        );
-
-        detail.setTitle("Token Expired");
-        return detail;
+    public ResponseEntity<ApiResponse<String>> handleTokenExpired(TokenExpiredException ex) {
+        return ResponseEntity
+            .status(HttpStatus.valueOf(500))
+            .body(ApiResponse.error(500, ex.getMessage()));
     }
 }

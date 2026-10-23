@@ -1,30 +1,47 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import '../styles/Login.css';
 import lightLogo from '../assets/Policy_Sim_Logo_Light_PNG.png';
 
 import { useNavigate } from 'react-router';
 import { ButtonLoader } from '../shared/ButtonLoader';
+import getDeviceInfo from '../utils/GetDeviceInfo';
 
 interface LoginRequest {
     email: string;
     password: string;
+    ipAddress: string;
+    deviceInfo: string;
 }
 
 const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [submitted, setSubmitted] = useState(false);
-    const readyToPost = email.length > 0 && password.length > 0;
+    const [ip, setIp] = useState("");
+    const readyToPost = email.length > 0 && password.length > 0 && ip != "";
     const router = useNavigate();
+
+    useEffect(() => {
+        fetchUserIp().then((ip) => {
+            setIp(ip);
+        });
+    }, [])
+
+    async function fetchUserIp(): Promise<string> {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data: { ip: string } = await response.json();
+        return data.ip;
+    }
 
     function login() {
         const payload: LoginRequest = {
             email: email,
-            password: password
+            password: password,
+            ipAddress: ip,
+            deviceInfo: getDeviceInfo()
         };
 
         setSubmitted(true);
-
         const api = "http://localhost:8080/api/users/login";
 
             fetch(api, {
@@ -42,8 +59,11 @@ const Login = () => {
                 return response.json();
             })
             .then((data: any) => {
+                sessionStorage.clear();
                 sessionStorage.setItem("authToken", data.result.authToken);
                 sessionStorage.setItem("userId", data.result.id);
+                sessionStorage.setItem("expirytime", data.result.tokenExpirationTime);
+                sessionStorage.setItem("refreshToken", data.result.refreshToken);
                 router("/home");
             })
             .catch((error) => {

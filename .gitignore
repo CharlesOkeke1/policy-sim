@@ -46,6 +46,7 @@ bin/
 *.mv.db
 *.trace.db
 **/data/
+application.properties
 
 ### FrontEnd
 frontend/node_modules/

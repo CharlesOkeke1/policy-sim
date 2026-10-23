@@ -6,14 +6,36 @@ import downFillIcon from '../assets/caret-down-sharp-fill.svg';
 import calendarIcon from '../assets/calendar.svg';
 import { useLocation, useNavigate } from 'react-router';
 import { useEffect, useRef, useState } from 'react';
+import { YourEconomyStat } from '../shared/YourEconomyStat';
+import { ProgressBar } from '../shared/ProgressBar';
+import PolicyCard from '../shared/PolicyCard';
+import { customFetch } from '../utils/FetchWrapper';
 
 
+/**
+ *  GAME INITIALIZATION RRT STATS
+ *  Average Round-Trip Time (Mean): 31.73 ms
+ *  The p95 Percentile: 41.22 ms
+ *  Fastest Execution: 17.02 ms
+ *  Slowest Running Execution: 57.71 ms 
+ */
+
+/**
+ *  GAMEPLAY ROUNDS RTT STATS
+ *  Average Round-Trip Time (Mean): 1.29 ms
+ *  The p95 Percentile: 2.10 ms
+ *  The p99 Percentile: 2.42 ms
+ *  Fastest Execution: -0.19 ms
+ *  Slowest Running Execution: 2.47 ms
+ */
 
 export const GameInterface = () => {
     const router = useNavigate();    
     const [currentMonth, setCurrentMonth] = useState(0);
     const [totalRounds, setTotalRounds] = useState(0);
     const [roundData, setRoundData] = useState<any>(null);
+    const [policyList, setPolicyList] = useState<any[]>([]);
+    const [currentPolicy, setCurrentPolicy] = useState<any>(policyList[0]);
 
     const [userRoundData, setUserRoundData] = useState<any>(null);
     const [previousUserRoundData, setPreviousUserRoundData] = useState<any>(null);
@@ -26,6 +48,9 @@ export const GameInterface = () => {
     const [gameStarted, setGameStarted] = useState(false);
     const completion: string = userRoundData ? userRoundData.currentMonth/gameData.game.noOfRounds * 100 + "%" : "0%";
     const activeCaret = previousUserRoundData && userRoundData.roundScore > previousUserRoundData.roundScore ? upFillIcon : downFillIcon;
+    const [pingInterval, setPingInterval] = useState<ReturnType<typeof setInterval>>();
+    let gameInitTime = "";
+    let roundInitTime = "";
     
     useEffect(() => {
         const socket = new WebSocket("ws://localhost:8081");
@@ -36,20 +61,46 @@ export const GameInterface = () => {
         });
     }, []);
 
+    useEffect(() => {
+        const socket = socketRef.current;
+        setPingInterval(setInterval(() => {
+            pingServer(socket);  
+        }, 10000));
+    }, [])
+
+    useEffect(() => {
+        getPolicies();
+    }, []);
+
+    function pingServer(socket: WebSocket | null) {
+        const payload = { networkPing: "ping" };
+        socket?.send(JSON.stringify({
+            type: "PING_SERVER",
+            payload: payload
+        }));
+    }
 
     async function playRound() {
         setPreviousUserRoundData(userRoundData);
         const socket = socketRef.current;
 
+        roundInitTime = `${(new Date(Date.now())).toISOString()}`;
+
         if (!socket || socket.readyState !== WebSocket.OPEN) {
-        console.error("WebSocket is not open");
-        return;
+            console.error("WebSocket is not open");
+            return;
         }
 
         const res: any = await new Promise((resolve, reject) => {
         socket.onmessage = (event) => {
             resolve(JSON.parse(event.data));
+            if (currentMonth === totalRounds) {
+                // Response from FINISH_GAME
+                navToStep(0);
+                closeConnection();
+            }
         };
+
 
         socket.onerror = (event) => {
             console.error("Play round error", event);
@@ -58,7 +109,7 @@ export const GameInterface = () => {
 
         if (currentMonth < totalRounds) {
             socket.send(JSON.stringify({
-                type: "GET_ROUND",
+                type: "ADVANCE_ROUND",
                 payload: null
             }));
         } else if (currentMonth === totalRounds) {
@@ -67,17 +118,12 @@ export const GameInterface = () => {
                 type: "FINISH_GAME",
                 payload: payload
             }));
-            console.log("GAME FINISHED BLOCK")
         }
         });
-        setCurrentMonth(res.data[0].currentMonth);
-        setRoundData(res.data);
-        setUserRoundData(res.data.find((el: any) => el.stateId === userState.id));
-
-        if (currentMonth === totalRounds) {
-            console.log("CONNECTION CLOSED BLOCK")
-            closeConnection();
-        }
+        setCurrentMonth(res.data.result[0].currentMonth);
+        setRoundData(res.data.result);
+        calculateRRT(roundInitTime, res.data.responseTime);
+        setUserRoundData(res.data.result?.find((el: any) => el.stateId === userState.id));
         return res;
     }
 
@@ -90,6 +136,7 @@ export const GameInterface = () => {
         }
 
         socket.close();
+        clearInterval(pingInterval);
         console.log("Connection successfully closed");
     }
 
@@ -102,6 +149,7 @@ export const GameInterface = () => {
         };
 
         try {
+            gameInitTime = `${(new Date(Date.now())).toISOString()}`;
             const res = await fetch("http://localhost:8080/api/games", {
                 method: "POST",
                 headers: {
@@ -125,7 +173,7 @@ export const GameInterface = () => {
                 authToken: sessionStorage.getItem("authToken"),
             }
 
-            oneTest("INITIALIZE_SESSION", initData);
+            postToServer("INITIALIZE_SESSION", initData);
             setGameStarted(true);
         } catch (error) {
             console.error(error);
@@ -133,17 +181,34 @@ export const GameInterface = () => {
     }
 
     function saveGame() {
-        oneTest("SAVE_GAME", null);
-        sessionStorage.setItem("active_step", JSON.stringify(0));
-        router("/home");
+        postToServer("SAVE_GAME", null);
+        navToStep(0);
     }
 
-    function oneTest(type: string, data: any) {
+    async function getPolicies() {
+        const url = "http://localhost:8080/api/games/policies";
+        const res: any = await customFetch({method: "GET", url: url});
+        setPolicyList(res.result);
+    }
+
+    function calculateRRT(initTime: string, resTime: string) {
+        const resSeconds = resTime.split(":")[2].split("").filter((el) => el.toLowerCase() !== "z").join("");
+        const reqSeconds = initTime.split(":")[2].split("").filter((el) => el.toLowerCase() !== "z").join("");
+
+        console.log("Request to response time => ", (Number(resSeconds) - Number(reqSeconds))*1000, "ms");
+    }
+
+    function setPolicy(policyId: string) {
+        const policy = policyList.find((el) => el.policyId === policyId);
+        setCurrentPolicy(policy);
+    }
+
+    async function postToServer(type: string, data: any) {
         const socket = socketRef.current;
 
         if (!socket) {
-        console.error("WebSocket has not been created");
-        return;
+            console.error("WebSocket has not been created");
+            return;
         }
 
         if (socket.readyState === WebSocket.CONNECTING) {
@@ -154,16 +219,29 @@ export const GameInterface = () => {
         }
 
         if (socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ type, payload: data }));
-        return;
+            socket.send(JSON.stringify({ type, payload: data }));
+            socket.addEventListener("message", (e) => {
+                const res = JSON.parse(e.data);
+                if (res.type === "INITIALIZE_SESSION")  {
+                    calculateRRT(gameInitTime, res.data.responseTime);
+                }
+            });
+            return;
         }
 
         console.error("WebSocket is closed or closing:", socket.readyState);
     }
 
-    function backToNewGame() {
-        sessionStorage.setItem("current_step", JSON.stringify(2));
+
+    function navToStep(step: number) {
+        sessionStorage.setItem("active_step", JSON.stringify(step));
         router("/home");
+    }
+
+    function formatValue(num: number): string {
+        if (num > 0) return `+${num}`;
+
+        return `${num}`;
     }
 
     return (
@@ -230,14 +308,61 @@ export const GameInterface = () => {
                     </div>
                 </div>
                 <div className='main_game_int'>
-                    <div>
-                        <button onClick={() => playRound()}>
-                            <p>{ currentMonth === totalRounds ?
-                            "Finish the game" : "Play a goddamn round"}</p>
-                        </button>
-                    </div>
-                    <div>
+                    <div className='left_panel'>                            
+                        <div className='your_economy_display'>
+                            <p className='your_economy_header'>Your economy</p>
+                            <p className='your_economy_sub_header'>End of month {userRoundData?.currentMonth}, change on the month before.</p>
+                            <YourEconomyStat suffix='' value={userRoundData?.priceLevel} name='Price level' previous={previousUserRoundData?.priceLevel}/>
+                            <YourEconomyStat suffix='%' value={userRoundData?.lastInflation} name='Last Inflation' previous={previousUserRoundData?.lastInflation}/>
+                            <YourEconomyStat suffix='%' value={userRoundData?.unemployment} name='Unemployment' previous={previousUserRoundData?.unemployment}/>
+                            <YourEconomyStat suffix='' value={userRoundData?.output} name='Economic output' previous={previousUserRoundData?.output}/>
+                            <YourEconomyStat suffix='%' value={userRoundData?.stability} name='Stability' previous={previousUserRoundData?.stability}/>
+                            <YourEconomyStat suffix='' value={userRoundData?.governmentDebt} name='Government Debt' previous={previousUserRoundData?.governmentDebt}/>
+                        </div>
 
+                        <div className='your_economy_display'>
+                            <p className='your_economy_header'>Your levers</p>
+                            <p className='your_economy_sub_header'>Policies move these. Bars show where each sits in its allowed range.</p>
+                            <ProgressBar name='Tax Rate' current={userRoundData?.taxRate * 100} target={60} minimum={0}/>
+                            <ProgressBar name='Investment Share' current={userRoundData?.investmentShare * 100} target={100} minimum={0}/>
+                            <ProgressBar name='Transfer Share' current={userRoundData?.transferShare * 100} target={20} minimum={0}/>
+                            <ProgressBar name='Spending Share' current={userRoundData?.spendingShare * 100} target={50} minimum={0}/>
+                        </div>
+                        
+                    </div>
+                    <div className='center_panel'>
+                        <div className='choose_policy'>
+                            <div>
+                                <p className='your_economy_header'>Choose this month's policy</p>
+                                <p className='your_economy_sub_header'>One policy per month. It applies before the economy moves.</p>
+                            </div>
+                            <div className='policies'>
+                                {
+                                    policyList.map((policy: any) => (
+                                        <PolicyCard name={policy.name}  policyId={policy.policyId} effect={policy.policySpecificEffect}
+                                        effectOnStability={policy.effectOnStability} activePolicyId={currentPolicy?.policyId} affectedLever={policy.affectedLever}
+                                        onClick={() => setPolicy(policy.policyId)}/>                                    
+                                    ))
+                                }
+                            </div>
+                            <div className='policies_footer'>
+                                <div>
+                                    <div className='chosen_policy_row'>
+                                        <p>Selected Policy:</p>
+                                        <p style={{fontWeight: "var(--weight-medium)"}}>{currentPolicy?.name.toUpperCase()}</p>
+                                    </div>
+                                    <div className='chosen_policy_row'>
+                                        <p>Policy Effect: </p>
+                                        <p>{currentPolicy?.affectedLever} {formatValue(currentPolicy?.policySpecificEffect)}</p>
+                                    </div>
+                                </div>                                
+                                <button className='next_round' onClick={() => playRound()}>
+                                    { currentMonth === totalRounds ?
+                                        <p>Finish Game</p> : <p>Advance to Month {userRoundData?.currentMonth + 1}</p>
+                                    }
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div>
 
@@ -287,7 +412,7 @@ export const GameInterface = () => {
                                     <p>Start Game</p>
                                 </button>
                             </div>
-                            <a className='modal_button' onClick={() => backToNewGame()}> Change game configuration.</a>
+                            <a className='modal_button' onClick={() => navToStep(2)}> Change game configuration.</a>
                         </div>
                     </div>
                 </>

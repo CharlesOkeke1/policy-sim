@@ -6,7 +6,9 @@ import java.util.List;
 
 import org.cokeke.policysim.common.ApiResponse;
 import org.cokeke.policysim.dtos.Difficulty;
+import org.cokeke.policysim.dtos.Policy;
 import org.cokeke.policysim.dtos.StatePreview;
+import org.cokeke.policysimcontracts.SpringContractClaims;
 import org.cokeke.policysim.common.AuthContextHolder;
 import org.cokeke.policysim.models.Game;
 import org.cokeke.policysim.models.Round;
@@ -26,9 +28,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 
 @RestController
+@Tag(name = "Game", description = "Handles most game endpoints for mangaging user game data")
 public class GameController {
     private final GameService gameService;
     private final RoundService roundService;
@@ -45,7 +49,7 @@ public class GameController {
         this.uSvc = uSvc;
     }
 
-    @GetMapping("/api/users{userId}/games")
+    @GetMapping("/api/users/{userId}/games")
     public ResponseEntity<ApiResponse<List<GetUserGames>>> getUserGames(@PathVariable Long userId) {
         List<Game> games = gameService.getUserGames(userId);
 
@@ -63,9 +67,11 @@ public class GameController {
         Game game = gameService.createGame(req.stateId(), holder.getCurrentUserId(), req.rounds(), req.seed(), req.difficulty());
         List<Round> rounds = new ArrayList<>();
 
-        String contract = sessionService.getContractService().createContract(game.getUser().getId(), game.getId());
+        SpringContractClaims contractResult = sessionService.getContractService().createContract(game.getUser().getId(), game.getId());
         String sessionId = "Test" + game.getId();
-        GameSessionResponse gameResponse = new GameSessionResponse(sessionId, contract,
+        gameService.saveGameContractId(game.getId(), contractResult.contractId());
+
+        GameSessionResponse gameResponse = new GameSessionResponse(sessionId, contractResult.contract(),
             new GameResponse(game.getId(), game.getSeed(), game.getTotalRounds(), game.getStateId(), game.getStartDate(), 
             game.getEndDate(), uSvc.userToUserResponse(game.getUser()), roundService.roundListToRoundListWithoutGameObject(rounds), 
             game.isCompleted(), game.getScore(), game.getRank(), game.getDifficulty()));
@@ -128,5 +134,10 @@ public class GameController {
         new Difficulty("Normal", "Rivals react to inflation and debt, but not perfectly."), 
         new Difficulty("Hard", "Rivals read the numbers every month and rarely slip"));
         return ResponseEntity.ok(ApiResponse.ok(diffs));
+    }
+
+    @GetMapping("/api/games/policies")
+    public ResponseEntity<ApiResponse<List<Policy>>> getPolicies() {
+        return ResponseEntity.ok(ApiResponse.ok(gameService.getPolicies()));
     }
 }

@@ -18,8 +18,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
@@ -57,7 +55,8 @@ public class SecurityConfig {
                 .requestMatchers(
                     HttpMethod.POST,
                     "/api/users",
-                    "/api/users/login"
+                    "/api/users/login",
+                    "/api/users/refresh"
                 ).permitAll()
 
                 .requestMatchers(

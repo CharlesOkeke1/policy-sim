@@ -159,3 +159,106 @@
     display: flex;
     gap: 10px;
 }
+
+.userdrop_container {
+    position: absolute;
+    top: 68px;
+    right: 80px;
+    width: 288px;
+    box-sizing: border-box;
+    background: #FFFFFF;
+    padding: var(--padding-sm);
+    border: 1px solid #E4E4E7;
+    border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(17,18,20,0.14), 0 2px 6px rgba(17,18,20,0.06);
+    z-index: 50;
+}
+
+.userdrop_row {
+    padding: inherit;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 10px 14px;
+    border-bottom: 1px solid var(--line);
+}
+
+.userdrop_column {
+    padding: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 30%;
+    padding: 14px 10px;
+    border-bottom: 1px solid var(--line);
+}
+
+.userdrop_user_icon {
+    width: 40px;
+    height: 40px;
+    flex: none;
+    border-radius: 50%;
+    background: #111214;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.user_drop_username {
+    font-size: 13px;
+    color: #6B6B73;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user_drop_name {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.userdrop_profile {
+    display: flex;
+    width: 100%;
+    padding: 10px;
+    height: 100%;
+    align-items: center;
+    cursor: pointer;
+    gap: var(--gap-md);
+}
+
+.userdrop_profile:active {
+    background-color: var(--bg-active);
+}
+
+.theme_selector {
+    align-items: flex-start;
+    padding: 14px 0;
+    gap: var(--gap-xs);
+}
+
+.them_container {
+    display: inline-flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--padding-sm);
+    gap: 4px;
+    width: 90%;
+    height: 20px;
+    background: #F4F4F5;
+    border: 1px solid #E4E4E7;
+    border-radius: 12px;
+}
+
+.logout {
+    color: var(--status-bad);
+    cursor: pointer;
+}
+
+.logout:active {
+    background-color: var(--bg-active);
+}

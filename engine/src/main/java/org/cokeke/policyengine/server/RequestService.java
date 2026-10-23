@@ -5,21 +5,25 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.cokeke.policyengine.functions.Engine;
 import org.cokeke.policyengine.functions.GameRanking;
+import org.cokeke.policyengine.models.EngineServerResponse;
 import org.cokeke.policyengine.models.FinishGameDTO;
 import org.cokeke.policyengine.models.GameConfig;
 import org.cokeke.policyengine.models.RankedOutput;
 import org.cokeke.policyengine.models.SpringRoundDTO;
-import org.cokeke.policyengine.models.StateId;
 import org.cokeke.policyengine.models.SpringUploadData;
 import org.cokeke.policysimcontracts.GameContractClaims;
 import org.cokeke.policysimcontracts.GameContractService;
@@ -32,11 +36,13 @@ public class RequestService {
     private final ObjectMapper mapper = new ObjectMapper();
     private Engine engine;
     public GameConfig gameConfig;
-    private Map<String, List<Double>> scoresMap = new HashMap<>();
-    List<SpringRoundDTO> pendingUpdates = new ArrayList<>();
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final Map<String, List<Double>> scoresMap = new ConcurrentHashMap<>();
+    private final List<SpringRoundDTO> pendingUpdates = Collections.synchronizedList(new ArrayList<>());
 
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private boolean schedulerStarted = false;
+    private AtomicInteger heartbeatFailures = new AtomicInteger(0);
+    private static final int MAX_PING_FAILURES = 3;
 
     public RequestService(GameContractService contractService) {
         this.contractService = contractService;
@@ -47,7 +53,7 @@ public class RequestService {
             case "INITIALIZE_SESSION" ->
                 initializeSession(payload);
 
-            case "GET_ROUND" ->
+            case "ADVANCE_ROUND" ->
                 getRound();
 
             case "GET_GAME_PROGRESS" ->
@@ -59,6 +65,9 @@ public class RequestService {
             case "SAVE_GAME" ->
                 saveGame();
 
+            case "PING_SERVER" ->
+                getClientPing(payload);
+
             default ->
                 throw new IllegalArgumentException(
                     "Unknown request type: " + type
@@ -66,12 +75,40 @@ public class RequestService {
         };
     }
 
-    public GameContractClaims connect(String token) {
-        GameContractClaims claims = contractService.verifyContract(token);
+    /**
+     * Takes the contract provided by the client, calls on the contract 
+     * service to verify the contract and returns the contract claims.
+     * @param contract The string provided by the client
+     * @return claims The GameContractClaims object returned from verification
+     */
+    public GameContractClaims connect(String contract) {
+        GameContractClaims claims = contractService.verifyContract(contract);
         return claims;
     }
 
-    private String initializeSession(JsonNode payload) {
+    /**
+     * Handles the client ping to let the server know that the user is still connected.
+     * This serves as a client-based heartbeat protocol to manage connection status.
+     * 
+     * @param payload The incoming ping data or metadata from the client.
+     * @return A string response of "pong" to confirm the server is connected.
+     */
+    public String getClientPing(JsonNode payload) {
+        String ping = payload.get("networkPing").asText();
+
+        if (this.heartbeatFailures.get() >= MAX_PING_FAILURES) {
+            cleanUp();
+        }
+
+        if (ping.isEmpty()) {
+            this.heartbeatFailures.getAndIncrement();
+        }
+
+        this.heartbeatFailures.getAndSet(0);
+        return "pong";
+    }
+
+    private EngineServerResponse<String> initializeSession(JsonNode payload) {
         String contract = payload.get("contract").asText();
 
         GameContractClaims claims = connect(contract);
@@ -94,11 +131,12 @@ public class RequestService {
 
             schedulerStarted = true;
         }
+        String time = ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
 
-        return "Game successfully initialized";
+        return new EngineServerResponse<>("Game successfully initialized", time);
     }
 
-    private List<SpringRoundDTO> getRound() {
+    private EngineServerResponse<List<SpringRoundDTO>> getRound() {
         List<SpringRoundDTO> rounds = requireEngine().getRound();
         
         gameConfig.setCurrentMonth(rounds.get(0).currentMonth());
@@ -115,7 +153,9 @@ public class RequestService {
                 scoresMap.put(round.stateId(), scores);
             }
         }
-        return rounds;
+        String time = ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
+
+        return new EngineServerResponse<>(rounds, time);
     }
 
     public String saveGame() {
@@ -221,5 +261,37 @@ public class RequestService {
         }
 
         return this.engine;
+    }
+
+    /**
+     * Call when the game finishes.
+     */
+    public void cleanUp() {
+        try {
+            if (!pendingUpdates.isEmpty()) {
+                pushToSpring();
+            }
+        
+        } catch(Exception e) {
+            System.out.println("Emergency round persistence failed during server clean up");
+        } finally {
+            if (scheduler != null && !scheduler.isShutdown()) {
+                scheduler.shutdown();
+
+                try {
+                    // If scheduler still hasnt shutdown after 5 seconds, force it.
+                    if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                        scheduler.shutdownNow(); 
+                    }
+                } catch (InterruptedException e) {
+                    scheduler.shutdownNow(); 
+                    Thread.currentThread().interrupt();
+                }
+            }
+
+            scoresMap.clear();
+            pendingUpdates.clear();
+            this.engine = null;
+        }
     }
 }
