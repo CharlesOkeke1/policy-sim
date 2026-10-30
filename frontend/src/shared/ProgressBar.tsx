@@ -8,6 +8,7 @@ interface ProgressProps {
 }
 
 export const ProgressBar = ({name, minimum, current, target}: ProgressProps) => {
+    current = current ? current : 0;
     const completion = ((current - minimum) / (target - minimum) * 100) + "%";
 
     return (

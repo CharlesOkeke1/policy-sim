@@ -3,6 +3,7 @@ package org.cokeke.policyengine.functions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.cokeke.policyengine.models.DemandResult;
@@ -49,8 +50,11 @@ public final class Engine {
         return initConfig;
     }
 
-    public List<SpringRoundDTO> getRound() {
-        TickResult result = tick(currentState.getWorld(), SeedingEngine.randomPolicies(currentState.getWorld().seed()),
+    public List<SpringRoundDTO> getRound(StateId playerId, PolicyId policy) {
+        SortedMap<StateId, PolicyId> actions = SeedingEngine.randomPolicies(currentState.getWorld(), currentState.getConfig(), 
+        playerId, policy);
+
+        TickResult result = tick(currentState.getWorld(), actions,
         currentState.getConfig());
 
         Map<StateId, StateEconomy> economies = result.getWorld().states();

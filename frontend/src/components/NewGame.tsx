@@ -76,7 +76,7 @@ export const NewGame = () => {
   }
 
   function startGame() {
-    router("/game", {
+    router(`/game`, {
       state: {
         seed: seed,
         state: chosenState,

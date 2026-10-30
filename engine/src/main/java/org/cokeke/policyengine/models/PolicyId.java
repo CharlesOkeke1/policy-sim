@@ -10,4 +10,3 @@ public enum PolicyId {
     HOUSEHOLD_SUPPORT,
     DEBT_RESTRUCTURING
 }
-

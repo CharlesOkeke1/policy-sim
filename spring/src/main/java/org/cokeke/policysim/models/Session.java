@@ -1,7 +1,13 @@
 package org.cokeke.policysim.models;
 
-import jakarta.persistence.*;
 import java.time.Instant;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "sessions")
@@ -22,19 +28,17 @@ public class Session {
     @Column(nullable = true)
     private Instant endTime;
 
-    @Column(length = 45)
+    @Column()
     private String engineToken;
-
-    @Column(length = 45)
-    private String engineRefreshToken;
 
     protected Session() {}
 
-    public Session(Long userId, Long gameId) {
+    public Session(Long userId, Long gameId, String token) {
         this.userId = userId;
         this.gameId = gameId;
         this.startTime = Instant.now();
         this.endTime = null;
+        this.engineToken = token;
     }
 
     public Long getId() { return id; }
@@ -43,9 +47,19 @@ public class Session {
     public Instant getStartTime() { return startTime; }
     public Instant getEndTime() { return endTime; }
     public String getEngineToken() { return engineToken; }
-    public String getEngineRefreshToken() { return engineRefreshToken; }
 
     public void setEndTime(Instant endTime) { this.endTime = endTime; }
     public void setEngineToken(String engineToken) { this.engineToken = engineToken; }
-    public void setEngineRefreshToken(String engineRefreshToken) { this.engineRefreshToken = engineRefreshToken; }
+
+    @Override
+    public String toString() {
+        return "Session {" +
+        "id=" + id +
+        ", userId=" + userId +
+        ", gameId=" + gameId +
+        ", startTime=" + startTime +
+        ", endTime=" + endTime +
+        ", engineToken='" + engineToken + '\'' +
+        '}';
+    }
 }

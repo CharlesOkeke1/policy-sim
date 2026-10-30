@@ -7,9 +7,11 @@ interface NavBarItemProps {
     iconPath: string;
     step: number;
     current_step: number;
+    minimized: boolean;
 }
 
-const NavBarItem = ({onClick, main_text: main, iconPath: icon, step: step, current_step: curr}: NavBarItemProps) => {   
+const NavBarItem = ({onClick, main_text: main, iconPath: icon, step: step, current_step: curr, minimized}: NavBarItemProps) => {   
+    const width = minimized ? '60%' : '';
     return (
         <div
             className="component"
@@ -17,12 +19,16 @@ const NavBarItem = ({onClick, main_text: main, iconPath: icon, step: step, curre
                 backgroundColor:
                     step === curr
                         ? "var(--bg-active)"
-                        : "var(--auth-link)"
+                        : "var(--auth-link)",
+                width: width
             }}
             onClick={() => onClick()}
         >
             <img src={icon} className="icon" />
-            <p className="main">{main}</p>
+            {
+                minimized ?
+                "" : <p className="main">{main}</p>
+            }
         </div>
     );
 }

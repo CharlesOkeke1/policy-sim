@@ -1,7 +1,7 @@
 .stat_card {
     padding: var(--padding-lg) var(--padding-xl);
     background: var(--bg-surface);
-    border: 1px solid hsl(240, 6%, 90%);
+    border: 1px solid var(--line);
     border-radius: 14px;
     display: flex;
     flex-direction: column;

@@ -8,8 +8,8 @@
     width: 200px;
     text-align: left;
     border-radius: 12px;
-    background: #FFFFFF;         /* --bg-surface */
-    border: 1px solid #E4E4E7;   /* --line */
+    background: var(--bg-surface);         /* --bg-surface */
+    border: 1px solid var(--line);   /* --line */
     margin: 1px;                 /* makes up for the thicker selected border */
     cursor: pointer;
 }

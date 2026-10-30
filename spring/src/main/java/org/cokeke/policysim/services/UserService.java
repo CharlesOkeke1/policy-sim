@@ -3,6 +3,7 @@ package org.cokeke.policysim.services;
 import java.util.List;
 
 import org.cokeke.policysim.dtos.LoginUserServiceRes;
+import org.cokeke.policysim.exceptions.AppSessionExpiredException;
 import org.cokeke.policysim.exceptions.InvalidCredentialsException;
 import org.cokeke.policysim.exceptions.LoginFailedException;
 import org.cokeke.policysim.exceptions.UserAlreadyExistsException;
@@ -10,7 +11,6 @@ import org.cokeke.policysim.exceptions.UserNotFoundException;
 import org.cokeke.policysim.models.AppSession;
 import org.cokeke.policysim.models.User;
 import org.cokeke.policysim.repos.UserRepository;
-import org.cokeke.policysim.responses.LoginResponse;
 import org.cokeke.policysim.responses.UserResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -88,7 +88,7 @@ public class UserService {
 
     public void deleteUser(Long id) {
         User user = getUser(id);
-        repo.deleteById(id);
+        repo.deleteById(user.getId());
     }
 
     public LoginUserServiceRes loginUser(String email, String password, String ipAddress, String deviceInfo) {
@@ -138,4 +138,14 @@ public class UserService {
         return usernames;
     }
 
+    public LoginUserServiceRes me(String refreshToken) {
+        AppSession session = sessionSvc.getBySessionRefreshToken(refreshToken);
+
+        if (session.isExpiredOrRevoked()) {
+            throw new AppSessionExpiredException("Session has expired");
+        }
+
+        User u = getUserById(session.getUserId());        
+        return new LoginUserServiceRes(u, session);
+    }
 }

@@ -1,5 +1,6 @@
 import './YourEconomyStat.css';
 import upFillIcon from '../assets/caret-up-sharp-fill.svg';
+import noChangeIcon from '../assets/line-solid.svg';
 import downFillIcon from '../assets/caret-down-sharp-fill.svg';
 
 interface EconomyProps {
@@ -10,7 +11,9 @@ interface EconomyProps {
 }   
 
 export const YourEconomyStat = ({name, value, previous, suffix}: EconomyProps) => {
-    const caret = value > previous ? upFillIcon : downFillIcon;
+    const defaultValue = 0;
+    
+    const caret = value > previous ? upFillIcon : value === previous ? noChangeIcon : downFillIcon;
     const color = value > previous ? "var(--status-good)" : 
     value === previous ? "var(--text-muted)" : "var(--status-bad)";
     const difference = value && previous ? Math.abs(value - previous) : 0;
@@ -18,7 +21,7 @@ export const YourEconomyStat = ({name, value, previous, suffix}: EconomyProps) =
         <div className='economyStatComponent'>
             <p className='left_side'>{name}</p>
             <div className='right_side'>
-                <p>{value ? value.toFixed(2) : ""}{suffix ? suffix : ""}</p>
+                <p>{value ? value.toFixed(2) : defaultValue.toFixed(2)}{suffix ? suffix : ""}</p>
                 <div className='change_row'>
                     <img src={caret}/>
                     <p style={{color: color}}>{difference.toFixed(2)}</p>

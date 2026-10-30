@@ -11,9 +11,12 @@ import org.cokeke.policysim.dtos.StatePreview;
 import org.cokeke.policysimcontracts.SpringContractClaims;
 import org.cokeke.policysim.common.AuthContextHolder;
 import org.cokeke.policysim.models.Game;
+import org.cokeke.policysim.models.Session;
 import org.cokeke.policysim.models.Round;
 import org.cokeke.policysim.requests.CreateGameRequest;
+import org.cokeke.policysim.requests.CreateGameSessionRequest;
 import org.cokeke.policysim.requests.FinishGameRequest;
+import org.cokeke.policysim.responses.DashboardStats;
 import org.cokeke.policysim.responses.GameResponse;
 import org.cokeke.policysim.responses.GetUserGames;
 import org.cokeke.policysim.responses.GameSessionResponse;
@@ -68,7 +71,7 @@ public class GameController {
         List<Round> rounds = new ArrayList<>();
 
         SpringContractClaims contractResult = sessionService.getContractService().createContract(game.getUser().getId(), game.getId());
-        String sessionId = "Test" + game.getId();
+        String sessionId = null;
         gameService.saveGameContractId(game.getId(), contractResult.contractId());
 
         GameSessionResponse gameResponse = new GameSessionResponse(sessionId, contractResult.contract(),
@@ -77,9 +80,15 @@ public class GameController {
             game.isCompleted(), game.getScore(), game.getRank(), game.getDifficulty()));
         ApiResponse<GameSessionResponse> body = ApiResponse.ok(201, gameResponse);
         return ResponseEntity
-                .created(URI.create("/api/games/" + gameResponse.sessionId()))
+                .created(URI.create("/api/games"))
                 .body(body);
     } 
+
+    @PostMapping("api/games/session") 
+    public ResponseEntity<ApiResponse<Session>> createGameSession(@RequestBody CreateGameSessionRequest req) {
+        Session session = sessionService.createGameSession(req.gameId(), req.userId(), req.contractId());
+        return ResponseEntity.ok(ApiResponse.ok(session));
+    }
 
     @GetMapping("/api/games")
     public ResponseEntity<ApiResponse<List<GameResponse>>> getGames() {
@@ -102,6 +111,16 @@ public class GameController {
 
     @PutMapping("/api/games/{gameId}")
     public ResponseEntity<ApiResponse<GameResponse>> finishGame(@PathVariable Long gameId, @RequestBody FinishGameRequest req) {
+        Game game = gameService.finishGame(gameId, req.score(), req.rank());
+        List<Round> rounds = roundService.getRoundsByGameId(game.getId());
+        GameResponse gameResponse = new GameResponse(game.getId(), game.getSeed(), game.getTotalRounds(), game.getStateId(), 
+        game.getStartDate(), game.getEndDate(), uSvc.userToUserResponse(game.getUser()),
+        roundService.roundListToRoundListWithoutGameObject(rounds), game.isCompleted(), game.getScore(), game.getRank(), game.getDifficulty());
+        return ResponseEntity.ok(ApiResponse.ok(gameResponse));
+    }
+
+    @PutMapping("/api/games/abandon-game/{gameId}")
+    public ResponseEntity<ApiResponse<GameResponse>> abandonGame(@PathVariable Long gameId, @RequestBody FinishGameRequest req) {
         Game game = gameService.finishGame(gameId, req.score(), req.rank());
         List<Round> rounds = roundService.getRoundsByGameId(game.getId());
         GameResponse gameResponse = new GameResponse(game.getId(), game.getSeed(), game.getTotalRounds(), game.getStateId(), 
@@ -139,5 +158,17 @@ public class GameController {
     @GetMapping("/api/games/policies")
     public ResponseEntity<ApiResponse<List<Policy>>> getPolicies() {
         return ResponseEntity.ok(ApiResponse.ok(gameService.getPolicies()));
+    }
+
+    @GetMapping("/api/games/{id}/stats") 
+    public ResponseEntity<ApiResponse<DashboardStats>> getUserDashboardStats(@PathVariable Long id) {
+        DashboardStats stats = gameService.getUserDashboardStats(id);
+        return ResponseEntity.ok(ApiResponse.ok(stats));
+    }
+
+    @GetMapping("/api/games/session/{sessionToken}")
+    public ResponseEntity<ApiResponse<Session>> getSessionsByToken(@PathVariable String sessionToken) {
+        Session session = sessionService.getSessionByToken(sessionToken);
+        return ResponseEntity.ok(ApiResponse.ok(session));
     }
 }

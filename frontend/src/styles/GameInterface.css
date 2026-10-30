@@ -4,14 +4,15 @@
     justify-content: space-between;
     gap: var(--padding-lg);
     height: 45px;
-    border-bottom: 1px solid #E4E4E7;
-    background-color: white;
-    padding: 12px 80px;
+    border-bottom: 1px solid var(--line);
+    background-color: var(--bg-surface);
+    padding: 12px clamp(40px, 80px, 80px);
 }
 
 .game_interface {
     display: flex;
     height: 100vh;
+    width: 100%;
     flex-direction: column;
     background-color: var(--bg-page);
 }
@@ -22,7 +23,7 @@
     gap: 8px;
     height: 44px;
     font-size: 14px;
-    color: #52525B;
+    color: var(--text-nav);
     text-decoration: none;
 }
 
@@ -37,7 +38,7 @@
     display: flex;
     justify-content: space-between;
     font-size: 12px;
-    color: #6B6B73;
+    color: var(--text-muted);
     width: 100%;
 }
 
@@ -54,7 +55,7 @@
     width: 100%;
     height: 6px;
     border-radius: 3px;
-    background: #E4E4E7;
+    background: var(--line);
     overflow: hidden;
 }
 
@@ -62,7 +63,7 @@
     height: 6px;
     border-radius: 3px;
     overflow: hidden;
-    background-color: black;
+    background-color: var(--btn-primary-bg);
 }
 
 .rank {
@@ -75,7 +76,7 @@
     border: 1px solid var(--line);
     border-radius: 10px;
     font-size: 13px;
-    color: #3F3F46;
+    color: var(--text-secondary);
 }
 
 .election {
@@ -114,20 +115,20 @@
     padding: 32px 80px;
     display: grid;
     grid-template-areas: 'left center right';
-    grid-template-columns: 0.5fr 1.25fr 0.5fr;
+    grid-template-columns: 0.5fr 1fr 0.5fr;
     background-color: var(--bg-page);
     gap: var(--gap-xxl);
     box-sizing: border-box;
     width: 100%;
     height: 100%;
     padding-bottom: 160px;
-    overflow-x: hidden;
+    overflow-x: scroll;
     overflow-y: scroll;
 }
 
-.main_game_int > * {
+/* .main_game_int > * {
     border: 1px solid red;
-}
+} */
 
 .save_and_exit_container {
     display: flex;
@@ -161,8 +162,8 @@
     max-width: 440px;
     box-sizing: border-box;
     padding: 28px;
-    background: #FFFFFF;
-    border: 1px solid #E4E4E7;
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
     border-radius: 16px;
     box-shadow: 0 24px 64px rgba(17, 18, 20, 0.24), 0 2px 8px rgba(17, 18, 20, 0.08);
     display: flex;
@@ -180,7 +181,7 @@
     margin: 0;
     font-size: 14px;
     line-height: 1.5;
-    color: #6B6B73;
+    color: var(--text-muted);
 }
 
 .modal_button {
@@ -190,11 +191,20 @@
     font-size: 13px;
     line-height: 1.5;
     text-align: center;
-    color: #6B6B73;
+    color: var(--text-muted);
     cursor: pointer;
 }
 
 .left_panel {
+    grid-area: left;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--gap-xl);
+}
+
+.right_panel {
+    grid-area: right;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -203,8 +213,8 @@
 
 .your_economy_display {
     padding: 20px;
-    background: #FFFFFF;
-    border: 1px solid #E4E4E7;
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
     border-radius: 14px;
     width: 90%;
 }
@@ -232,8 +242,8 @@
     min-width: 0;
     width: 92%;
     padding: var(--padding-lg) var(--padding-xl);
-    background: #FFFFFF;
-    border: 1px solid #E4E4E7;
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
     gap: var(--gap-10);
     display: flex;
     flex-direction: column;
@@ -254,7 +264,7 @@
     gap: 16px;
     margin-top: 20px;
     padding-top: 18px;
-    border-top: 1px solid #F0F0F2;
+    border-top: 1px solid var(--line-subtle);
 }
 
 .next_round {
@@ -265,12 +275,18 @@
     padding: 0 22px;
     border: 0;
     border-radius: 12px;
-    background: #111214;
-    color: #FFFFFF;
+    background: var(--btn-primary-bg);
+    color: var(--bg-surface);
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
     box-shadow: 0 6px 16px rgba(17,18,20,0.20);
+}
+
+.next_round:disabled {
+    background: var(--auth-hint);
+    color: var(--btn-primary-bg);
+    cursor: not-allowed;
 }
 
 .chosen_policy_row {
@@ -283,4 +299,115 @@
     display: flex;
     flex-direction: column;
 
+}
+
+.chart_empty_state {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--weight-regular);
+    font-size: var(--text-card-title);
+}
+
+.pause {
+    cursor: pointer;
+}
+
+.pause:active {
+    background-color: var(--bg-active);
+}
+
+.pause_header {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.game_pause_state {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.game_pause_values {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: flex-end;
+}
+
+.game_pause_rank {
+    display: flex; 
+    align-items: center;
+    gap: 10px;
+    height: 100%;
+    font-size: 15px;
+    color: var(--text-secondary);
+}
+
+.chosen_state_top {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.game_paused_container { 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    padding: 16px;
+    background: var(--bg-footer);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+}
+
+
+.game_paused_month { 
+    width: 100%;
+    height: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 5px;
+}
+
+.PauseBtnContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--gap-10);
+    height: 52px;
+    border-radius: var(--radius-xl);
+    background: var(--btn-primary-bg);
+    color: var(--bg-surface);
+    font-size: var(--text-body);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+    box-shadow: 0 6px 16px rgba(17, 18, 20, 0.18);
+    cursor: pointer;
+    border: none;
+    width: 100%;
+}
+
+.save_pause_container {
+    background: var(--bg-surface);
+    color: var(--btn-primary-bg);
+    border: 1px solid var(--line);
+}
+
+.abandon_pause_container {
+    background: var(--bg-surface);
+    color: var(--status-bad);
+    border: 1px solid var(--status-bad);
+}
+
+.buttonRow {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: var(--gap-10);
 }

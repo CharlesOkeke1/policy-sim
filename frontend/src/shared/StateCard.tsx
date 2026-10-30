@@ -20,7 +20,7 @@ export const StateCard = ({luck, stateName, population, productivity, stability,
         if (population < 1) return population * 1000 + "K";
         else return population  + "M";
     };
-    const border = step === activeStep ? "2px solid black" : "";
+    const border = step === activeStep ? "2px solid var(--btn-primary-bg)" : "1px solid var(--line)";
     let color = "";
 
     switch (luck) {

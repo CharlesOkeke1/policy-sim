@@ -8,6 +8,7 @@ import SignUp from "./pages/SignUp";
 // import { MyGames } from "./components/MyGames";
 // import { Dashboard } from "./components/Dashboard";
 import { GameInterface } from "./pages/GameInterface";
+import { MyGames } from "./components/MyGames";
 
 export default function AppRoutes() {
   return (
@@ -27,6 +28,7 @@ export default function AppRoutes() {
           <Route path="dashboard" element={<Dashboard/>}/> */}
         </Route>
         <Route path="/game" element={<GameInterface/>}/>
+        <Route path="/my-games" element={<MyGames/>}/>
       </Route>
     </Routes>
   );

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
-import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
@@ -16,33 +15,22 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public final class GameContractService {
-
     private static final String HMAC_ALGORITHM = "HmacSHA256";
-
-    private static final Base64.Encoder ENCODER =
-            Base64.getUrlEncoder().withoutPadding();
-
-    private static final Base64.Decoder DECODER =
-            Base64.getUrlDecoder();
-
+    private static final Base64.Encoder ENCODER = Base64.getUrlEncoder().withoutPadding();
+    private static final Base64.Decoder DECODER = Base64.getUrlDecoder();
     private final byte[] secret;
     private final ObjectMapper objectMapper;
-    private final SecureRandom random = new SecureRandom();
-
     private final String issuer;
     private final String audience;
     private final long lifetimeSeconds;
 
-    public GameContractService(byte[] secret, ObjectMapper objectMapper,
-    String issuer, String audience, long lifetimeSeconds) {
+    public GameContractService(byte[] secret, ObjectMapper objectMapper, String issuer, String audience, long lifetimeSeconds) {
         if (secret == null || secret.length < 32) {
             throw new IllegalArgumentException("HMAC secret must contain at least 32 bytes");
         }
 
         if (lifetimeSeconds <= 0) {
-            throw new IllegalArgumentException(
-                    "Contract lifetime must be positive"
-            );
+            throw new IllegalArgumentException("Contract lifetime must be positive");
         }
 
         this.secret = secret.clone();
@@ -54,15 +42,11 @@ public final class GameContractService {
 
     public SpringContractClaims createContract(Long userId, Long gameId) {
         if (userId == null || gameId == null) {
-            throw new IllegalArgumentException(
-                    "User ID and game ID are required"
-            );
+            throw new IllegalArgumentException("User ID and game ID are required");
         }
 
         long now = Instant.now().getEpochSecond();
-
         String contractId = UUID.randomUUID().toString();
-
         GameContractClaims claims = new GameContractClaims(contractId,
         userId, gameId, issuer, audience, now, now + lifetimeSeconds);
 

@@ -10,7 +10,7 @@ interface DifficultyProps {
 };
 
 export const DifficultyCard = ({difficulty, explanation, activeStep, step, onClick}: DifficultyProps) => {
-    const border = step === activeStep ? "2px solid black" : "1px solid #E4E4E7";
+    const border = step === activeStep ? "2px solid var(--btn-primary-bg)" : "1px solid var(--line)";
     return (
         <div className='difficultyCardComponent' style={{border: border}}
         onClick={() => onClick()}>            

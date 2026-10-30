@@ -23,6 +23,9 @@ import {
 import { PieChartLegend } from '../shared/PieChartLegend';
 import { RecentActivity } from '../shared/RecentActivity';
 import { customFetch } from '../utils/FetchWrapper';
+import { formatDate } from '../utils/Formatting';
+import { useNavigate } from 'react-router';
+import type { ChildProps } from '../pages/Home';
 
 export interface EconomyData {
     name: string;
@@ -38,16 +41,19 @@ export interface EconomyData {
 // }
 
 //Should take user as prop
-export const Dashboard = () => {
-    const [userGames, setUserGames] = useState<any[]>();
+export const Dashboard = ({step, setStep}: ChildProps) => {
+    const [userGames, setUserGames] = useState<any>();
+    const [userStats, setUserStats] = useState<any>();
+    const router = useNavigate();
     const outcomes = [
-        { name: 'Completed', value: 12 },
-        { name: 'In Progress', value: 2 },
-        { name: 'Abandoned', value: 3 },
+        { name: 'Completed', value: userStats?.completed },
+        { name: 'In Progress', value: userStats?.inProgress },
+        { name: 'Abandoned', value: userStats?.abandoned },
     ];
 
     useEffect(() => {
         getUserData();
+        getUserStats();
     }, []);
     
 
@@ -57,25 +63,16 @@ export const Dashboard = () => {
         setUserGames(res.result);
     }
 
-    const bars = [
-        { name: '#1', count: 4},
-        { name: '#2', count: 2},
-        { name: '#3', count: 1},
-        { name: '#4', count: 1},
-        { name: '#5', count: 0},
-        { name: '#6', count: 1},
-        { name: '#7', count: 0},
-        { name: '#8', count: 0},
-    ];
-
-    function formatDate(date: string): string {
-        return new Date(date).toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "short",
-            timeZone: "UTC"
-        });
+    async function getUserStats() {
+        const api = `http://localhost:8080/api/games/${sessionStorage.getItem("userId")}/stats`;
+        const res: any = await customFetch({method: "GET", url: api});
+        setUserStats(res.result);
     }
 
+    const bars = userStats ? Object.entries(userStats?.positions).map(([rank, count]) => ({
+        rank: rank,
+        count: count
+    })) : [];
     const COLORS = ['#16A34A', '#D97706', '#EF4444'];
 
     //Dummy data
@@ -93,7 +90,8 @@ export const Dashboard = () => {
     ];
 
     function toNewGame() {
-        sessionStorage.setItem("active_step", JSON.stringify(2));
+        setStep(2);
+        router("/home");
     }
 
     return (
@@ -120,9 +118,9 @@ export const Dashboard = () => {
 
             <div className='stats'>
                 <StatCard label='Games played' stat={userGames?.length ?? "N/A"} supporting='Up 2 vs previous 30 days'></StatCard>
-                <StatCard label='Average score' stat='TODO' supporting='Up 4.3 vs previous 30 days'></StatCard>
-                <StatCard label='Finished ranked #1' stat='TODO' supporting='Up 1 vs previous 30 days'></StatCard>
-                <StatCard label='Months governed' stat='TODO' supporting='About stat/12 simulated years'></StatCard>
+                <StatCard label='Average score' stat={userStats?.avgScore.toFixed(2)} supporting='Up 4.3 vs previous 30 days'></StatCard>
+                <StatCard label='Finished ranked #1' stat={userStats?.finishedFirst} supporting='Up 1 vs previous 30 days'></StatCard>
+                <StatCard label='Months governed' stat={userStats?.monthsGoverned} supporting={'About ' + Math.floor(userStats?.monthsGoverned/12) + ' simulated years'}></StatCard>
             </div>
 
             <div className='previous_games'>
@@ -134,9 +132,9 @@ export const Dashboard = () => {
                     <div style={{ width: '100%', height: 300}}>
                         <ResponsiveContainer>
                             <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name"/>
-                            <YAxis />
+                            <CartesianGrid stroke="var(--text-primary)" strokeDasharray="3 3" />
+                            <XAxis tick={{ fill: "var(--text-secondary)" }} dataKey="name"/>
+                            <YAxis tick={{ fill: "var(--text-secondary)" }}/>
                             <Tooltip />
                             <Legend />
                             <Line type="monotone" name="Population" dataKey="population" stroke="#8884d8"/>
@@ -151,13 +149,17 @@ export const Dashboard = () => {
                 <div className='recent_games'>
                     <div className='recent_games_header'>
                         <p className='recent_games_text'>Recent games</p>
-                        <p className='view_all'>View all</p>
+                        <p className='view_all' onClick={() => setStep(1)}>View all</p>
                     </div>
                     {
                         userGames?.length ? 
                         userGames.slice(0,5)?.map((game: any) => (
                             <RecentGame
-                            content={game.completed ? "Completed" : "In progress"}
+                            content={game.completed
+                                ? game.rounds[game.rounds.length-1].currentMonth === game.noOfRounds
+                                    ? "Completed"
+                                    : "Abandoned"
+                                : "In progress"}
                             name={game.stateName}
                             currentMonth={game.rounds?.at(-1)?.currentMonth}
                             totalRounds={game.noOfRounds}
@@ -205,50 +207,66 @@ export const Dashboard = () => {
             <div className='game_outcomes'>
                 <div>
                     <p className='chart_header'>Game outcomes</p>
-                    <p className='chart_sub_header'>Where your {'totalNumberOfGames'} games stand, and where the {'totalNumberOfCompletedGames'} completed ones finished.</p>
+                    <p className='chart_sub_header'>Where your {userGames?.length ?? 0} {userGames?.length === 1 ? "game" : "games"} stand, and where the {userStats?.completed ?? 0} completed ones finished.</p>
                 </div>
                 <div className='outcomes_charts'>
                     <div className='outcomes_pie_chart'>
-                        <div style={{ width: '40%', height: '100%', position: 'relative'}}>
-                            <ResponsiveContainer>
-                                <PieChart>
-                                <Pie
-                                    data={outcomes}
-                                    type='basis'
-                                    dataKey="value"
-                                    nameKey="name"
-                                    cx="50%"
-                                    cy="50%"
-                                    outerRadius={100}
-                                    innerRadius={50}
-                                >
-                                    {outcomes.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} strokeWidth={3}/>
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
+                        {
+                            userGames?.length > 0 ?
+                            <div style={{ width: '40%', height: '100%', position: 'relative'}}>
+                                <ResponsiveContainer>
+                                    <PieChart>
+                                    <Pie
+                                        data={outcomes}
+                                        type='basis'
+                                        dataKey="value"
+                                        nameKey="name"
+                                        cx="50%"
+                                        cy="50%"
+                                        outerRadius={100}
+                                        innerRadius={50}
+                                    >
+                                        {outcomes.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} strokeWidth={3}/>
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                            : 
+                            <div className='no_pie_outcomes'>
+                                <p>No recent games to show</p>
+                            </div>
+                        }
+                        
                         <div className='pie_chart_legend'>
-                            <PieChartLegend type='Completed' value={12}  total={17}/>
-                            <PieChartLegend type='Abandoned' value={2}  total={17}/>
-                            <PieChartLegend type='In progress' value={3}  total={17}/>
+                            <PieChartLegend type='Completed' value={userStats?.completed}  total={userGames?.length}/>
+                            <PieChartLegend type='Abandoned' value={userStats?.abandoned}  total={userGames?.length}/>
+                            <PieChartLegend type='In progress' value={userStats?.inProgress}  total={userGames?.length}/>
                         </div>
                     </div>
                     <div className='outcomes_bar_chart'>
-                        <div style={{ width: '100%', height: '100%', position: 'relative'}}>
-                            <ResponsiveContainer>
-                                <BarChart data={bars} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="name" />
-                                    <YAxis />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Bar dataKey="count" name='Positions' fill="#2563EB" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
+                        {
+                            bars.length > 0 ?
+                            <div style={{ width: '100%', height: '100%', position: 'relative'}}>
+                                <ResponsiveContainer>
+                                    <BarChart data={bars} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                        <CartesianGrid stroke="var(--text-primary)" strokeDasharray="3 3" />
+                                        <XAxis dataKey="rank" tick={{ fill: "var(--text-secondary)" }}/>
+                                        <YAxis tick={{ fill: "var(--text-secondary)" }}/>
+                                        <Tooltip />
+                                        <Legend/>
+                                        <Bar dataKey="count" name='Positions' fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                            : 
+                            <div className='recent_games_container'>
+                                <p>No recent games to show</p>
+                            </div>
+                        }
+                        
                     </div>
                 </div>                
             </div>

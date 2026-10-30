@@ -1,8 +1,7 @@
 package org.cokeke.policysim.services;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.cokeke.policysim.dtos.StatePreview;
 import org.cokeke.policysim.dtos.Policy;
@@ -12,6 +11,7 @@ import org.cokeke.policysim.models.Game;
 import org.cokeke.policysim.models.Round;
 import org.cokeke.policysim.models.User;
 import org.cokeke.policysim.repos.GameRepository;
+import org.cokeke.policysim.responses.DashboardStats;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -75,6 +75,11 @@ public class GameService {
         return repo.findById(id).orElseThrow(() -> new GameNotFoundException("Game doesn't seem to exist"));
     }
 
+    public void deleteById(Long id) {
+        Game game = this.getGameById(id);
+        repo.deleteById(game.getId());
+    }
+
     public List<Game> getAllGames() {
         return repo.findAll();
     }
@@ -112,7 +117,7 @@ public class GameService {
     }
 
     public List<StatePreview> getStates() {
-        return this.STATES;
+        return STATES;
     } 
 
     public String getStateName(String stateId) {
@@ -121,5 +126,55 @@ public class GameService {
 
     public List<Policy> getPolicies() {
         return POLICIES;
+    }
+
+    public DashboardStats getUserDashboardStats(Long id) {
+        List<Game> games = getUserGames(id);
+
+        if (games.isEmpty()) {
+            return new DashboardStats(id, 0, 0, 0, new HashMap<>(), 0, 0, 0);
+        }
+        double totalScore = 0;
+        int totalMonths = 0;
+        int completed = 0; int abandoned = 0; int inProgress = 0;
+        int finalRank = 0;
+        Map<Integer, Integer> positionMap = new HashMap<>();
+
+        for (Game g : games) {
+            // Tally up scores
+            totalScore += g.getScore();
+            finalRank += g.getRank();
+
+            List<Round> rounds = getAGamesRounds(g.getId());
+            if (rounds.isEmpty()) continue;
+
+            // Tally up total Months
+            totalMonths += rounds.get(rounds.size() - 1).getCurrentMonth();
+            
+            //Compute Positions
+            if (positionMap.containsKey(g.getRank())) {
+                positionMap.put(g.getRank(), positionMap.get(g.getRank()) + 1);
+            } else {
+                positionMap.put(g.getRank(), 1);
+            }
+
+            // Tally up completion
+            if (g.isCompleted()) {
+                if (g.getTotalRounds() == rounds.get(rounds.size() - 1).getCurrentMonth()) {
+                    completed += 1;
+                } else {
+                    abandoned += 1;
+                }
+            } else {
+                inProgress += 1;
+            }
+        }
+
+        for (int i = 1; i <= STATES.size(); i++)  {
+            if (!positionMap.containsKey(i)) { positionMap.put(i,0); }
+        }
+
+        return new DashboardStats(id, totalScore/games.size(), positionMap.get(1), totalMonths,
+        positionMap, completed, abandoned, inProgress);
     }
 }

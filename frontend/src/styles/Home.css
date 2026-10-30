@@ -1,7 +1,7 @@
 .home_container {
     display: grid;
     grid-template-areas: "nav_bar main_app";
-    grid-template-columns:  0.175fr 1fr;
+    grid-template-columns:  0.05fr 1fr;
     height: 100vh;
     width: 100%;
     overflow: hidden;   
@@ -12,14 +12,33 @@
     display: flex;
     row-gap: 10px;
     flex-direction: column;
-    padding: 24px;
-    border-right: 1px solid #E4E4E7;
-    background-color: white;
+    justify-content: space-between;
+    padding: 24px 15px;
+    height: 100vh;
+    border-right: 1px solid var(--line);
+    background-color: var(--bg-surface);
+}
+
+.nav_bar_items {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.minimizeBtn {
+    display: flex;
+    width: 100%;
+    height: 30px;
+    cursor: pointer;
+    margin-bottom: 50px; /*Temporary till a permanent solution is found*/
+    justify-content: flex-end;
 }
 
 .main_app {
     grid-area: main_app;
     display: flex;
+    width: 100%;
     flex-direction: column;
     background-color: var(--bg-page);
 }
@@ -38,12 +57,12 @@
     align-items: center;
     gap: 12px;
     border-radius: 10px;
-    background: white;
-    color: #111214;
+    background: var(--bg-surface);
+    color: var(--text-primary);
     text-decoration: none;
     font-size: 15px;
     font-weight: 500;
-    width: 230px;
+    width: 100%;
     height: 40px;
     cursor: pointer;
     margin-bottom: 25px;    
@@ -54,8 +73,8 @@
     justify-content: space-between;
     align-items: center;
     height: 65px;
-    border-bottom: 1px solid #E4E4E7;
-    background-color: white;
+    border-bottom: 1px solid var(--line);
+    background-color: var(--bg-surface);
     padding: 12px 80px;
 }
 
@@ -88,9 +107,9 @@
     width: 25%;
     box-sizing: border-box;
     background: var(--bg-page);
-    border: 1px solid #E4E4E7;
+    border: 1px solid var(--line);
     border-radius: 10px;
-    color: #F5F5F5;
+    color: var(--bg-page);
     font-size: 15px;
     padding: 10px;
     outline: none;
@@ -103,7 +122,7 @@
     font-size: 24px;
     height: 36px;
     min-width: 36px;
-    background-color: #E9E9EC;
+    background-color: var(--bg-active);
     border-radius: 50%;
     cursor: pointer;
 }
@@ -166,9 +185,9 @@
     right: 80px;
     width: 288px;
     box-sizing: border-box;
-    background: #FFFFFF;
+    background: var(--bg-surface);
     padding: var(--padding-sm);
-    border: 1px solid #E4E4E7;
+    border: 1px solid var(--line);
     border-radius: 14px;
     box-shadow: 0 16px 40px rgba(17,18,20,0.14), 0 2px 6px rgba(17,18,20,0.06);
     z-index: 50;
@@ -199,8 +218,8 @@
     height: 40px;
     flex: none;
     border-radius: 50%;
-    background: #111214;
-    color: #FFFFFF;
+    background: var(--text-primary);
+    color: var(--bg-surface);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -210,7 +229,7 @@
 
 .user_drop_username {
     font-size: 13px;
-    color: #6B6B73;
+    color: var(--text-muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -249,8 +268,8 @@
     gap: 4px;
     width: 90%;
     height: 20px;
-    background: #F4F4F5;
-    border: 1px solid #E4E4E7;
+    background: var(--bg-page);
+    border: 1px solid var(--line);
     border-radius: 12px;
 }
 

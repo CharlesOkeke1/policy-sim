@@ -12,7 +12,7 @@ interface Policy {
 
 const PolicyCard = ({name, policyId, effect, effectOnStability, 
     activePolicyId, affectedLever, onClick}: Policy) => {
-    const border = policyId === activePolicyId ? "2px solid black" : "";
+    const border = policyId === activePolicyId ? "2px solid var(--btn-primary-bg)" : "";
 
     const sign = effect > 0 ? "+" : ""; 
     const stabilitySign = effectOnStability > 0 ? "+" : "";

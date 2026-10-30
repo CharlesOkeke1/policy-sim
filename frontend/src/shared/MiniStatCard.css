@@ -1,7 +1,7 @@
 .mini_stat_card {
-    padding: var(--padding-lg) var(--padding-xl);
+    padding: var(--padding-md) var(--padding-lg);
     background: var(--bg-surface);
-    border: 1px solid hsl(240, 6%, 90%);
+    border: 1px solid var(--line);
     border-radius: var(--radius-xxl);
     display: flex;
     flex-direction: column;

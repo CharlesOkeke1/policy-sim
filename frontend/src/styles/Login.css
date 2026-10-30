@@ -173,7 +173,7 @@ input::placeholder {
 }
 
 .text_link {
-    color: var(--bg-surface);
+    color: var(--auth-link);
     text-decoration: underline;
     cursor: pointer;
     font-weight: var(--weight-medium);
@@ -235,4 +235,11 @@ input::placeholder {
     .login_block {
         max-width: 420px;
     }
+}
+
+.error_div {
+    display: flex;
+    justify-content: center;
+    color: var(--status-bad);
+    width: 100%;
 }

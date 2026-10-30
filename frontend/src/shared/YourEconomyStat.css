@@ -3,7 +3,7 @@
     align-items: center;
     gap: 12px;
     padding: var(--padding-sm) 0;
-    border-bottom: 1px solid #F0F0F2;
+    border-bottom: 1px solid var(--line-subtle);
     width: 100%;
 }
 

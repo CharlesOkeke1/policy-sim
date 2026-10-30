@@ -4,13 +4,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.cokeke.policysim.common.TokenGenerator;
-import org.cokeke.policysim.exceptions.AppSessionAlreadyExistsException;
 import org.cokeke.policysim.exceptions.AppSessionNotFoundException;
 import org.cokeke.policysim.models.AppSession;
+import org.cokeke.policysim.models.Token;
 import org.cokeke.policysim.repos.AppSessionRepository;
 import org.cokeke.policysim.repos.TokenRepository;
 import org.springframework.stereotype.Service;
-import org.cokeke.policysim.models.Token;
 
 
 /**
@@ -21,8 +20,8 @@ import org.cokeke.policysim.models.Token;
 
 @Service
 public class AppSessionService {
-    private AppSessionRepository repo;
-    private TokenRepository tokenRepo;
+    private final AppSessionRepository repo;
+    private final TokenRepository tokenRepo;
 
     public AppSessionService(AppSessionRepository r, TokenRepository t) {
         this.repo = r;
@@ -43,15 +42,16 @@ public class AppSessionService {
 
     public AppSession createNewSession(Long userId, String ipAddress, String deviceInfo) {
         String refreshToken = TokenGenerator.generateRefreshToken();
-        AppSession existingSession = repo.getByUserId(userId).orElse(null);
+        List<AppSession> sessions = repo.getByUserId(userId).orElse(null);
+        AppSession existingSession = sessions.
+        stream().filter(sess -> sess.getDeviceInfo().equals(deviceInfo)
+        && sess.getIpAddress().equals(ipAddress)).findFirst().orElse(null);
 
         if (existingSession != null) {
-            if (existingSession.getIpAddress().equals(ipAddress) && 
-            existingSession.getDeviceInfo().equals(deviceInfo)) {
-                throw new AppSessionAlreadyExistsException("Sessionalready exists");
-            }
+            existingSession.setRevoked(true);
+            existingSession.setSessionExpiryTime(LocalDateTime.now());
         }
-
+        
         AppSession newSession = new AppSession(refreshToken, userId, ipAddress, deviceInfo);
         return repo.save(newSession);
     }
@@ -66,7 +66,10 @@ public class AppSessionService {
 
         String newToken = TokenGenerator.generateRefreshToken();
         Token newTokenObject = new Token(newToken, session.getUserId());
-        
+
+        Token oldToken = tokenRepo.findByUserId(session.getUserId()).orElse(null);
+        if (oldToken != null) tokenRepo.deleteById(oldToken.getId());
+
         tokenRepo.save(newTokenObject);
         return newTokenObject;
     }
@@ -75,6 +78,7 @@ public class AppSessionService {
         AppSession session = repo.getByRefreshToken(refToken).orElseThrow(() -> new AppSessionNotFoundException("Session does not exist"));
         session.setRevoked(true);
         session.setSessionExpiryTime(LocalDateTime.now());
+        session.setRefreshTokenExpiryTime(LocalDateTime.now());
 
         repo.save(session);
     }

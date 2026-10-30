@@ -6,11 +6,12 @@ public class GameConfig {
     private Long gameId;
     private int seed;
     private String authToken;
+    private Long userId;
     private boolean gameStarted;
     private String difficulty;
 
     public GameConfig(int month, int rounds, Long gameId, 
-        int seed, String authToken, String difficulty) {
+        int seed, String authToken, String difficulty, Long id) {
         this.currentMonth = month;
         this.totalRounds = rounds;
         this.gameId = gameId;
@@ -18,15 +19,18 @@ public class GameConfig {
         this.authToken = authToken;
         this.gameStarted = true;
         this.difficulty = difficulty;
+        this.userId = id;
     }
 
     public int getCurrentMonth() { return this.currentMonth; }
     public int getSeed() { return this.seed; }
     public int getTotalRounds() { return this.totalRounds; }
     public Long getGameId() { return this.gameId; }
+    public Long getUserId() { return this.userId; }
     public String getAuthToken() { return this.authToken; }
     public boolean hasGameStarted() { return this.gameStarted; }
     public String getDifficulty() { return this.difficulty; }
 
     public void setCurrentMonth(int c) { this.currentMonth = c; }
 }
+

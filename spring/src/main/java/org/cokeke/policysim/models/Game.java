@@ -28,7 +28,7 @@ public class Game {
     @Schema(example = "99", description = "Game seed")
     private int seed;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @Schema(example = "2026-01-01T00:00:00Z", description = "Game start time")
     private Instant startDate;
 
@@ -46,11 +46,11 @@ public class Game {
 
     @Column(nullable = true)
     @Schema(example = "88.29", description = "Game Score")
-    private double score;            // from the engine's scoring, 0-100
-    //
+    private double score;           
+    
     @Column(nullable = true)
     @Schema(example = "3", description = "Game Rank")
-    private int rank;                // 1-8 among the cities in this game and month
+    private int rank;                
 
     @Column(nullable = true)
     @Schema(example = "Easy", description = "Game Difficulty")
@@ -59,6 +59,10 @@ public class Game {
     @Column(nullable = true)
     @Schema(hidden = true)
     private String contractId; 
+
+    @Column(nullable = true)
+    @Schema(example = "1", description = "Game session unique id")
+    private Long sessionId;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -77,6 +81,7 @@ public class Game {
     public User getUser() { return this.user; }
     public String getDifficulty() { return this.difficulty; }
     public String getContractId() { return this.contractId; }
+    public Long getSesionId() { return this.sessionId; }
 
     public void setStateId(String stateName) { this.stateId = stateName; }
     public void setStartDate(Instant startDate) { this.startDate = startDate; }
@@ -87,13 +92,14 @@ public class Game {
     public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
     public void setRank(int rank) { this.rank = rank; }
     public void setContractId(String id) { this.contractId = id; }
+    public void setSessionId(Long id) { this.sessionId = id; }
 
     protected Game() {}
 
     public Game(String stateName, User user, 
         int total, int seed, String diff) {
         this.stateId = stateName;
-        this.startDate = Instant.now();
+        this.startDate = null;
         this.endDate = null;
         this.score = 0;
         this.rank = 0;
@@ -102,6 +108,7 @@ public class Game {
         this.totalRounds = total;
         this.seed = seed;
         this.difficulty = diff;
+        this.sessionId = null;
         this.contractId = null;
     }
 }

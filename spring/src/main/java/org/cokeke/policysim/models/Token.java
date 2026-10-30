@@ -30,22 +30,28 @@ public class Token {
     @Schema(example = "2026-01-01T01:00:00", description = "The exact date and time when this token officially expires")
     private LocalDateTime expirationTime;
 
+    @Column()
+    private String type;
+
 
     public Token(String token, Long userId) {
         this.token = token;
         this.userId = userId;
         this.expirationTime = LocalDateTime.now().plusMinutes(30);
+        this.type = null;
     }
 
     public String getToken() { return this.token; }
     public Long getUserId() { return this.userId; }
     public LocalDateTime getExpirationTime() { return this.expirationTime; }
     public Long getId() { return this.id; }
+    public String getType() { return this.type; }
 
     public void setToken(String token) { this.token = token; }
     public void setUserId(Long userId) { this.userId = userId; }
     public void setExpirationTime() { this.expirationTime = LocalDateTime.now().plusMinutes(15); }
     public void setExpirationTime(LocalDateTime time) { this.expirationTime = time; }
+    public void setType(String type) { this.type = type; }
 
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(this.expirationTime);

@@ -1,6 +1,6 @@
 package org.cokeke.policysim.common;
 
-public record ApiResponse<T>(int code, String message, String error, T result) {
+public record ApiResponse<T>(int code, String message, ErrorCode error, T result) {
     //GENERIC OK
     public static <T> ApiResponse<T> ok(T result) {
         return new ApiResponse<>(200, "success", null, result);
@@ -18,6 +18,11 @@ public record ApiResponse<T>(int code, String message, String error, T result) {
 
     //ERROR
     public static <T> ApiResponse<T> error(int code, String error) {
-        return new ApiResponse<>(code, null, error, null);
+        return new ApiResponse<>(code, error, null, null);
+    }
+
+    //ERROR WITH ERROR_CODE
+    public static <T> ApiResponse<T> error(int code, String error, ErrorCode eCode) {
+        return new ApiResponse<>(code, error, eCode, null);
     }
 }

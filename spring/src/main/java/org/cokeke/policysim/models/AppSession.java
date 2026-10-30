@@ -74,7 +74,7 @@ public class AppSession {
         this.refreshTokenExpiryTime = LocalDateTime.now().plusDays(7);
         this.createdAt = LocalDateTime.now();
         this.revoked = false;
-        this.sessionExpiryTime = null;
+        this.sessionExpiryTime = LocalDateTime.now().plusDays(7);
     }
 
     public boolean isExpiredOrRevoked() {
@@ -100,7 +100,7 @@ public class AppSession {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     public LocalDateTime getRefreshTokenExpiryTime() { return refreshTokenExpiryTime; }
-    //public void setRefreshTokenExpiryTime(LocalDateTime expiresAt) { this.refreshTokenExpiryTime = expiresAt; }
+    public void setRefreshTokenExpiryTime(LocalDateTime expiresAt) { this.refreshTokenExpiryTime = expiresAt; }
 
     public boolean isRevoked() { return revoked; }
     public void setRevoked(boolean revoked) { this.revoked = revoked; }

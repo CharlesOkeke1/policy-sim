@@ -45,4 +45,9 @@ public class User {
         this.passwordHash = pass;
         this.username = name;
     }
+
+    @Override
+    public String toString() {
+        return "User{id=" + id + ", username='" + username + "'}";
+    }
 }

@@ -1,4 +1,3 @@
-import React from 'react';
 import './PieChartLegend.css';
 
 interface RecentGameProps {
@@ -8,7 +7,6 @@ interface RecentGameProps {
 }
 
 export const PieChartLegend = ({type, value, total}: RecentGameProps) => {
-    // TODO: Finish up on the design
     let color = "";
     switch (type) {
         case "Abandoned": 
@@ -21,9 +19,8 @@ export const PieChartLegend = ({type, value, total}: RecentGameProps) => {
             color = "var(--status-warn)";
             break;
     }
-    /**
-     * UNDER CONSTRUCTION
-     */
+
+    const percentage = Math.floor(value/total * 100);
     return (
         <div className='pieCellComponent'>
             <div className='game_completion'>
@@ -31,8 +28,8 @@ export const PieChartLegend = ({type, value, total}: RecentGameProps) => {
                 <p>{type}</p>
             </div>
             <div className='count'>
-                <p className='stateName'>{value}</p>
-                <p className='game_date_and_progress'>{Math.floor(value/total * 100)}%</p>
+                <p className='stateName'>{value ?? 0}</p>
+                <p className='game_date_and_progress'>{percentage ? percentage + "%" : "N/A"}</p>
             </div>
         </div>
     )

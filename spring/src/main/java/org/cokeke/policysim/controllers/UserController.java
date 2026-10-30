@@ -19,6 +19,7 @@ import org.cokeke.policysim.requests.LogoutRequest;
 import org.cokeke.policysim.requests.NewTokenRequest;
 import org.cokeke.policysim.responses.ChangePasswordResponse;
 import org.cokeke.policysim.responses.LoginResponse;
+import org.cokeke.policysim.responses.MeResponse;
 import org.cokeke.policysim.responses.NewTokenResponse;
 import org.cokeke.policysim.responses.UserResponse;
 import org.cokeke.policysim.services.AppSessionService;
@@ -72,8 +73,7 @@ public class UserController {
                 .sameSite("Strict")
                 .build();
 
-        LocalDateTime expTime = tokenSvc.getTokenExpiryTime(tokenString);
-
+        LocalDateTime expTime = session.getRefreshTokenExpiryTime();
         LoginResponse userResponse = new LoginResponse(u.getId(), u.getEmail(),
         u.getUserName(), tokenString, expTime, session.getRefreshToken(), session.getCreatedAt(), session.getId());
 
@@ -130,6 +130,33 @@ public class UserController {
     public ResponseEntity<ApiResponse<NewTokenResponse>> getNewAuthToken(@RequestBody NewTokenRequest req) {
         Token newToken = sessionSvc.getNewAuthToken(req.refreshToken());
         return ResponseEntity.ok(ApiResponse.ok(new NewTokenResponse(newToken.getToken(), req.refreshToken())));
+    }
+
+    @PostMapping("/api/users/me")
+    public ResponseEntity<ApiResponse<MeResponse>> me(@RequestBody NewTokenRequest req) {
+        LoginUserServiceRes loginRes = userSvc.me(req.refreshToken());
+        User u = loginRes.user();
+        AppSession session = loginRes.session();
+
+        // Get the users existing token
+        Token t = tokenSvc.findByUserId(u.getId());
+        Token tokenObj;
+
+        // Generate a string for a potential new token
+        String tokenString = TokenGenerator.generateTokenString();
+
+        // If existing token is expired, make a new token and save it, else set the returned token string as the old one that hasnt expired
+        if (t.isExpired()) {
+            tokenObj = new Token(tokenString, u.getId());
+            tokenSvc.saveToken(tokenObj);
+        } else {
+            tokenString = t.getToken();
+        }
+
+        MeResponse res = new MeResponse(u.getId(), u.getEmail(),
+        u.getUserName(), tokenString, session.getSessionExpiryTime(), session.getRefreshToken(), session.getCreatedAt(), session.getId());
+
+        return ResponseEntity.ok(ApiResponse.ok(res));
     }
 
     @Hidden

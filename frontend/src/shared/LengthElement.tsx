@@ -16,9 +16,9 @@ export type Length = {
 
 export const LengthElement = ({step, activeStep, years, onClick}: LengthEl) => {
     const style: Length = step === activeStep ? {
-        color: "white",
+        color: "var(--btn-primary-text)",
         fontWeight: "var(--weight-medium)",
-        bgColor: "black"
+        bgColor: "var(--btn-primary-bg)"
     } : { color: "", fontWeight: "", bgColor: ""  };
     return (
         <div className='lengthElementComponent'

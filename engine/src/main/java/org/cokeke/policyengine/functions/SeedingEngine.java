@@ -192,12 +192,16 @@ public final class SeedingEngine {
     }
 
     /** A fresh random policy per state for the month about to be played, chosen only from legal ones. */
-    public static SortedMap<StateId, PolicyId> randomPolicies(World world, SimConfig config) {
+    public static SortedMap<StateId, PolicyId> randomPolicies(World world, SimConfig config, StateId uSID, PolicyId uPID) {
         RandomGenerator rng = Rng.rng(world.seed(), world.month() + 1, Stream.AI);
         SortedMap<StateId, PolicyId> policies = new TreeMap<>();
         for (StateEconomy s : world.states().values()) { // sorted by StateId, so draws are deterministic
             List<PolicyId> options = Policies.available(s, config);
             policies.put(s.id(), options.get(rng.nextInt(options.size())));
+
+            if (s.id().equals(uSID)) {
+                policies.put(uSID, uPID);
+            }
         }
         return Collections.unmodifiableSortedMap(policies);
     }

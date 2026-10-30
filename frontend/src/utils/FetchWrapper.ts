@@ -50,8 +50,8 @@ export async function customFetch<T>({ method, url, body }: FetchOptions): Promi
   return response.json() as Promise<T>;
 }
 
-async function handleTokenRefresh(): Promise<boolean> {
-  const refreshToken = sessionStorage.getItem('refreshToken');
+export async function handleTokenRefresh(): Promise<boolean> {
+  const refreshToken = localStorage.getItem('refreshToken');
   if (!refreshToken) return false;
 
   try {
@@ -64,7 +64,7 @@ async function handleTokenRefresh(): Promise<boolean> {
     if (res.ok) {
       const data = await res.json(); 
       sessionStorage.setItem('authToken', data.result.authToken);
-      sessionStorage.setItem('refreshToken', data.result.refreshToken);
+      localStorage.setItem('refreshToken', data.result.refreshToken);
       return true;
     }
   } catch (error) {

@@ -18,6 +18,7 @@ const Login = () => {
     const [password, setPassword] = useState("");
     const [submitted, setSubmitted] = useState(false);
     const [ip, setIp] = useState("");
+    const [error, setError] = useState("");
     const readyToPost = email.length > 0 && password.length > 0 && ip != "";
     const router = useNavigate();
 
@@ -25,7 +26,7 @@ const Login = () => {
         fetchUserIp().then((ip) => {
             setIp(ip);
         });
-    }, [])
+    }, []);
 
     async function fetchUserIp(): Promise<string> {
         const response = await fetch('https://api.ipify.org?format=json');
@@ -42,8 +43,8 @@ const Login = () => {
         };
 
         setSubmitted(true);
+        setError("");
         const api = "http://localhost:8080/api/users/login";
-
             fetch(api, {
                 method: "POST", 
                 headers: {
@@ -52,24 +53,29 @@ const Login = () => {
                 body: JSON.stringify(payload)
             })
             .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Login failed: ${response.status}`);
-                }
-
+                // if (!response.ok) {
+                //     throw new Error(`Login failed: ${response.status}`);
+                // }
                 return response.json();
             })
             .then((data: any) => {
-                sessionStorage.clear();
-                sessionStorage.setItem("authToken", data.result.authToken);
-                sessionStorage.setItem("userId", data.result.id);
-                sessionStorage.setItem("expirytime", data.result.tokenExpirationTime);
-                sessionStorage.setItem("refreshToken", data.result.refreshToken);
-                router("/home");
+                if (data.code === 200) {
+                    sessionStorage.clear();
+                    sessionStorage.setItem("authToken", data.result.authToken);
+                    sessionStorage.setItem("userId", data.result.id);
+                    sessionStorage.setItem("expirytime", data.result.tokenExpirationTime);
+                    localStorage.setItem("refreshToken", data.result.refreshToken);
+                    router("/home", { replace: true });
+                    setError("");
+                } else {
+                    setSubmitted(false);
+                    setError(data.message);
+                }
+                
             })
             .catch((error) => {
                 console.error("Login error:", error);
             });
-
         }
 
     return (
@@ -122,7 +128,6 @@ const Login = () => {
                             <input 
                             value={password} 
                             type='password' 
-                            placeholder='Pass123'
                             onChange={(e) => setPassword(e.target.value)}/>
                         </div>
                         <div className='basicRow'>
@@ -132,7 +137,12 @@ const Login = () => {
                             { submitted ?
                                 <ButtonLoader/> : <p>Login to your account</p>
                             } 
-                        </button>                    
+                        </button>  
+                        {
+                            error ?
+                            <div className='error_div'><p>{error}</p></div>  : ""
+                        }
+                                         
                     </div>
                 </div>
             </div>

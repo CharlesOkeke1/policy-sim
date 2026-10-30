@@ -52,7 +52,6 @@ public class Server extends WebSocketServer {
             JsonNode payload = request.get("payload");
 
             Object result = handler.handle(type, payload);
-
             String response = mapper.writeValueAsString(
                 Map.of(
                     "type", type,
@@ -66,7 +65,6 @@ public class Server extends WebSocketServer {
             conn.send(response);
 
         } catch (Exception e) {
-            //conn.send("{\"success\":false,\"error\":\"Request failed\"}");
             conn.send(e.getMessage());
         }
     }
