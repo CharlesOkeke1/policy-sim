@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router';
 import './App.css';
 import AppRoutes from "./AppRoutes";
 import { useEffect, useState } from 'react';
+import { produrl } from './utils/FetchWrapper';
 
 export default function App() {
     const router = useNavigate();
@@ -17,7 +18,7 @@ export default function App() {
         const payload = {
             refreshToken: localStorage.getItem("refreshToken") || ""
         }
-        const api = "http://localhost:8080/api/users/me";
+        const api = `${produrl}/api/users/me`;
 
         fetch(api, {
             method: "POST", 

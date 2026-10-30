@@ -174,7 +174,7 @@ public class RequestService {
      * @return Session Object returned from backend.
      */
     public SessionDTO startGameSession(Long gameId, Long userId, String contractId, String token) {
-        String api = "http://localhost:8080/api/games/session";
+        String api = "https://policysimapi.charlesokeke.com/api/games/session";
         try {
             String body = mapper.writeValueAsString(new SessionInitDTO(gameId, userId, contractId));
             HttpRequest request = HttpRequest.newBuilder()
@@ -253,7 +253,7 @@ public class RequestService {
         double score = rankedState.score();
         int rank = rankedState.rank();
         
-        String api = "http://localhost:8080/api/games/" + gameId;
+        String api = "https://policysimapi.charlesokeke.com/api/games/" + gameId;
         if (!pendingUpdates.isEmpty()) {
             pushToSpring();
         }
@@ -280,7 +280,7 @@ public class RequestService {
      * Function should be called every minute using the batched queue
     */
     public void pushToSpring() {
-        String api = "http://localhost:8080/api/games/rounds/batchUpload";
+        String api = "https://policysimapi.charlesokeke.com/api/games/rounds/batchUpload";
         SpringUploadData payload = new SpringUploadData(pendingUpdates, gameConfig.getGameId());
 
         try {

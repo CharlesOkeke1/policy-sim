@@ -28,3 +28,20 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+tasks.jar {
+    dependsOn ':contracts:jar'
+    manifest {
+        attributes(
+            'Main-Class': 'org.cokeke.policyengine.server.Server'
+        )
+    }
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+}

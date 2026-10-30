@@ -55,7 +55,7 @@ export async function handleTokenRefresh(): Promise<boolean> {
   if (!refreshToken) return false;
 
   try {
-    const res = await fetch('http://localhost:8080/api/users/refresh', {
+    const res = await fetch(`${produrl}/api/users/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
@@ -72,3 +72,10 @@ export async function handleTokenRefresh(): Promise<boolean> {
   }
   return false;
 }
+
+
+export const produrl = "https://policysimapi.charlesokeke.com";
+export const devurl = "http://localhost:8080";
+
+export const prodSocketUrl = "ws://localhost:8081";
+export const devSocketUrl = "wss://ws.charlesokeke.com";

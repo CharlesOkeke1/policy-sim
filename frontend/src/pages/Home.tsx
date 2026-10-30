@@ -23,33 +23,40 @@ import { MyGames } from '../components/MyGames';
 import { NewGame } from '../components/NewGame';
 import { GlobalRankings } from '../components/GlobalRankings';
 import { Settings } from '../components/Settings';
-import { customFetch } from '../utils/FetchWrapper';
+import { customFetch, produrl } from '../utils/FetchWrapper';
 import { ThemeSelector } from '../shared/ThemeSelector';
+import { useRef } from 'react';
+
 
 export interface ChildProps {
-  step: number;
   setStep: (num: number) => void;
 }
+
+type Theme = 'Light' | 'Dark' | 'System';
 
 const Home = () => {
   const router = useNavigate();
   const [user, setUser] = useState<any>();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState<'Light' | 'Dark' | 'System'>('System');
+  const [currentTheme, setCurrentTheme] = useState<Theme>(document.documentElement.getAttribute("data-theme") as Theme || "Light");
   const [activeStep, setActiveStep] = useState(Number(sessionStorage.getItem("active_step")) ?? 0);
   const [navBarMinimized, setNavBarMinimized] = useState(false);
-  //const [ActiveComponent, setActiveComponent] = useState(() => Dashboard);
+  const [ActiveComponent, setActiveComponent] = useState(<Dashboard setStep={setActiveStep}/>);
 
   const navBarMinimizeIcon = navBarMinimized ? maximizeIcon : minimizeIcon;
+  const container = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     getUser();
   }, []);
 
-  useEffect(() => {
-    // if (window.innerWidth !== 1600) setNavBarMinimized(true);
-    // else setNavBarMinimized(false);
-  })
+  // useEffect(() => {
+  //   if (container) {
+  //     const width = getComputedStyle(container.current!).width;
+
+  //     if (width < "100%") setNavBarMinimized(true);
+  //   }
+  // });
 
   function closeUserDrop() {
     if (showUserDropdown) {
@@ -70,7 +77,7 @@ const Home = () => {
   }
 
   async function getUser() {
-    const url = `http://localhost:8080/api/users/${sessionStorage.getItem("userId")}`;
+    const url = `${produrl}/api/users/${sessionStorage.getItem("userId")}`;
     const res: any = await customFetch({method: "GET", url: url});
     setUser(res.result);
   }
@@ -81,7 +88,7 @@ const Home = () => {
       refreshToken: localStorage.getItem("refreshToken")
     }
 
-    const url = `http://localhost:8080/api/users/logout`;
+    const url = `${produrl}/api/users/logout`;
 
     fetch(url, {
       method: "POST",
@@ -112,7 +119,7 @@ const Home = () => {
   
   return (
     <>
-    <div className='home_container' onClick={() => closeUserDrop()}>
+    <div className='home_container' ref={container} onClick={() => closeUserDrop()}>
       <div className='left_nav_bar'>
         <div className='nav_bar_items'>
           <div className='logoBlock'>
@@ -172,7 +179,7 @@ const Home = () => {
           {(() => {
             switch(activeStep) {
               case 0:
-                return <Dashboard step={activeStep} setStep={setActiveStep}/>
+                return <Dashboard setStep={setActiveStep}/>
               case 1:
                 return <MyGames/>
               case 2:

@@ -5,6 +5,7 @@ import lightLogo from '../assets/Policy_Sim_Logo_Light_PNG.png';
 import { useNavigate } from 'react-router';
 import { ButtonLoader } from '../shared/ButtonLoader';
 import getDeviceInfo from '../utils/GetDeviceInfo';
+import { produrl } from '../utils/FetchWrapper';
 
 interface LoginRequest {
     email: string;
@@ -44,7 +45,7 @@ const Login = () => {
 
         setSubmitted(true);
         setError("");
-        const api = "http://localhost:8080/api/users/login";
+        const api = `${produrl}/api/users/login`;
             fetch(api, {
                 method: "POST", 
                 headers: {

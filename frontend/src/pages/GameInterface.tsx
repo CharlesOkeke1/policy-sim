@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import { YourEconomyStat } from '../shared/YourEconomyStat';
 import { ProgressBar } from '../shared/ProgressBar';
 import PolicyCard from '../shared/PolicyCard';
-import { customFetch, handleTokenRefresh } from '../utils/FetchWrapper';
+import { customFetch, devSocketUrl, handleTokenRefresh, produrl } from '../utils/FetchWrapper';
 import { NewGame } from '../components/NewGame';
 import {
   ResponsiveContainer,
@@ -83,7 +83,7 @@ export const GameInterface = () => {
     
     useEffect(() => {
         getPolicies();
-        const socket = new WebSocket("ws://localhost:8081");
+        const socket = new WebSocket(devSocketUrl);
         socketRef.current = socket;
 
         socket.addEventListener("open", () => {
@@ -216,7 +216,7 @@ export const GameInterface = () => {
 
         try {
             gameInitTime = `${(new Date(Date.now())).toISOString()}`;
-            const res: any = await customFetch({method: "POST", url: "http://localhost:8080/api/games",
+            const res: any = await customFetch({method: "POST", url: `${produrl}/api/games`,
                 body: payload
             })
 
@@ -257,7 +257,7 @@ export const GameInterface = () => {
     function resumeGame() { setPaused(false); }
 
     async function getPolicies() {
-        const url = "http://localhost:8080/api/games/policies";
+        const url = `${produrl}/api/games/policies`;
         const res: any = await customFetch({method: "GET", url: url});
         setPolicyList(res.result);
     }

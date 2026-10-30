@@ -6,7 +6,7 @@ import { DifficultyCard } from '../shared/DifficultyCard';
 import { useEffect, useState } from 'react';
 import { LengthElement } from '../shared/LengthElement';
 import diceIcon from '../assets/dice.svg';
-import { customFetch } from '../utils/FetchWrapper';
+import { customFetch, produrl } from '../utils/FetchWrapper';
 
 type Length = {
   color: string;
@@ -59,13 +59,13 @@ export const NewGame = () => {
   }, [chosenState]);
 
   async function getStatesPreview() {
-    const api = "http://localhost:8080/api/games/states";
+    const api = `${produrl}/api/games/states`;
     const res: any = await customFetch({method: "GET", url: api});
     setStatesList(res.result);
   }
 
   async function getDifficulty() {
-    const api = "http://localhost:8080/api/games/difficulty";
+    const api = `${produrl}/api/games/difficulty`;
     const res: any = await customFetch({method: "GET", url: api});
     setDifficultyList(res.result);
   }

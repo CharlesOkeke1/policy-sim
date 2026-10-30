@@ -22,7 +22,7 @@ import {
 } from 'recharts';
 import { PieChartLegend } from '../shared/PieChartLegend';
 import { RecentActivity } from '../shared/RecentActivity';
-import { customFetch } from '../utils/FetchWrapper';
+import { customFetch, produrl } from '../utils/FetchWrapper';
 import { formatDate } from '../utils/Formatting';
 import { useNavigate } from 'react-router';
 import type { ChildProps } from '../pages/Home';
@@ -36,12 +36,7 @@ export interface EconomyData {
     stability: number;
 }
 
-// interface userIdInterface {
-//     id: number;
-// }
-
-//Should take user as prop
-export const Dashboard = ({step, setStep}: ChildProps) => {
+export const Dashboard = ({setStep}: ChildProps) => {
     const [userGames, setUserGames] = useState<any>();
     const [userStats, setUserStats] = useState<any>();
     const router = useNavigate();
@@ -58,13 +53,13 @@ export const Dashboard = ({step, setStep}: ChildProps) => {
     
 
     async function getUserData() {
-        const api = `http://localhost:8080/api/users/${sessionStorage.getItem("userId")}/games`;
+        const api = `${produrl}/api/users/${sessionStorage.getItem("userId")}/games`;
         const res: any = await customFetch({method: "GET", url: api});
         setUserGames(res.result);
     }
 
     async function getUserStats() {
-        const api = `http://localhost:8080/api/games/${sessionStorage.getItem("userId")}/stats`;
+        const api = `${produrl}/api/games/${sessionStorage.getItem("userId")}/stats`;
         const res: any = await customFetch({method: "GET", url: api});
         setUserStats(res.result);
     }
@@ -73,7 +68,8 @@ export const Dashboard = ({step, setStep}: ChildProps) => {
         rank: rank,
         count: count
     })) : [];
-    const COLORS = ['#16A34A', '#D97706', '#EF4444'];
+
+    const COLORS = ['var(--status-good)', 'var(--status-warn)', 'var(--status-bad)'];
 
     //Dummy data
     const data: EconomyData[] = [

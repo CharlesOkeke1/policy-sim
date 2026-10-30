@@ -3,6 +3,7 @@ import '../styles/Login.css';
 import lightLogo from '../assets/Policy_Sim_Logo_Light_PNG.png';
 import { useNavigate } from 'react-router';
 import { ButtonLoader } from '../shared/ButtonLoader';
+import { produrl } from '../utils/FetchWrapper';
 
 interface SignUpRequest {
     username: string;
@@ -46,8 +47,7 @@ const SignUp = () => {
             password: password
         };
 
-        const api = "http://localhost:8080/api/users";
-
+        const api = `${produrl}/api/users`;
         fetch(api, {
             method: "POST", 
             headers: {
@@ -88,7 +88,7 @@ const SignUp = () => {
     }
 
     function getUsernames() {
-        const api = "http://localhost:8080/api/usernames";
+        const api = `${produrl}/api/usernames`;
 
         fetch(api, {
             method: "GET", 
