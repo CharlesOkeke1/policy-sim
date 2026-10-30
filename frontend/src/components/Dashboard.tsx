@@ -36,12 +36,7 @@ export interface EconomyData {
     stability: number;
 }
 
-// interface userIdInterface {
-//     id: number;
-// }
-
-//Should take user as prop
-export const Dashboard = ({step, setStep}: ChildProps) => {
+export const Dashboard = ({setStep}: ChildProps) => {
     const [userGames, setUserGames] = useState<any>();
     const [userStats, setUserStats] = useState<any>();
     const router = useNavigate();
@@ -73,7 +68,7 @@ export const Dashboard = ({step, setStep}: ChildProps) => {
         rank: rank,
         count: count
     })) : [];
-    const COLORS = ['#16A34A', '#D97706', '#EF4444'];
+    const COLORS = ['var(--status-good)', 'var(--status-warn)', 'var(--status-bad)'];
 
     //Dummy data
     const data: EconomyData[] = [

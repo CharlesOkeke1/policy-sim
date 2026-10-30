@@ -1,0 +1,55 @@
+services:
+  # 1. Database Layer (PostgreSQL)
+  #postgres-db:
+  #  image: postgres:15-alpine
+  #  container_name: policy_db
+  #  environment:
+  #    POSTGRES_USER: admin
+  #    POSTGRES_PASSWORD: admin
+  #    POSTGRES_DB: policy_sim_db
+  #  ports:
+  #    - "5432:5432"
+  #  volumes:
+  #    - pgdata:/var/lib/postgresql/data
+  #  restart: always
+
+  # 2. Java Spring Boot API Container
+  spring-backend:
+    image: eclipse-temurin:25-jdk-alpine
+    container_name: policy_spring
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: sh -c "echo 'Spring Boot workspace ready. Awaiting build artifact...' && tail -f /dev/null"
+    #depends_on:
+    #  - postgres-db
+    restart: always
+
+  # 3. Pure Java Simulation Engine Container
+  simulation-engine:
+    image: eclipse-temurin:25-jdk-alpine
+    container_name: policy_engine
+    ports:
+      - "8081:8081"
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: sh -c "echo 'Simulation Engine workspace ready...' && tail -f /dev/null"
+    restart: always
+
+  # 4. React Frontend Workspace Container
+  frontend-ui:
+    image: node:24-alpine
+    container_name: policy_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app/frontend
+    working_dir: /app/frontend
+    command: sh -c "echo 'React Frontend workspace ready.' && tail -f /dev/null"
+    restart: always
+
+volumes:
+  pgdata:

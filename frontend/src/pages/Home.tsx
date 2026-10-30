@@ -27,18 +27,19 @@ import { customFetch } from '../utils/FetchWrapper';
 import { ThemeSelector } from '../shared/ThemeSelector';
 
 export interface ChildProps {
-  step: number;
   setStep: (num: number) => void;
 }
+
+type Theme = 'Light' | 'Dark' | 'System';
 
 const Home = () => {
   const router = useNavigate();
   const [user, setUser] = useState<any>();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState<'Light' | 'Dark' | 'System'>('System');
+  const [currentTheme, setCurrentTheme] = useState<Theme>(document.documentElement.getAttribute("data-theme") as Theme || "Light");
   const [activeStep, setActiveStep] = useState(Number(sessionStorage.getItem("active_step")) ?? 0);
   const [navBarMinimized, setNavBarMinimized] = useState(false);
-  //const [ActiveComponent, setActiveComponent] = useState(() => Dashboard);
+  const [ActiveComponent, setActiveComponent] = useState(<Dashboard setStep={setActiveStep}/>);
 
   const navBarMinimizeIcon = navBarMinimized ? maximizeIcon : minimizeIcon;
 
@@ -172,7 +173,7 @@ const Home = () => {
           {(() => {
             switch(activeStep) {
               case 0:
-                return <Dashboard step={activeStep} setStep={setActiveStep}/>
+                return <Dashboard setStep={setActiveStep}/>
               case 1:
                 return <MyGames/>
               case 2:
