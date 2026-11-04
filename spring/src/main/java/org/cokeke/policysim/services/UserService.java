@@ -12,8 +12,12 @@ import org.cokeke.policysim.models.AppSession;
 import org.cokeke.policysim.models.User;
 import org.cokeke.policysim.repos.UserRepository;
 import org.cokeke.policysim.responses.UserResponse;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+
 
 @Service
 public class UserService {
@@ -43,11 +47,13 @@ public class UserService {
         return repo.save(user);
     }
 
+    @Cacheable (value = "user", key="#user.id")
     public User getUserById(Long id) {
         User user = this.getUser(id, "User with ID: " + id + " does not exist");
         return user;
     }
 
+    @Cacheable (value = "user", key="#user.email")
     public User getUserByEmail(String email) {
         User user = this.getUser(email);
         return user;
@@ -57,6 +63,7 @@ public class UserService {
         return repo.findAll();
     }
 
+    @Cacheable (value = "user", key="#user.id")
     public User updateUser(Long id, String email, String name) {
         User user = repo.findById(id).orElse(null);
         if (user == null) {
@@ -86,13 +93,18 @@ public class UserService {
         return "Password changed successfully";
     }
 
+    @CacheEvict (value = "user", key="#user.id")
     public void deleteUser(Long id) {
         User user = getUser(id);
         repo.deleteById(user.getId());
     }
 
     public LoginUserServiceRes loginUser(String email, String password, String ipAddress, String deviceInfo) {
-        User user = repo.findByEmail(email).orElse(null);
+        // Find user by email first, if not found, try finding by username
+        User user = repo.findByEmail(email.toLowerCase()).orElse(null);
+        if (user == null) {
+            user = repo.findByUsername(email.toLowerCase()).orElse(null);
+        }
 
         if (user == null || !encoder.matches(password, user.getHash())) {
             throw new LoginFailedException("Invalid username or password");
@@ -133,6 +145,7 @@ public class UserService {
         return new UserResponse(u.getId(), u.getEmail(), u.getUserName(), null);
     }
 
+    @Cacheable (value = "usernames", key = "'allUsernames'")
     public List<String> getAllUserNames() {
         List<String> usernames = repo.findAll().stream().map(user -> user.getUserName()).toList();
         return usernames;

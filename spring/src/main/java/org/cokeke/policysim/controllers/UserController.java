@@ -1,6 +1,8 @@
 package org.cokeke.policysim.controllers;
 
 import java.net.URI;
+import java.time.Instant;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -34,12 +36,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
+@RequestMapping ("/api")
 @Tag(name = "Users", description = "Handles all user authentication endpoints, along with some user data")
 public class UserController {
     private final UserService userSvc;
@@ -55,8 +59,9 @@ public class UserController {
         this.sessionSvc = sessionSvc;
     }
 
-    @PostMapping(Environment.loginCall)
+    @PostMapping(Environment.LOGIN)
     public ResponseEntity<ApiResponse<LoginResponse>> loginUser(@RequestBody LoginRequest req) {
+        System.out.println("LOGIN CONTROLLER REACHED");
         LoginUserServiceRes res = userSvc.loginUser(req.email(), req.password(), req.ipAddress(), req.deviceInfo());
         User u = res.user();
         AppSession session = res.session();
@@ -67,9 +72,12 @@ public class UserController {
 
         ResponseCookie cookie = ResponseCookie.from("auth_token", tokenObj.getToken())
                 .httpOnly(true)
-                .secure(true)
+                .secure(Environment.IS_PRODUCTION)
                 .path("/")
-                .maxAge(tokenObj.getExpirationTime().getSecond())
+                .maxAge(Duration.between(
+                    LocalDateTime.now(),
+                    tokenObj.getExpirationTime()
+                ))
                 .sameSite("Strict")
                 .build();
 
@@ -82,13 +90,13 @@ public class UserController {
             .body(ApiResponse.ok(userResponse));
     }
 
-    @PostMapping("/api/users/logout")
+    @PostMapping(Environment.LOGOUT)
     public ResponseEntity<ApiResponse<String>> logoutUser(@RequestBody LogoutRequest req) {
         userSvc.logoutUser(req.token(), req.refreshToken());
         return ResponseEntity.ok(ApiResponse.ok("Logout successful"));
     }
 
-    @PostMapping("/api/users")
+    @PostMapping(Environment.USERS)
     public ResponseEntity<ApiResponse<UserResponse>> createUser(@RequestBody CreateUserRequest req) {
         User u = userSvc.createUser(req.username(), req.email(), req.password());
         UserResponse userResponse = new UserResponse(u.getId(), u.getEmail(), u.getUserName(), null);
@@ -98,7 +106,7 @@ public class UserController {
                 .body(body);
     }
 
-    @GetMapping("/api/users")
+    @GetMapping(Environment.USERS)
     public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
         List<User> users = userSvc.getAllUsers();
         List<UserResponse> userResponses = users.stream()
@@ -107,32 +115,47 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.ok(userResponses));
     }
 
-    @GetMapping("/api/usernames")
+    @GetMapping(Environment.GET_USERNAMES)
     public ResponseEntity<ApiResponse<List<String>>> getAllUserNames() {
         List<String> usernames = userSvc.getAllUserNames();
         return ResponseEntity.ok(ApiResponse.ok(usernames));
     }
 
-    @GetMapping("/api/users/{id}")
+    @GetMapping(Environment.USER_BY_ID)
     public ResponseEntity<ApiResponse<UserResponse>> getUser(@PathVariable Long id) {
         User u = userSvc.getUserById(id);
         UserResponse resp = new UserResponse(u.getId(), u.getEmail(), u.getUserName(), null);
         return ResponseEntity.ok(ApiResponse.ok(resp));
     }
 
-    @PutMapping("/api/users/change-password")
+    @PutMapping(Environment.CHANGE_PASSWORD)
     public ResponseEntity<ApiResponse<ChangePasswordResponse>> changePassword(@RequestBody ChangePasswordRequest request) {
         ChangePasswordResponse response = new ChangePasswordResponse(userSvc.changePassword(holder.getCurrentUserId(), request.oldPassword(), request.newPassword()));
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
-    @PostMapping("/api/users/refresh")
+    @PostMapping(Environment.REFRESH)
     public ResponseEntity<ApiResponse<NewTokenResponse>> getNewAuthToken(@RequestBody NewTokenRequest req) {
         Token newToken = sessionSvc.getNewAuthToken(req.refreshToken());
-        return ResponseEntity.ok(ApiResponse.ok(new NewTokenResponse(newToken.getToken(), req.refreshToken())));
+
+        ResponseCookie cookie = ResponseCookie.from("auth_token", newToken.getToken())
+            .httpOnly(true)
+            .secure(Environment.IS_PRODUCTION)
+            .path("/")
+            .maxAge(Duration.between(
+                LocalDateTime.now(),
+                newToken.getExpirationTime()
+            ))
+            .sameSite("Strict")
+            .build();
+
+        return ResponseEntity.ok()
+        .header(HttpHeaders.SET_COOKIE, cookie.toString())
+        .body(ApiResponse.ok(new NewTokenResponse(newToken.getToken(), req.refreshToken())));
+
     }
 
-    @PostMapping("/api/users/me")
+    @PostMapping(Environment.ME)
     public ResponseEntity<ApiResponse<MeResponse>> me(@RequestBody NewTokenRequest req) {
         LoginUserServiceRes loginRes = userSvc.me(req.refreshToken());
         User u = loginRes.user();
@@ -153,14 +176,27 @@ public class UserController {
             tokenString = t.getToken();
         }
 
+        ResponseCookie cookie = ResponseCookie.from("auth_token", tokenString)
+            .httpOnly(true)
+            .secure(Environment.IS_PRODUCTION)
+            .path("/")
+            .maxAge(Duration.between(
+                LocalDateTime.now(),
+                LocalDateTime.now().plusMinutes(30)
+            ))
+            .sameSite("Strict")
+            .build();
+
         MeResponse res = new MeResponse(u.getId(), u.getEmail(),
         u.getUserName(), tokenString, session.getSessionExpiryTime(), session.getRefreshToken(), session.getCreatedAt(), session.getId());
 
-        return ResponseEntity.ok(ApiResponse.ok(res));
+        return ResponseEntity.ok()
+        .header(HttpHeaders.SET_COOKIE, cookie.toString())
+        .body(ApiResponse.ok(res));
     }
 
     @Hidden
-    @DeleteMapping("/api/users/{id}")
+    @DeleteMapping(Environment.USER_BY_ID)
     public ResponseEntity<ApiResponse<String>> deleteAccount(@PathVariable Long id) {
         userSvc.deleteUser(id);
         return ResponseEntity.ok(ApiResponse.ok("Account deleted successfully"));

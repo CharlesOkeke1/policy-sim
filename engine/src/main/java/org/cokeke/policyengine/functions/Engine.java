@@ -31,9 +31,13 @@ import org.cokeke.policyengine.models.World;
  * and elections (phase 10). eventRisk and baseline are carried forward unchanged.
  */
 public final class Engine {
-    private  GlobalGameState currentState;
+    private GlobalGameState currentState;
     public Engine(int seed) {
         this.currentState = initializeSession(seed);
+    }
+
+    public Engine(List<SpringRoundDTO> rounds, int seed, int month) {
+        this.currentState = resumeGame(rounds, seed, month);
     }
 
     public GlobalGameState getGameState() { return this.currentState; }
@@ -48,6 +52,33 @@ public final class Engine {
         GlobalGameState initConfig = new GlobalGameState(world, simConfig);
 
         return initConfig;
+    }
+
+    public GlobalGameState resumeGame(List<SpringRoundDTO> rounds, int seed, int month) {
+        if (rounds.isEmpty()) throw new IllegalArgumentException("resumeGame: rounds is empty");
+
+        Map<StateId, StateEconomy> statesMap = new TreeMap<>();
+        rounds.stream().filter(round -> round.currentMonth() == month).forEach(round -> {
+            StateId stateId = new StateId(round.stateId());
+            StateEconomy stateEco = new StateEconomy(stateId, round.stateName(), round.currentMonth(), round.population(), round.productivity(),
+                    round.publicCapital(), round.priceLevel(), round.lastInflation(), round.householdWealth(),
+                    round.governmentDebt(), round.stability(), round.taxRate(), round.spendingShare(),
+                    round.investmentShare(), round.transferShare(), round.roundScore(), round.roundRank());
+            statesMap.put(stateId, stateEco);
+        });
+
+        // Get the last round's federal economy and get the baseline for the world.
+        int last = rounds.size() - 1;
+        FederalEconomy fed = new FederalEconomy(rounds.get(last).resourcePrice(), rounds.get(last).netWorth(), rounds.get(last).federalTaxShare());
+        Map<StateId, StateEconomy> baseline = SeedingEngine.baseline();
+
+        // Assemble the world and simConfig to create a new GlobalGameState
+        World world = new World(month, seed, statesMap, fed, baseline);
+        SimConfig simConfig = SimConfig.defaults();
+
+        // Set the current state to the resumed game state
+        GlobalGameState resumeConfig = new GlobalGameState(world, simConfig);
+        return resumeConfig;
     }
 
     public List<SpringRoundDTO> getRound(StateId playerId, PolicyId policy) {

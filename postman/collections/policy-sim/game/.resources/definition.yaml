@@ -1,0 +1,4 @@
+$kind: collection
+name: Game
+description: 'Core game loop: create a game, submit rounds, read state, finish. This is the hot path for load testing.'
+order: 2000

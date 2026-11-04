@@ -124,8 +124,8 @@ export const Dashboard = ({setStep}: ChildProps) => {
                         <p className='chart_header'>Final score and stability, by game</p>
                         <p className='chart_sub_header'>Your last 12 games, oldest first. Both on a 0–100 scale.</p>
                     </div>
-                    <div style={{ width: '100%', height: 300}}>
-                        <ResponsiveContainer>
+                    <div style={{ maxWidth: '100%', height: 300}}>
+                        <ResponsiveContainer style={{ maxWidth: '100%', height: 300 }}>
                             <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                             <CartesianGrid stroke="var(--text-primary)" strokeDasharray="3 3" />
                             <XAxis tick={{ fill: "var(--text-secondary)" }} dataKey="name"/>
@@ -175,15 +175,19 @@ export const Dashboard = ({setStep}: ChildProps) => {
                         <p className='chart_header'>How your economies ended</p>
                         <p className='chart_sub_header'>Averages at the final month of your completed games, against the previous 30 days.</p>
                     </div>
-                    <div className='stats'>
+                    <div className='mini_stats'>
                         <MiniStatCard label='Inflation (annual)' stat='TODO' supporting='Down 0.4 points'></MiniStatCard>
                         <MiniStatCard label='Unemployment' stat='TODO' supporting='Down 0.4 points'></MiniStatCard>
                         <MiniStatCard label='Debt / GDP' stat='TODO' supporting='Down 0.4 points'></MiniStatCard>
                         <MiniStatCard label='Stability' stat='TODO' supporting='Down 0.4 points'></MiniStatCard>
-                    </div>
-                    <div className='stats'>
                         <MiniStatCard label='Real growth (annual)' stat='TODO' supporting='Down 0.4 points'></MiniStatCard>
                         <MiniStatCard label='Average final rank' stat='TODO' supporting='Down 0.4 points'></MiniStatCard>
+                        <MiniStatCard label='Inflation (annual)' stat='TODO' supporting='Down 0.4 points'></MiniStatCard>
+                        <MiniStatCard label='Unemployment' stat='TODO' supporting='Down 0.4 points'></MiniStatCard>
+                        <MiniStatCard label='Debt / GDP' stat='TODO' supporting='Down 0.4 points'></MiniStatCard>
+                        {/* <MiniStatCard label='Stability' stat='TODO' supporting='Down 0.4 points'></MiniStatCard>
+                        <MiniStatCard label='Real growth (annual)' stat='TODO' supporting='Down 0.4 points'></MiniStatCard>
+                        <MiniStatCard label='Average final rank' stat='TODO' supporting='Down 0.4 points'></MiniStatCard> */}
                     </div>
                 </div>
                 <div className='recent_games'>

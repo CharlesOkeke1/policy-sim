@@ -35,10 +35,18 @@
 .dashboard_row {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: var(--gap-xl);
+}
+
+.dashboard_text {
+    flex: 1 1 280px;
+    min-width: 0;
 }
 
 .dashboard {
-    padding: 32px 80px 80px;
+    padding: 32px clamp(16px, 4vw, 80px) 80px;
     display: flex;
     flex-direction: column;
     background-color: var(--bg-page);
@@ -68,6 +76,7 @@
     display: flex;
     align-items: center;
     gap: var(--gap-lg);
+    flex-wrap: wrap;
 }
 
 .date_input {
@@ -94,8 +103,16 @@
 }
 
 .stats {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
     gap: var(--gap-xxl);
+
+}
+
+.mini_stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: clamp(var(--gap-sm), var(--gap-lg), var(--components-gap-md));
 }
 
 .chart_container {
@@ -110,7 +127,7 @@
 
 .recent_games {
     flex: 1 1 320px;
-    min-width: 0;
+    min-width: 200px;
     width: 25%;
     padding: var(--padding-lg) var(--padding-xl);
     background: var(--bg-surface);
@@ -124,6 +141,20 @@
     display: flex;
     justify-content: center;
     gap: var(--gap-xxl);
+    width: 100%;
+}
+
+.game_outcomes {
+    flex: 2 1 560px;
+    min-width: 0;
+    max-width: 96.3%;
+    padding: var(--padding-lg) var(--padding-xl);
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xxl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-xl);
 }
 
 .recent_games_header {

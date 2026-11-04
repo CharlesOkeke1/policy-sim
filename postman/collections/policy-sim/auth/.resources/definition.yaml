@@ -1,0 +1,4 @@
+$kind: collection
+name: Auth
+description: 'Bot registration and login. Each VU registers and logs in, storing its own token for the rest of the session.'
+order: 1000

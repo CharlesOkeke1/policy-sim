@@ -85,6 +85,7 @@ public class RoundService {
         return resp;
     }
 
+    // I will not be implementing lazy fetch.
     public List<RoundWithoutGame> roundListToRoundListWithoutGameObject(List<Round> rounds) {
         List<RoundWithoutGame> out = new ArrayList<>();
         for (Round round : rounds) {

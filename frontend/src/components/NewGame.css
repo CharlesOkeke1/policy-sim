@@ -1,6 +1,6 @@
 .choose_city {
-    min-width: 0;
-    width: 92%;
+    min-width: 60%;
+    max-width: 100%;
     padding: var(--padding-lg) var(--padding-xl);
     background: var(--bg-surface);
     border: 1px solid var(--line);
@@ -11,10 +11,9 @@
 }
 
 .new_game_block {
-    display: flex;
-    justify-content: center;
-    gap: var(--gap-xxl);
-    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 0.5fr;
+    gap: var(--gap-xl);
 }
 
 .newgame {
@@ -34,14 +33,16 @@
 .new_game_left {
     display: flex;
     flex-direction: column;
-    width: 65%;
+    min-width: 60%;
+    max-width: 95%;
     gap: var(--gap-xl);
 }
 
 .new_game_right {
     display: flex;
-    justify-content: flex-start;
-    width: 35%;
+    justify-content: flex-end;
+    min-width: 50%;
+    max-width: 100%;
     height: 370px;
 }
 
@@ -54,7 +55,7 @@
 
 .states {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
     gap: var(--gap-md);
 }
 
@@ -75,8 +76,7 @@
 
 .your_game {
     flex: 1 1 320px;
-    min-width: 0;
-    width: 23%;
+    width: clamp(23%, 23%, 30%);
     padding: var(--padding-lg) var(--padding-xl);
     background: var(--bg-surface);
     border: 1px solid var(--line);

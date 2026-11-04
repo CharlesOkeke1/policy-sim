@@ -3,24 +3,23 @@
 }
 
 .login_container {
-    display: grid;
-    justify-content: start;
+    display: flex;
+    justify-content: center;
     height: 100vh;
     width: 100%;
-    grid-template-areas: 'left right';
-    grid-template-columns: 1fr 1fr;
     overflow: hidden;
 }
 
 .container_left {
-    grid-area: left;
     display: flex;
     flex-direction: column;
     height: 100%;
+    width: 100%;
     background-color: var(--bg-surface);
     padding: var(--commponent-padding-lg);
     row-gap: clamp(32px, 8vh, 90px);
     padding: clamp(24px, 4vw, 60px);
+    box-sizing: border-box;
 }
 
 .container_right {
@@ -30,6 +29,7 @@
     justify-content: center;
     align-items: center;
     height: 100%;
+    width: 100%;
     background-color: var(--auth-bg);
     color: var(--auth-input-border-focus);
     box-sizing: border-box;
@@ -63,11 +63,14 @@
     gap: var(--gap-xxl);
     padding: var(--padding-md) 0;
     width: var(--main_text_width);
+    min-width: 300px;
     border-bottom: 1px solid var(--auth-panel-divider);
 }
 
 .rest_of_text {
-    max-width: var(--main_text_width);
+    max-width: 100%;
+    min-width: 50%;
+    word-break: keep-all;
     text-wrap: wrap;
 }
 
@@ -76,6 +79,7 @@
     gap: var(--padding-xl);
     width: var(--main_text_width);
     padding: var(--padding-md) 0;
+    min-width: 300px;
     border-bottom: 1px solid var(--auth-bg);
 }
 

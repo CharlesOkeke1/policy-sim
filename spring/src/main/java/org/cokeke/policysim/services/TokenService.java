@@ -3,7 +3,6 @@ package org.cokeke.policysim.services;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.cokeke.policysim.exceptions.GameSessionNotFoundException;
 import org.cokeke.policysim.exceptions.InvalidTokenException;
 import org.cokeke.policysim.exceptions.TokenExpiredException;
 import org.cokeke.policysim.exceptions.UserNotFoundException;
@@ -12,7 +11,9 @@ import org.cokeke.policysim.models.Session;
 import org.cokeke.policysim.models.User;
 import org.cokeke.policysim.repos.TokenRepository;
 import org.cokeke.policysim.repos.UserRepository;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class TokenService {
@@ -28,11 +29,7 @@ public class TokenService {
 
     public String saveToken(Token token) {
         Long id = token.getUserId();
-        Token oldToken = repo.findByUserId(id).orElse(null);
-
-        if (oldToken != null) {
-            repo.deleteById(oldToken.getId());
-        }        
+        repo.deleteByUserId(id);
         return repo.save(token).getToken();
     }
 
@@ -72,7 +69,7 @@ public class TokenService {
             token = getToken(tokenString);
         }
 
-        if (token == null) {
+        if (token == null || token.getToken().isBlank() || token.getToken() == null) {
             throw new InvalidTokenException("Token is invalid");
         }
         

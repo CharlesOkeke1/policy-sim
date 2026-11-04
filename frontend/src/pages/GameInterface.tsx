@@ -25,6 +25,7 @@ import {
 import { StatusPill } from '../shared/StatusPill';
 import { formatDate, formatDateSeconds } from '../utils/Formatting';
 import { MiniStatCard } from '../shared/MiniStatCard';
+import type { ApiResponse } from '../dtos/Models';
 
 
 /**
@@ -206,6 +207,11 @@ export const GameInterface = () => {
     }
 
     async function createGame() {
+        const res: ApiResponse<string> = await 
+        customFetch({url: `http://localhost:8080/api/tokens/${sessionStorage.getItem("userId")}`,
+        method: "GET"});
+        const token = res.result;
+
         const socket = socketRef.current;
         const payload = {
             stateId: location.state.state.id,
@@ -225,11 +231,10 @@ export const GameInterface = () => {
 
             const initData = {
                 ...res.result, 
-                authToken: sessionStorage.getItem("authToken"),
+                authToken: token,
             }
 
             postToServer("INITIALIZE_SESSION", initData);
-            if (socket?.readyState === WebSocket.OPEN) setGameStarted(true);
         } catch (error) {
             console.error(error);
         }
@@ -295,7 +300,8 @@ export const GameInterface = () => {
                 const res = JSON.parse(e.data);
                 if (res.type === "INITIALIZE_SESSION")  {
                     calculateRRT(gameInitTime, res.data.responseTime);
-                    return "Game started"
+                    setGameStarted(true);
+                    return "Game started";
                 }
             });
             return;

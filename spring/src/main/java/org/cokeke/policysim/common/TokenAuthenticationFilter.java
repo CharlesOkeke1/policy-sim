@@ -16,6 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -27,33 +28,70 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+        FilterChain filterChain) throws ServletException, IOException {
 
-        String header = request.getHeader("Authorization");
+        String path = request.getServletPath();
+        String tokenString = null;
 
-        if (header == null || !header.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
+        // Only use this for game session init request. This makes life easier for me.
+        String authHeader = request.getHeader("Authorization");
+
+        if (path.equals("/api/games/session")) {
+            System.out.println(path);
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+
+            tokenString = authHeader.substring(7).trim();
+            System.out.println("Session user token => " + tokenString);
+        } else {
+            if (path.equals("/api/users/login")
+                || path.equals("/api/users")
+                || path.equals("/api/users/refresh")
+                || path.equals("/api/users/me")
+                || path.startsWith("/v3/api-docs")
+                || path.equals("/swagger-ui.html")
+                || path.startsWith("/swagger-ui/")
+                || path.startsWith("/webjars/")
+                || path.equals("/api/usernames")
+                || path.startsWith("/h2-console/")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // Default method for authorization
+            Cookie[] cookies = request.getCookies();
+            if (cookies == null || cookies.length == 0) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            
+            for (Cookie c : cookies) {
+                if ("auth_token".equals(c.getName())) {
+                    tokenString = c.getValue();
+                    break;
+                }
+            }
+
+            if (tokenString == null || tokenString.isBlank()) {
+                filterChain.doFilter(request, response);
+                return;
+            }
         }
-
-        String tokenString = header.substring(7).trim();
 
         try {
             User user = tokenService.getAuthenticatedUser(tokenString);
-
-            var authentication =
+            var authentication = 
                 new UsernamePasswordAuthenticationToken(
                     user,
                     null,
                     List.of()
                 );
 
-            SecurityContext context =
-                SecurityContextHolder.createEmptyContext();
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
 
             context.setAuthentication(authentication);
             SecurityContextHolder.setContext(context);
@@ -70,7 +108,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             );
             return;
         }
-
         filterChain.doFilter(request, response);
     }
 }

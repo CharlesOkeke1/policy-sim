@@ -1,0 +1,26 @@
+$kind: http-request
+name: Finish Game
+order: 4000
+method: PUT
+url: '{{base_url}}/api/games/{{game_id}}'
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{auth_token}}'
+body:
+  type: json
+  content: |-
+    {
+      "score": 85.0,
+      "rank": 1
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Game finished (200)", () => pm.response.to.have.status(200));
+      pm.test("Game marked completed", () => {
+        const json = pm.response.json();
+        pm.expect(json.data.completed).to.be.true;
+      });

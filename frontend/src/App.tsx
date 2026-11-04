@@ -8,9 +8,9 @@ export default function App() {
     const [isAuthenticated, setAuth] = useState<boolean>(JSON.parse(localStorage.getItem("authenticated") || "false"));
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        checkAuthentication();
-    }, []);
+    // useEffect(() => {
+    //     checkAuthentication();
+    // }, []);
     
     function checkAuthentication() {
         setLoading(true);

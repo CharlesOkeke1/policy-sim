@@ -14,7 +14,7 @@ type Length = {
   bgColor: string;
 }
 
-type Difficulty = {
+export interface Difficulty {
   difficulty: string;
   explanation: string
 }
@@ -98,7 +98,6 @@ export const NewGame = () => {
 
       <div className='new_game_block'>
         <div className='new_game_left'>
-
           <div className='choose_city'>
             <div>
               <div style={{display: 'flex', gap: 'var(--gap-sm)', alignItems: 'center'}}>

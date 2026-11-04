@@ -44,13 +44,9 @@ const Home = () => {
   const navBarMinimizeIcon = navBarMinimized ? maximizeIcon : minimizeIcon;
 
   useEffect(() => {
-    getUser();
+    //getUser();
+    getStates();
   }, []);
-
-  useEffect(() => {
-    // if (window.innerWidth !== 1600) setNavBarMinimized(true);
-    // else setNavBarMinimized(false);
-  })
 
   function closeUserDrop() {
     if (showUserDropdown) {
@@ -88,7 +84,7 @@ const Home = () => {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${sessionStorage.getItem('authToken')}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(payload)
     })
@@ -104,13 +100,26 @@ const Home = () => {
     });    
   }
 
+  async function getStates() {
+    const url = `http://localhost:8080/api/games/states`;
+
+    fetch(url, {
+      method: "GET",
+      headers: {
+        "Accept": "application/json",
+      },
+      credentials: "include",
+    })
+    .then((res) => { return res.json(); })
+    .then((data) => { data.code ? console.log(data) : console.log("Request failed  with error ", data.error); })
+  }
+
   function pushActiveStep(step: number) {
     setActiveStep(step);
     sessionStorage.setItem("active_step", JSON.stringify(step))
   }
 
   const minJustify = navBarMinimized ? "center" : "flex-end";
-  
   return (
     <>
     <div className='home_container' onClick={() => closeUserDrop()}>
@@ -134,9 +143,11 @@ const Home = () => {
           <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(3)} step={3} current_step={activeStep} iconPath={trophyIcon} main_text='Global Rankings' />
           <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(4)} step={4} current_step={activeStep} iconPath={settingsIcon} main_text='Settings' />
         </div>
-        <div style={{justifyContent: minJustify}}
-          className='minimizeBtn' onClick={() => setNavBarMinimized(!navBarMinimized)}>
-          <img src={navBarMinimizeIcon}/>
+        
+        <div style={{justifyContent: minJustify}} className='minimizeBtnContainer'>
+          <div className='minimizeBtn' onClick={() => setNavBarMinimized(!navBarMinimized)}>
+            <img src={navBarMinimizeIcon}/>
+          </div>
         </div>
       </div>
       <div className='main_app'>

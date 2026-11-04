@@ -29,10 +29,10 @@ public class GameActivity {
     private String type;
 
     @Column(nullable = false)
-    private LocalDateTime activiAtyTime;
+    private LocalDateTime activityTime;
 
-    // @ManyToOne()
-    // @JoinColumn(name = "user_id" nullable = false)
-    // private User user;
+    @ManyToOne()
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
     
 }

@@ -135,7 +135,6 @@ public class Round {
     @Schema(example = "3", description = "The competitive ranking placement order of this state for the round")
     private int roundRank;
 
-
     @ManyToOne
     @JoinColumn(name = "game_id", nullable = false)
     private Game game;

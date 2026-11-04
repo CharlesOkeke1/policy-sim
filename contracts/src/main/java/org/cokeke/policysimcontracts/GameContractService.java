@@ -81,11 +81,8 @@ public final class GameContractService {
             byte[] suppliedSignature = DECODER.decode(parts[1]);
             byte[] expectedSignature = sign(parts[0].getBytes(StandardCharsets.US_ASCII));
 
-            if (!MessageDigest.isEqual(
-                    expectedSignature, suppliedSignature)) {
-                throw new InvalidContractException(
-                        "Invalid contract signature"
-                );
+            if (!MessageDigest.isEqual(expectedSignature, suppliedSignature)) {
+                throw new InvalidContractException("Invalid contract signature");
             }
 
             byte[] payload = DECODER.decode(parts[0]);

@@ -1,0 +1,28 @@
+$kind: http-request
+name: Login Bot User
+order: 2000
+method: POST
+url: '{{base_url}}/api/users/login'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{bot_email}}",
+      "password": "BotPass123!",
+      "ipAddress": "127.0.0.1",
+      "deviceInfo": "PostmanBot/1.0"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Login successful (200)", () => pm.response.to.have.status(200));
+      const json = pm.response.json();
+      if (json.data) {
+        pm.collectionVariables.set("auth_token", json.data.token);
+        pm.collectionVariables.set("refresh_token", json.data.refreshToken);
+        pm.collectionVariables.set("user_id", String(json.data.id));
+      }

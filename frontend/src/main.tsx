@@ -5,9 +5,10 @@ import App from './App.tsx'
 import { BrowserRouter } from 'react-router'
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+  // Temporarily disabling StrictMode to avoid double rendering of components during development
+  // <StrictMode>
     <BrowserRouter>
       <App/>
-    </BrowserRouter>
-  </StrictMode>,
+    </BrowserRouter>,
+  //</StrictMode>
 )

@@ -1,0 +1,21 @@
+$kind: http-request
+name: Register Bot User
+order: 1000
+method: POST
+url: '{{base_url}}/api/users'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "bot_{{$randomInt}}",
+      "email": "bot_{{$randomInt}}@test.com",
+      "password": "BotPass123!"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("User created (201)", () => pm.response.to.have.status(201));

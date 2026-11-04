@@ -1,0 +1,3 @@
+$kind: collection
+name: policy-sim
+description: 'Load testing collection for the policy-sim game API. Covers the full bot lifecycle: register → login → create game → submit rounds → finish game.'

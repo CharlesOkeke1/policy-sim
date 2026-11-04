@@ -1,5 +1,7 @@
 package org.cokeke.policyengine.server;
 
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -31,6 +33,7 @@ import org.cokeke.policyengine.models.StateId;
 import org.cokeke.policysimcontracts.GameContractClaims;
 import org.cokeke.policysimcontracts.GameContractService;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -46,6 +49,13 @@ public class RequestService {
     private boolean schedulerStarted = false;
     private final AtomicInteger heartbeatFailures = new AtomicInteger(0);
     private static final int MAX_PING_FAILURES = 3;
+
+    private final CookieManager cookieManager =
+        new CookieManager(null, CookiePolicy.ACCEPT_ALL);
+
+    private final HttpClient client = HttpClient.newBuilder()
+            .cookieHandler(cookieManager)
+            .build();
 
     public RequestService(GameContractService contractService) {
         this.contractService = contractService;
@@ -80,6 +90,9 @@ public class RequestService {
                  * An abandoned game is a finished game where the user didnt finish all the rounds.
                  */
                 finishGame(payload); 
+
+            case "RESUME_GAME" ->
+                resumeGame(payload);
 
             default ->
                 throw new IllegalArgumentException(
@@ -137,6 +150,7 @@ public class RequestService {
         String contract = payload.get("contract").asText();
 
         GameContractClaims claims = connect(contract);
+        System.out.println(claims.toString());
         int seed = payload.get("game").get("seed").asInt();
         
         int rounds = payload.get("game").get("noOfRounds").asInt();
@@ -144,9 +158,11 @@ public class RequestService {
         String token = payload.get("authToken").asText();
 
         SessionDTO session = startGameSession(claims.gameId(), claims.userId(), claims.contractId(), token);
+        System.out.println(session.toString());
+        if (session == null) return new EngineServerResponse<>("Failed to create session", ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT));
 
         this.engine = new Engine(seed);
-        this.gameConfig = new GameConfig(0, rounds, claims.gameId(), seed, session.engineToken(), difficulty, claims.userId());
+        this.gameConfig = new GameConfig(0, rounds, claims.gameId(), seed, "", difficulty, claims.userId());
 
         if (!schedulerStarted) {
             scheduler.scheduleAtFixedRate(
@@ -160,6 +176,56 @@ public class RequestService {
         }
         String time = ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
         return new EngineServerResponse<>("Game successfully initialized", time);
+    }
+    /**
+     * Takes a json payload from the client and extracts the gameId, seed, rounds, difficulty, token and userId.
+     * Add the preliminary scores and ranks to the scoresMap for each state. Does not touch the pendingUpdates List though.
+     * The server then uses the extracted data to continue the game by passing past rounds, current month and seed to the engine and gameConfig.
+     * @param payload containing a session object, game object and a list of past rounds.
+     * @return Success message and timestamp.
+     */
+    public EngineServerResponse<String> resumeGame(JsonNode payload) {
+        // Takes res.result
+        Long gameId = payload.get("game").get("id").asLong();
+        int seed = payload.get("game").get("seed").asInt();
+        
+        int rounds = payload.get("game").get("totalRounds").asInt();
+        String difficulty = payload.get("game").get("difficulty").asText();
+        String token = payload.get("session").get("engineToken").asText();
+        Long userId = payload.get("session").get("userId").asLong();
+        List<SpringRoundDTO> roundsList = mapper.convertValue(
+            payload.get("rounds"),
+            new TypeReference<List<SpringRoundDTO>>() {}
+        );        
+        int currentMonth = roundsList.get(roundsList.size() - 1).currentMonth();
+
+        this.gameConfig = new GameConfig(currentMonth, rounds, gameId, seed, token, difficulty, userId);
+        this.engine = new Engine(roundsList, seed, currentMonth); // Alternative engine init for resuming games.
+
+        for (SpringRoundDTO round : roundsList) {
+            if (scoresMap.containsKey(round.stateId())) {
+                List<Double> scores = scoresMap.get(round.stateId());
+                scores.add(round.roundScore());
+                scoresMap.put(round.stateId(), scores);
+            } else {
+                List<Double> scores = new ArrayList<>();
+                scores.add(round.roundScore());
+                scoresMap.put(round.stateId(), scores);
+            }
+        }
+
+        if (!schedulerStarted) {
+            scheduler.scheduleAtFixedRate(
+                this::pushToSpring,
+                1,
+                1,
+                TimeUnit.MINUTES
+            );
+
+            schedulerStarted = true;
+        }
+        String time = ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
+        return new EngineServerResponse<>("Game successfully resumed", time);
     }
 
     /**
@@ -175,26 +241,41 @@ public class RequestService {
      */
     public SessionDTO startGameSession(Long gameId, Long userId, String contractId, String token) {
         String api = "http://localhost:8080/api/games/session";
+        System.out.println(token);
+
         try {
-            String body = mapper.writeValueAsString(new SessionInitDTO(gameId, userId, contractId));
+            String body = mapper.writeValueAsString(
+                new SessionInitDTO(gameId, userId, contractId)
+            );
+
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(api))
+                .header("Accept", "application/json")
                 .header("Authorization", "Bearer " + token)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
-            HttpResponse<String> response = HttpClient.newHttpClient()
-            .send(request, HttpResponse.BodyHandlers.ofString());
+            System.out.println("URI: " + request);
+            System.out.println("METHOD: " + request.method());
+            System.out.println("HEADERS: " + request.headers().map());
+            System.out.println("BODY: " + body);
+            
+            HttpResponse<String> response = HttpClient.newHttpClient().send(
+                request,
+                HttpResponse.BodyHandlers.ofString()
+            );
+            System.out.println(response.statusCode());
+            System.out.println(response.headers().map());
+            System.out.println(response.body());
 
             JsonNode root = mapper.readTree(response.body());
-            SessionDTO dto = mapper.treeToValue(root.get("result"), SessionDTO.class);
-            return dto; 
-            
+            System.out.println(root);
+            return mapper.treeToValue(root.get("result"), SessionDTO.class);
+
         } catch (Exception e) {
-            e.printStackTrace();
             throw new IllegalArgumentException("Cannot create game", e);
-        }  
+        }
     }
 
     private EngineServerResponse<List<SpringRoundDTO>> getRound(JsonNode payload) {
@@ -266,8 +347,7 @@ public class RequestService {
                 .PUT(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
-            HttpResponse<String> response = HttpClient.newHttpClient()
-            .send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             
             handleBatchResponse(response, "Game finished successfully");
             return "Game succeffully completed";
@@ -293,8 +373,7 @@ public class RequestService {
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
-                HttpResponse<String> response = HttpClient.newHttpClient()
-                .send(request, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 
                 handleBatchResponse(response, "Batch saved successfully");
                 pendingUpdates.clear();  

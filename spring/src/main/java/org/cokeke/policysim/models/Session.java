@@ -28,7 +28,7 @@ public class Session {
     @Column(nullable = true)
     private Instant endTime;
 
-    @Column()
+    @Column(nullable = false, unique = true)
     private String engineToken;
 
     protected Session() {}
@@ -41,6 +41,10 @@ public class Session {
         this.engineToken = token;
     }
 
+    public boolean isGameSessionExpired() {
+        return this.endTime.isAfter(Instant.now());
+    }
+
     public Long getId() { return id; }
     public Long getUserId() { return userId; }
     public Long getGameId() { return gameId; }
@@ -50,6 +54,7 @@ public class Session {
 
     public void setEndTime(Instant endTime) { this.endTime = endTime; }
     public void setEngineToken(String engineToken) { this.engineToken = engineToken; }
+
 
     @Override
     public String toString() {

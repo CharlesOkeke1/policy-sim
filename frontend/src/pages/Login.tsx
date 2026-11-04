@@ -45,38 +45,39 @@ const Login = () => {
         setSubmitted(true);
         setError("");
         const api = "http://localhost:8080/api/users/login";
-            fetch(api, {
-                method: "POST", 
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            })
-            .then((response) => {
-                // if (!response.ok) {
-                //     throw new Error(`Login failed: ${response.status}`);
-                // }
-                return response.json();
-            })
-            .then((data: any) => {
-                if (data.code === 200) {
-                    sessionStorage.clear();
-                    sessionStorage.setItem("authToken", data.result.authToken);
-                    sessionStorage.setItem("userId", data.result.id);
-                    sessionStorage.setItem("expirytime", data.result.tokenExpirationTime);
-                    localStorage.setItem("refreshToken", data.result.refreshToken);
-                    router("/home", { replace: true });
-                    setError("");
-                } else {
-                    setSubmitted(false);
-                    setError(data.message);
-                }
-                
-            })
-            .catch((error) => {
-                console.error("Login error:", error);
-            });
-        }
+        fetch(api, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        })
+        .then((response) => {
+            // if (!response.ok) {
+            //     throw new Error(`Login failed: ${response.status}`);
+            // }
+            return response.json();
+        })
+        .then((data: any) => {
+            if (data.code === 200) {
+                sessionStorage.clear();
+                sessionStorage.setItem("authToken", data.result.authToken);
+                sessionStorage.setItem("userId", data.result.id);
+                sessionStorage.setItem("expirytime", data.result.tokenExpirationTime);
+                localStorage.setItem("refreshToken", data.result.refreshToken);
+                router("/home", { replace: true });
+                setError("");
+            } else {
+                setSubmitted(false);
+                setError(data.message);
+            }
+            
+        })
+        .catch((error) => {
+            console.error("Login error:", error);
+        });
+    }
 
     return (
         <div className='auth'>
