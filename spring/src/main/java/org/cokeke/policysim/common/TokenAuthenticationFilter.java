@@ -32,54 +32,43 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         FilterChain filterChain) throws ServletException, IOException {
 
         String path = request.getServletPath();
-        String tokenString = null;
+        if (path.equals("/api/users/login")
+            || path.equals("/api/users")
+            || path.equals("/api/users/refresh")
+            || path.equals("/api/users/me")
+            || path.startsWith("/v3/api-docs")
+            || path.equals("/swagger-ui.html")
+            || path.startsWith("/swagger-ui/")
+            || path.startsWith("/webjars/")
+            || path.equals("/api/usernames")
+            || path.startsWith("/h2-console/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-        // Only use this for game session init request. This makes life easier for me.
+        String tokenString = null;
         String authHeader = request.getHeader("Authorization");
 
-        if (path.equals("/api/games/session")) {
-            System.out.println(path);
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
-            }
-
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
             tokenString = authHeader.substring(7).trim();
-            System.out.println("Session user token => " + tokenString);
-        } else {
-            if (path.equals("/api/users/login")
-                || path.equals("/api/users")
-                || path.equals("/api/users/refresh")
-                || path.equals("/api/users/me")
-                || path.startsWith("/v3/api-docs")
-                || path.equals("/swagger-ui.html")
-                || path.startsWith("/swagger-ui/")
-                || path.startsWith("/webjars/")
-                || path.equals("/api/usernames")
-                || path.startsWith("/h2-console/")) {
-                filterChain.doFilter(request, response);
-                return;
-            }
+        }
 
-            // Default method for authorization
+        if (tokenString == null || tokenString.isBlank()) {
             Cookie[] cookies = request.getCookies();
-            if (cookies == null || cookies.length == 0) {
-                filterChain.doFilter(request, response);
-                return;
-            }
 
-            
-            for (Cookie c : cookies) {
-                if ("auth_token".equals(c.getName())) {
-                    tokenString = c.getValue();
-                    break;
+            if (cookies != null) {
+                for (Cookie c : cookies) {
+                    if ("auth_token".equals(c.getName())) {
+                        tokenString = c.getValue();
+                        break;
+                    }
                 }
             }
+        }
 
-            if (tokenString == null || tokenString.isBlank()) {
-                filterChain.doFilter(request, response);
-                return;
-            }
+        if (tokenString == null || tokenString.isBlank()) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
 
         try {

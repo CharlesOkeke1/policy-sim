@@ -1,8 +1,9 @@
+import Login from '../pages/Login';
 export interface ApiResponse<T> {
     code: number;
     result: T;
     message: string;
-    status: number;
+    error: number;
 }
 
 export interface Stat {
@@ -33,3 +34,30 @@ export interface Policy {
     policySpecificEffect: number;
     affectedLever: string;
 }
+
+export interface User {
+    id: number;
+    email: string;
+    name: string;
+    authToken?: string;
+}
+
+export interface AuthContextType {
+    user: User | undefined;
+    loading: boolean;
+    login: (req: LoginRequest) => Promise<string>;
+    logout: () => void;
+}
+
+export interface LoginRequest {
+    email: string; // Email by payload name but can also be username
+    password: string;
+    ipAddress: string;
+    deviceInfo: string;
+}
+
+// export interface LoginFn {
+//     req: LoginRequest;
+//     setError: (err: string) => void;
+//     setSubmitted: (sub: boolean) => void;
+// }

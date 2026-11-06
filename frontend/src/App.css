@@ -111,7 +111,9 @@ select {
   --commponent-padding-md: 50px;
   --commponent-padding-lg: 60px;
 
-  --component-height-small: 30px
+  --component-height-small: 30px;
+
+  --t-b: 1px solid red;
 }
 
 

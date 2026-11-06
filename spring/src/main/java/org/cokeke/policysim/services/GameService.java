@@ -1,6 +1,8 @@
 package org.cokeke.policysim.services;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +12,7 @@ import org.cokeke.policysim.dtos.ResumeGameSvcRes;
 import org.cokeke.policysim.dtos.StatePreview;
 import org.cokeke.policysim.exceptions.GameNotFoundException;
 import org.cokeke.policysim.exceptions.GameSessionNotFoundException;
+import org.cokeke.policysim.exceptions.InvalidRequestException;
 import org.cokeke.policysim.exceptions.UserNotFoundException;
 import org.cokeke.policysim.models.Game;
 import org.cokeke.policysim.models.Round;
@@ -72,6 +75,7 @@ public class GameService {
         this.sessionRepo = sessionRepo;
     }
 
+    @Cacheable(value = "game", key = "#game.id")
     public Game createGame(String stateName, Long userId, int totalRounds, int seed, String difficulty) {
         User user = userService.getUserById(userId);
         Game game = new Game(stateName, user, totalRounds, seed, difficulty);
@@ -90,7 +94,7 @@ public class GameService {
         return repo.findById(id).orElseThrow(() -> new GameNotFoundException("We cannot find game with specified id"));
     }
 
-    @CacheEvict (value = "userGames", key = "#game.id")
+    @CacheEvict (value = "game", key = "#game.id")
     public void deleteById(Long id) {
         Game game = this.getGameById(id);
         repo.deleteById(game.getId());
@@ -115,6 +119,11 @@ public class GameService {
         return repo.findByUserId(userId);
     }
 
+    @Cacheable (value = "noOfUserGames", key = "#userId")
+    public int getUserGameCount(Long userId) {
+        return getUserGames(userId).size();
+    }
+
     @Cacheable(value = "gameRounds", key = "#gameId")
     public List<Round> getAGamesRounds(Long gameId) {
         List<Round> rounds = roundSvc.getRoundsByGameId(gameId);
@@ -134,6 +143,18 @@ public class GameService {
 
         Session gSession = sessionRepo.findById(game.getSessionId()).orElseThrow(() -> new GameSessionNotFoundException("Game session not found"));
         gSession.setEndTime(Instant.now());
+        return repo.save(game);
+    }
+
+    @Cacheable(value = "game", key = "#gameId")
+    public Game saveGame(Long gameId, double score, int rank) {
+        Game game = repo.findById(gameId).orElse(null);
+        if (game == null) {
+            throw new GameNotFoundException("Game not found");
+        }  
+
+        game.setScore(score);
+        game.setRank(rank);
         return repo.save(game);
     }
 
@@ -220,6 +241,26 @@ public class GameService {
 
         List<Round> rounds = getAGamesRounds(gameId);
         Session session = sessionRepo.findById(game.getSessionId()).orElseThrow(() -> new GameSessionNotFoundException("No active session found for this game"));
-        return new ResumeGameSvcRes(gameToGameResponse(game), session, roundSvc.roundListToRoundListWithoutGameObject(rounds));
+        return new ResumeGameSvcRes(gameToGameResponse(game), session, roundSvc.roundListToSpringRoundDTOListWithoutGameObject(rounds));
+    }
+
+    @Cacheable(value = "userPaginatedGames", key = "#userId + '-' + #start + '-' + #stop")
+    public List<Game> getPaginatedGames(int start, int stop, Long userId) {
+        List<Game> games = getUserGames(userId);
+        if (start < 0 || start > games.size()) {
+            throw new InvalidRequestException("Paginated start index is invalid");
+        }
+        games.sort((a,b) -> b.getStartDate().compareTo(a.getStartDate()));
+        List<Game> out = new ArrayList<>();
+
+        if (stop > games.size()) {
+            stop = games.size();
+        }
+
+        for (int i = start; i < stop; i++) {
+            out.add(games.get(i));
+        }
+
+        return out;
     }
 }

@@ -5,28 +5,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.cokeke.policysim.common.ApiResponse;
-import org.cokeke.policysim.dtos.Difficulty;
-import org.cokeke.policysim.dtos.Policy;
-import org.cokeke.policysim.dtos.StatePreview;
-import org.cokeke.policysim.dtos.ResumeGameSvcRes;
-import org.cokeke.policysimcontracts.SpringContractClaims;
 import org.cokeke.policysim.common.AuthContextHolder;
 import org.cokeke.policysim.common.Environment;
+import org.cokeke.policysim.dtos.Difficulty;
+import org.cokeke.policysim.dtos.Policy;
+import org.cokeke.policysim.dtos.ResumeGameSvcRes;
+import org.cokeke.policysim.dtos.StatePreview;
 import org.cokeke.policysim.models.Game;
-import org.cokeke.policysim.models.Session;
 import org.cokeke.policysim.models.Round;
+import org.cokeke.policysim.models.Session;
 import org.cokeke.policysim.requests.CreateGameRequest;
 import org.cokeke.policysim.requests.CreateGameSessionRequest;
 import org.cokeke.policysim.requests.FinishGameRequest;
 import org.cokeke.policysim.responses.DashboardStats;
 import org.cokeke.policysim.responses.GameResponse;
 import org.cokeke.policysim.responses.GameSessionInitResponse;
-import org.cokeke.policysim.responses.GetUserGames;
 import org.cokeke.policysim.responses.GameSessionResponse;
+import org.cokeke.policysim.responses.PaginatedGamesResponse;
+import org.cokeke.policysim.responses.GetUserGames;
 import org.cokeke.policysim.services.GameService;
 import org.cokeke.policysim.services.GameSessionService;
 import org.cokeke.policysim.services.RoundService;
 import org.cokeke.policysim.services.UserService;
+import org.cokeke.policysimcontracts.SpringContractClaims;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,7 +35,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 
@@ -172,4 +175,21 @@ public class GameController {
         ResumeGameSvcRes result = gameService.resumeGame(gameId);
         return ResponseEntity.ok(ApiResponse.ok(result));
     }
+    
+    @PostMapping(Environment.SAVE_GAME)
+    public ResponseEntity<ApiResponse<GameResponse>> saveGame(@PathVariable Long gameId, @RequestBody FinishGameRequest req) {
+        Game result = gameService.saveGame(gameId, req.score(), req.rank());
+        return ResponseEntity.ok(ApiResponse.ok(gameService.gameToGameResponse(result)));
+    }
+
+    @GetMapping(Environment.PAGINATED_GAMES_BY_ID)
+    public ResponseEntity<ApiResponse<PaginatedGamesResponse>> getPaginatedGames(@RequestParam int start, @RequestParam int stop, @PathVariable Long userId) {
+        List<Game> games = gameService.getPaginatedGames(start, stop, userId);
+        List<GameResponse> out = new ArrayList<>();
+        int count = gameService.getUserGameCount(userId);
+        for (Game game : games) {
+            out.add(gameService.gameToGameResponse(game));
+        }
+        return ResponseEntity.ok(ApiResponse.ok(new PaginatedGamesResponse(out, count)));
+    } 
 }

@@ -11,14 +11,16 @@ type ThemeEl = {
   fontWeight: string;
   bgColor: string;
   border: string;
+  color: string;
 }
 
 export const ThemeSelector = ({currentTheme, theme, onClick}: ThemeProps) => {
     const style: ThemeEl = currentTheme === theme ? {
         fontWeight: "var(--weight-medium)",
-        bgColor: "white",
-        border: "1px solid var(--line)"
-    } : { fontWeight: "", bgColor: "", border: "" };
+        bgColor: theme.toLowerCase() === "light" ? "black" : "white",
+        border: "1px solid var(--line)",
+        color: theme.toLowerCase() === "light" ? "white" : ""
+    } : { fontWeight: "", bgColor: "", border: "", color: "" };
 
     function getThemeIcon(theme: string) {
         const t = theme.toLowerCase().trim();
@@ -26,7 +28,7 @@ export const ThemeSelector = ({currentTheme, theme, onClick}: ThemeProps) => {
 
         switch(t) {
             case 'light':
-                return 'white';
+                return 'white';2
 
             case 'dark':
                 return 'black';
@@ -41,7 +43,7 @@ export const ThemeSelector = ({currentTheme, theme, onClick}: ThemeProps) => {
         style={{fontWeight: style.fontWeight, backgroundColor: style.bgColor,
             border: style.border}}>
             <div className='theme_icon' style={{background: getThemeIcon(theme)}}></div>
-            <p>{theme}</p>
+            <p style={{color: style.color}} className='text_theme'>{theme}</p>
         </div>
     )
 }

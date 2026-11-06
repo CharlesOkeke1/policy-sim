@@ -40,6 +40,10 @@
     gap: var(--gap-xl);
 }
 
+/* .dashboard_row * {
+    border: var(--t-b);
+} */
+
 .dashboard_text {
     flex: 1 1 280px;
     min-width: 0;
@@ -76,7 +80,7 @@
     display: flex;
     align-items: center;
     gap: var(--gap-lg);
-    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .date_input {
@@ -111,7 +115,7 @@
 
 .mini_stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(152px, 1fr));
     gap: clamp(var(--gap-sm), var(--gap-lg), var(--components-gap-md));
 }
 

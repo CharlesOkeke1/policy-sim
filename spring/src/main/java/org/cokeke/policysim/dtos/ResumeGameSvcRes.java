@@ -6,4 +6,4 @@ import org.cokeke.policysim.models.Game;
 import org.cokeke.policysim.models.Session;
 import org.cokeke.policysim.responses.GameResponse;
 
-public record ResumeGameSvcRes(GameResponse game, Session session, List<RoundWithoutGame> rounds) {}
+public record ResumeGameSvcRes(GameResponse game, Session session, List<SpringRoundDTO> rounds) {}

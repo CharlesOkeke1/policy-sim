@@ -27,6 +27,7 @@ public class TokenService {
         this.gameSessionSvc = gameSessionSvc;
     }       
 
+    @Transactional
     public String saveToken(Token token) {
         Long id = token.getUserId();
         repo.deleteByUserId(id);

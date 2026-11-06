@@ -13,6 +13,7 @@ public class Environment {
     public static final String CHANGE_PASSWORD = "/users/change-password";
     public static final String REFRESH = "/users/refresh";
     public static final String ME = "/users/me";
+    public static final String EMAIL_SUPPORT = "/users/support";
 
 
     // GameController.java
@@ -20,6 +21,8 @@ public class Environment {
     public static final String GAMES = "/games";
     public static final String GAME_SESSION = "/games/session";
     public static final String GAME_BY_ID = "/games/{gameId}";
+    public static final String SAVE_GAME = "/games/save/{gameId}";
+    public static final String PAGINATED_GAMES_BY_ID = "/games/{userId}/paginated";
     public static final String ABANDON_GAME = "/games/abandon-game/{gameId}";
     public static final String STATES = "/games/states";
     public static final String DIFFICULTY = "/games/difficulty";

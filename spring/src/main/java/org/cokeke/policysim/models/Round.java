@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "rounds")
 public class Round {    
-        @Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Schema(example = "1", description = "The unique primary key identifier for the game record")
     private Long id;
@@ -117,11 +117,11 @@ public class Round {
     
     @Column(nullable = false)
     @Schema(example = "88.5", description = "The market unit cost index of raw federal energy or resource pools")
-    private double federalResourcePrice;
+    private double resourcePrice;
 
     @Column(nullable = false)
     @Schema(example = "520000000.0", description = "Aggregated national assets minus liability values")
-    private double nationalNetWorth;
+    private double netWorth;
 
     @Column(nullable = false)
     @Schema(example = "0.12", description = "The comparative percentage share of federal tax contributions pool")
@@ -165,8 +165,8 @@ public class Round {
     public double getTransfers() { return this.transfers; }
     public double getInterest() { return this.interest; }
     public String getPolicy() { return this.policy; }
-    public double getFederalResourcePrice() { return this.federalResourcePrice; }
-    public double getNationalNetWorth() { return this.nationalNetWorth; }
+    public double getFederalResourcePrice() { return this.resourcePrice; }
+    public double getNationalNetWorth() { return this.netWorth; }
     public double getFederalTaxShare() { return this.federalTaxShare; }
     public double getRoundScore() { return roundScore; }
     public int getRoundRank() { return roundRank; }
@@ -207,8 +207,8 @@ public class Round {
         this.transfers = transfers;
         this.interest = interest;
         this.policy = policy;
-        this.federalResourcePrice = federalResourcePrice;
-        this.nationalNetWorth = nationalNetWorth;
+        this.resourcePrice = federalResourcePrice;
+        this.netWorth = nationalNetWorth;
         this.federalTaxShare = federalTaxShare;
         this.game = game;
         this.roundScore = score;

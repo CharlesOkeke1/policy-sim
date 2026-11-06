@@ -1,5 +1,8 @@
 package org.cokeke.policyengine.models; 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record SpringRoundDTO(
     int currentMonth,
     String stateId,

@@ -42,7 +42,7 @@ public class Session {
     }
 
     public boolean isGameSessionExpired() {
-        return this.endTime.isAfter(Instant.now());
+        return this.endTime != null ? this.endTime.isAfter(Instant.now()) : false;
     }
 
     public Long getId() { return id; }

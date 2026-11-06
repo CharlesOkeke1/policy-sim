@@ -34,7 +34,6 @@ export async function customFetch<T>({ method, url, body }: FetchOptions): Promi
     } else {
       // Refresh token failed or expired
       //sessionStorage.clear();
-      window.location.href = '/login';
       throw new Error('Session expired. Please log in again.');
     }
   }
@@ -53,6 +52,7 @@ export async function handleTokenRefresh(): Promise<boolean> {
   try {
     const res = await fetch('http://localhost:8080/api/users/refresh', {
       method: 'POST',
+      credentials: "include",
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
     });

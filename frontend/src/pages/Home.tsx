@@ -4,48 +4,68 @@ import '../styles/Home.css';
 import lightLogo from '../assets/Policy_Sim_Logo_Light_PNG.png';
 import darkLogo from '../assets/Policy_Sim_Logo_Dark_PNG.png';
 import NavBarItem from '../shared/NavBarItem';
-import homeIcon from '../assets/home.svg';
-import gameIcon from '../assets/game.svg';
-import addIcon from '../assets/add.svg';
-import upIcon from '../assets/up-line.svg';
 import logoutIcon from '../assets/round-logout.svg';
-import trophyIcon from '../assets/trophy.svg';
-import helpIcon from '../assets/help-outline.svg';
-import notificationIcon from '../assets/notification.svg';
-import dropdownIcon from '../assets/dropdown.svg';
-import settingsIcon from '../assets/settings.svg';
-import profileIcon from '../assets/user-linear.svg';
 import searchIcon from '../assets/search.svg';
-import minimizeIcon from '../assets/minimize.svg';
-import maximizeIcon from '../assets/maximize.svg';
 import { Dashboard } from '../components/Dashboard';
 import { MyGames } from '../components/MyGames';
 import { NewGame } from '../components/NewGame';
 import { GlobalRankings } from '../components/GlobalRankings';
 import { Settings } from '../components/Settings';
-import { customFetch } from '../utils/FetchWrapper';
 import { ThemeSelector } from '../shared/ThemeSelector';
+import { useAuth } from '../services/AuthProvider';
+
+import { type IconType } from 'react-icons';
+import { 
+  FaAngleDown, 
+  FaAngleUp, 
+  FaBell, 
+  FaChevronLeft, 
+  FaChevronRight, 
+  FaGamepad, 
+  FaGear, 
+  FaHouse, 
+  FaPlus, 
+  FaTrophy, 
+  FaUser 
+} from 'react-icons/fa6';
+import { CustomIcon } from '../shared/Icon';
+import { IoHelpOutline } from 'react-icons/io5';
+import { GoTrophy } from 'react-icons/go';
+import { PiTrophy } from 'react-icons/pi';
 
 export interface ChildProps {
   setStep: (num: number) => void;
+  setMin: (val: boolean) => void;
 }
 
 type Theme = 'Light' | 'Dark' | 'System';
 
 const Home = () => {
   const router = useNavigate();
-  const [user, setUser] = useState<any>();
+  const {user, logout} = useAuth();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<Theme>(document.documentElement.getAttribute("data-theme") as Theme || "Light");
   const [activeStep, setActiveStep] = useState(Number(sessionStorage.getItem("active_step")) ?? 0);
   const [navBarMinimized, setNavBarMinimized] = useState(false);
-  const [ActiveComponent, setActiveComponent] = useState(<Dashboard setStep={setActiveStep}/>);
-
-  const navBarMinimizeIcon = navBarMinimized ? maximizeIcon : minimizeIcon;
+  //const [ActiveComponent, setActiveComponent] = useState(<Dashboard setStep={setActiveStep}/>);
+  const navBarMinimizeIcon: IconType = navBarMinimized ? FaChevronRight : FaChevronLeft;
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   useEffect(() => {
-    //getUser();
-    getStates();
+    function handleResize() {
+      const width = window.innerWidth;
+      setWindowWidth(width);
+
+      if (width < 900) {
+        setNavBarMinimized(true);
+      } else {
+        setNavBarMinimized(false);
+      }
+    }
+
+    handleResize(); 
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   function closeUserDrop() {
@@ -66,52 +86,14 @@ const Home = () => {
     }  
   }
 
-  async function getUser() {
-    const url = `http://localhost:8080/api/users/${sessionStorage.getItem("userId")}`;
-    const res: any = await customFetch({method: "GET", url: url});
-    setUser(res.result);
-  }
+  // async function getUser() {
+  //   const url = `http://localhost:8080/api/users/${sessionStorage.getItem("userId")}`;
+  //   const res: any = await customFetch({method: "GET", url: url});
+  //   setUser(res.result);
+  // }
 
-  async function logoutUser() {
-    const payload = {
-      token: sessionStorage.getItem("authToken"),
-      refreshToken: localStorage.getItem("refreshToken")
-    }
-
-    const url = `http://localhost:8080/api/users/logout`;
-
-    fetch(url, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${sessionStorage.getItem('authToken')}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload)
-    })
-    .then((res) => {
-      return res.json();
-    })
-    .then((data) => {
-      if (data.code === 200) {
-        localStorage.setItem("authenticated", JSON.stringify(false));
-        sessionStorage.clear();
-        router("/login");
-      }
-    });    
-  }
-
-  async function getStates() {
-    const url = `http://localhost:8080/api/games/states`;
-
-    fetch(url, {
-      method: "GET",
-      headers: {
-        "Accept": "application/json",
-      },
-      credentials: "include",
-    })
-    .then((res) => { return res.json(); })
-    .then((data) => { data.code ? console.log(data) : console.log("Request failed  with error ", data.error); })
+  function logoutUser() {
+    logout();
   }
 
   function pushActiveStep(step: number) {
@@ -137,16 +119,20 @@ const Home = () => {
 
             }
           </div>
-          <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(0)} step={0} current_step={activeStep} iconPath={homeIcon} main_text='Dashboard'/>
-          <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(1)} step={1} current_step={activeStep} iconPath={gameIcon} main_text='My Games' />
-          <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(2)} step={2} current_step={activeStep} iconPath={addIcon} main_text='Play New Game' />
-          <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(3)} step={3} current_step={activeStep} iconPath={trophyIcon} main_text='Global Rankings' />
-          <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(4)} step={4} current_step={activeStep} iconPath={settingsIcon} main_text='Settings' />
+          <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(0)} step={0} current_step={activeStep} iconPath={FaHouse} main_text='Dashboard'/>
+          <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(1)} step={1} current_step={activeStep} iconPath={FaGamepad} main_text='My Games' />
+          <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(2)} step={2} current_step={activeStep} iconPath={FaPlus} main_text='Play New Game' 
+          fill='var(--text-primary)' stroke={10}/>
+          <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(3)} step={3} current_step={activeStep} iconPath={PiTrophy} main_text='Global Rankings' 
+          fill='var(--text-primary)' stroke={1}/>
+          <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(4)} step={4} current_step={activeStep} iconPath={FaGear} main_text='Settings' />
         </div>
         
         <div style={{justifyContent: minJustify}} className='minimizeBtnContainer'>
           <div className='minimizeBtn' onClick={() => setNavBarMinimized(!navBarMinimized)}>
-            <img src={navBarMinimizeIcon}/>
+            <div style={{marginRight: '3px'}}>
+              <CustomIcon icon={navBarMinimizeIcon} fill='var(--text-primary)' strokeWidth={20} variant="circular" size={"var(--text-h1)"}/>
+            </div>
           </div>
         </div>
       </div>
@@ -159,7 +145,9 @@ const Home = () => {
           </div>
           
           <div className='info_section'>
-            <img src={notificationIcon} className='icon'/>
+            <div style={{marginTop: '3px'}}>
+              <CustomIcon icon={FaBell} strokeWidth={30} fill='none' variant="circular" size={"var(--text-stat)"}/>
+            </div>
             <div className='user_section'>
               <div className='user'>
                 <div className='nameIcon'>
@@ -171,9 +159,9 @@ const Home = () => {
                   <p className='u_name'>
                     { user ? user.name.split(" ")[0] : "N/A"}
                   </p>
-                  <img src={
-                    showUserDropdown ? upIcon : dropdownIcon
-                  } className='icon dropIcon'/>
+                  <div className='dropIcon'>
+                    <CustomIcon icon={showUserDropdown ? FaAngleUp : FaAngleDown} strokeWidth={20} fill='var(--text-primary)' variant="circular" size={"var(--text-stat)"}/>
+                  </div>
                 </div>
               </div>
             </div>
@@ -184,11 +172,11 @@ const Home = () => {
           {(() => {
             switch(activeStep) {
               case 0:
-                return <Dashboard setStep={setActiveStep}/>
+                return <Dashboard setMin={setNavBarMinimized} setStep={setActiveStep}/>
               case 1:
-                return <MyGames/>
+                return <MyGames setMin={setNavBarMinimized} setStep={setActiveStep}/>
               case 2:
-                return <NewGame/>
+                return <NewGame setStep={setActiveStep} setMin={setNavBarMinimized}/>
               case 3:
                 return <GlobalRankings/>
               case 4:
@@ -218,13 +206,24 @@ const Home = () => {
             </div>
             <div className='userdrop_column'>
               <div className='userdrop_profile'>
-                <img src={profileIcon}/>
+                <div style={{marginTop: '5px'}}>
+                  <CustomIcon icon={FaUser} strokeWidth={40} fill='none' variant="circular" size={"var(--text-logo-mark)"}/>
+                </div>
                 <p>Profile</p>
               </div>
 
               <div className='userdrop_profile'>
-                <img src={helpIcon}/>
+                <div style={{marginTop: '5px'}}>
+                  <CustomIcon icon={IoHelpOutline} strokeWidth={10} fill='black' variant="circular" size={"var(--text-logo-mark)"}/>
+                </div>
                 <p>How to play</p>
+              </div>
+
+              <div className='userdrop_profile' onClick={() => router("/support")}>
+                <div style={{marginTop: '5px'}}>
+                  <CustomIcon icon={IoHelpOutline} strokeWidth={10} fill='black' variant="circular" size={"var(--text-logo-mark)"}/>
+                </div>
+                <p>Contact support</p>
               </div>
             </div>
             <div className='userdrop_column theme_selector'>
@@ -235,7 +234,7 @@ const Home = () => {
                 <ThemeSelector theme='System' currentTheme={currentTheme} onClick={() => setTheme("System")}/>
               </div>
             </div>
-            <div className='userdrop_row logout' onClick={() => logoutUser()}>
+            <div className='userdrop_row logout' >
               <img src={logoutIcon}/>
               <p>Logout</p>
             </div>

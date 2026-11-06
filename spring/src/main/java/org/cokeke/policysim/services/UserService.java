@@ -8,15 +8,18 @@ import org.cokeke.policysim.exceptions.InvalidCredentialsException;
 import org.cokeke.policysim.exceptions.LoginFailedException;
 import org.cokeke.policysim.exceptions.UserAlreadyExistsException;
 import org.cokeke.policysim.exceptions.UserNotFoundException;
+import org.cokeke.policysim.external.SendEmail;
 import org.cokeke.policysim.models.AppSession;
+import org.cokeke.policysim.models.Email;
+import org.cokeke.policysim.models.Token;
 import org.cokeke.policysim.models.User;
+import org.cokeke.policysim.repos.EmailRepository;
 import org.cokeke.policysim.repos.UserRepository;
 import org.cokeke.policysim.responses.UserResponse;
-
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.CacheEvict;
 
 
 @Service
@@ -25,14 +28,16 @@ public class UserService {
     private final PasswordEncoder encoder;
     private final AppSessionService sessionSvc;
     private final TokenService tokenSvc;
+    private final EmailRepository emailRepo;
 
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-        AppSessionService sessionSvc, TokenService tokenSvc
+        AppSessionService sessionSvc, TokenService tokenSvc, EmailRepository emailRepo
     ) {
         this.repo = userRepository;
         this.encoder = passwordEncoder;
         this.sessionSvc = sessionSvc;
         this.tokenSvc = tokenSvc;
+        this.emailRepo = emailRepo;
     }
 
     public User createUser(String name, String email, String password) {
@@ -114,10 +119,14 @@ public class UserService {
         return new LoginUserServiceRes(user, session);
     }
 
-    public void logoutUser(String token, String refreshToken) {
-        User user = tokenSvc.getAuthenticatedUser(token);
-        tokenSvc.inalidateToken(token);
+    public boolean logoutUser(String refreshToken) {
+        AppSession session = sessionSvc.getBySessionRefreshToken(refreshToken);
+        Token token = tokenSvc.findByUserId(session.getUserId());
+        User user = tokenSvc.getAuthenticatedUser(token.getToken());
+        if (user == null) return false;
+        tokenSvc.inalidateToken(token.getToken());
         sessionSvc.revokeSession(refreshToken);
+        return true;
     }
 
     private User getUser(String email) {
@@ -160,5 +169,16 @@ public class UserService {
 
         User u = getUserById(session.getUserId());        
         return new LoginUserServiceRes(u, session);
+    }
+
+    public Email contactSupport(Long userId, String senderEmail, 
+        String title, String subject, String content) {
+        SendEmail.contactSupoort(senderEmail, title, subject, content);
+        Email newEmail = new Email(senderEmail, title, subject, content, "support");
+
+        if (userId != null) {
+            newEmail.setUserId(userId);
+        }
+        return emailRepo.save(newEmail);
     }
 }

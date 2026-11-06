@@ -5,13 +5,8 @@ import lightLogo from '../assets/Policy_Sim_Logo_Light_PNG.png';
 import { useNavigate } from 'react-router';
 import { ButtonLoader } from '../shared/ButtonLoader';
 import getDeviceInfo from '../utils/GetDeviceInfo';
+import { useAuth } from '../services/AuthProvider';
 
-interface LoginRequest {
-    email: string;
-    password: string;
-    ipAddress: string;
-    deviceInfo: string;
-}
 
 const Login = () => {
     const [email, setEmail] = useState("");
@@ -19,8 +14,11 @@ const Login = () => {
     const [submitted, setSubmitted] = useState(false);
     const [ip, setIp] = useState("");
     const [error, setError] = useState("");
+
     const readyToPost = email.length > 0 && password.length > 0 && ip != "";
     const router = useNavigate();
+
+    const {login} = useAuth();
 
     useEffect(() => {
         fetchUserIp().then((ip) => {
@@ -34,49 +32,28 @@ const Login = () => {
         return data.ip;
     }
 
-    function login() {
-        const payload: LoginRequest = {
-            email: email,
-            password: password,
-            ipAddress: ip,
-            deviceInfo: getDeviceInfo()
-        };
-
+    async function handleLogin() {
         setSubmitted(true);
         setError("");
-        const api = "http://localhost:8080/api/users/login";
-        fetch(api, {
-            method: "POST",
-            credentials: "include",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        })
-        .then((response) => {
-            // if (!response.ok) {
-            //     throw new Error(`Login failed: ${response.status}`);
-            // }
-            return response.json();
-        })
-        .then((data: any) => {
-            if (data.code === 200) {
-                sessionStorage.clear();
-                sessionStorage.setItem("authToken", data.result.authToken);
-                sessionStorage.setItem("userId", data.result.id);
-                sessionStorage.setItem("expirytime", data.result.tokenExpirationTime);
-                localStorage.setItem("refreshToken", data.result.refreshToken);
-                router("/home", { replace: true });
-                setError("");
-            } else {
-                setSubmitted(false);
-                setError(data.message);
-            }
-            
-        })
-        .catch((error) => {
-            console.error("Login error:", error);
-        });
+
+        try {
+            const message = await login({
+                email,
+                password,
+                ipAddress: ip,
+                deviceInfo: getDeviceInfo()
+            });
+
+            router("/home", { replace: true });
+            setError(message);
+
+        } catch (error) {
+            setError(
+                error instanceof Error ? error.message : "Login failed"
+            );
+        } finally {
+            setSubmitted(false);
+        }
     }
 
     return (
@@ -134,7 +111,7 @@ const Login = () => {
                         <div className='basicRow'>
                             <p className='right_sub_header'>Don't have an account? <a className='text_link' onClick={() => router("/sign-up")}>Sign Up</a></p>
                         </div>
-                        <button className='submitBtn' onClick={() => login()} disabled={!readyToPost}>
+                        <button className='submitBtn' onClick={() => handleLogin()} disabled={!readyToPost}>
                             { submitted ?
                                 <ButtonLoader/> : <p>Login to your account</p>
                             } 

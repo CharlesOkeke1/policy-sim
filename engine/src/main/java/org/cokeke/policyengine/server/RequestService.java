@@ -1,7 +1,5 @@
 package org.cokeke.policyengine.server;
 
-import java.net.CookieManager;
-import java.net.CookiePolicy;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -50,12 +48,7 @@ public class RequestService {
     private final AtomicInteger heartbeatFailures = new AtomicInteger(0);
     private static final int MAX_PING_FAILURES = 3;
 
-    private final CookieManager cookieManager =
-        new CookieManager(null, CookiePolicy.ACCEPT_ALL);
-
-    private final HttpClient client = HttpClient.newBuilder()
-            .cookieHandler(cookieManager)
-            .build();
+    private final HttpClient client = HttpClient.newBuilder().build();
 
     public RequestService(GameContractService contractService) {
         this.contractService = contractService;
@@ -76,7 +69,7 @@ public class RequestService {
                 finishGame(payload);
             
             case "SAVE_GAME" ->
-                saveGame();
+                saveGame(payload);
 
             case "PING_SERVER" ->
                 getClientPing(payload);
@@ -150,7 +143,6 @@ public class RequestService {
         String contract = payload.get("contract").asText();
 
         GameContractClaims claims = connect(contract);
-        System.out.println(claims.toString());
         int seed = payload.get("game").get("seed").asInt();
         
         int rounds = payload.get("game").get("noOfRounds").asInt();
@@ -158,11 +150,10 @@ public class RequestService {
         String token = payload.get("authToken").asText();
 
         SessionDTO session = startGameSession(claims.gameId(), claims.userId(), claims.contractId(), token);
-        System.out.println(session.toString());
         if (session == null) return new EngineServerResponse<>("Failed to create session", ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT));
 
         this.engine = new Engine(seed);
-        this.gameConfig = new GameConfig(0, rounds, claims.gameId(), seed, "", difficulty, claims.userId());
+        this.gameConfig = new GameConfig(0, rounds, claims.gameId(), seed, session.engineToken(), difficulty, claims.userId());
 
         if (!schedulerStarted) {
             scheduler.scheduleAtFixedRate(
@@ -185,11 +176,10 @@ public class RequestService {
      * @return Success message and timestamp.
      */
     public EngineServerResponse<String> resumeGame(JsonNode payload) {
-        // Takes res.result
         Long gameId = payload.get("game").get("id").asLong();
         int seed = payload.get("game").get("seed").asInt();
         
-        int rounds = payload.get("game").get("totalRounds").asInt();
+        int rounds = payload.get("game").get("noOfRounds").asInt();
         String difficulty = payload.get("game").get("difficulty").asText();
         String token = payload.get("session").get("engineToken").asText();
         Long userId = payload.get("session").get("userId").asLong();
@@ -197,7 +187,7 @@ public class RequestService {
             payload.get("rounds"),
             new TypeReference<List<SpringRoundDTO>>() {}
         );        
-        int currentMonth = roundsList.get(roundsList.size() - 1).currentMonth();
+        int currentMonth = !roundsList.isEmpty() ? roundsList.get(roundsList.size() - 1).currentMonth() : 0;
 
         this.gameConfig = new GameConfig(currentMonth, rounds, gameId, seed, token, difficulty, userId);
         this.engine = new Engine(roundsList, seed, currentMonth); // Alternative engine init for resuming games.
@@ -241,7 +231,6 @@ public class RequestService {
      */
     public SessionDTO startGameSession(Long gameId, Long userId, String contractId, String token) {
         String api = "http://localhost:8080/api/games/session";
-        System.out.println(token);
 
         try {
             String body = mapper.writeValueAsString(
@@ -256,21 +245,13 @@ public class RequestService {
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
-            System.out.println("URI: " + request);
-            System.out.println("METHOD: " + request.method());
-            System.out.println("HEADERS: " + request.headers().map());
-            System.out.println("BODY: " + body);
-            
+            System.out.println(request.uri());
             HttpResponse<String> response = HttpClient.newHttpClient().send(
                 request,
                 HttpResponse.BodyHandlers.ofString()
             );
-            System.out.println(response.statusCode());
-            System.out.println(response.headers().map());
-            System.out.println(response.body());
 
             JsonNode root = mapper.readTree(response.body());
-            System.out.println(root);
             return mapper.treeToValue(root.get("result"), SessionDTO.class);
 
         } catch (Exception e) {
@@ -307,11 +288,34 @@ public class RequestService {
         return new EngineServerResponse<>(rounds, time);
     }
 
-    public String saveGame() {
+    public String saveGame(JsonNode payload) {
+        Long gameId = gameConfig.getGameId();
+        String stateId = payload.get("stateId").asText();
+        RankedOutput rankedState = GameRanking.rank(scoresMap, stateId);
+
+        double score = rankedState.score();
+        int rank = rankedState.rank();
+        
+        String api = "http://localhost:8080/api/games/save/" + gameId;
         if (!pendingUpdates.isEmpty()) {
             pushToSpring();
         }
-        return "Game saved Successfully";
+        try {
+            String body = mapper.writeValueAsString(new FinishGameDTO(score, rank));
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(api))
+                .header("Authorization", "Bearer " + this.gameConfig.getAuthToken())
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            
+            handleBatchResponse(response, "Game finished successfully");
+            return "Game saved Successfully";
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Finish game request failed");
+        }  
     }
 
     public String pauseGame() {
@@ -347,9 +351,12 @@ public class RequestService {
                 .PUT(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
+            System.out.println(request.uri());
+
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             
             handleBatchResponse(response, "Game finished successfully");
+            cleanUp();
             return "Game succeffully completed";
         } catch (Exception e) {
             throw new IllegalArgumentException("Finish game request failed");
@@ -372,6 +379,8 @@ public class RequestService {
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
+
+                System.out.println(request.uri());
 
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 

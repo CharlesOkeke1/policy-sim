@@ -44,6 +44,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
 
+    // Mail trap
+    implementation 'io.mailtrap:mailtrap-java:1.10.0'
+
+    // Dotenv
+    implementation 'io.github.cdimascio:dotenv-java:3.2.0'
+
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'

@@ -24,7 +24,7 @@ export const LengthElement = ({step, activeStep, years, onClick}: LengthEl) => {
         <div className='lengthElementComponent'
         style={{color: style.color, backgroundColor: style.bgColor,
         fontWeight: style.fontWeight}} onClick={() => onClick()}>
-            <p>{years} years</p>
+            <p className='text_length'>{years} years</p>
         </div>
     )
 }

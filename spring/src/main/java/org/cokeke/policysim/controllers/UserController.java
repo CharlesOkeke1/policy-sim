@@ -1,17 +1,18 @@
 package org.cokeke.policysim.controllers;
 
 import java.net.URI;
-import java.time.Instant;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.cokeke.policysim.common.ApiResponse;
 import org.cokeke.policysim.common.AuthContextHolder;
+import org.cokeke.policysim.common.EnvConfig;
 import org.cokeke.policysim.common.Environment;
 import org.cokeke.policysim.common.TokenGenerator;
 import org.cokeke.policysim.dtos.LoginUserServiceRes;
 import org.cokeke.policysim.models.AppSession;
+import org.cokeke.policysim.models.Email;
 import org.cokeke.policysim.models.Token;
 import org.cokeke.policysim.models.User;
 import org.cokeke.policysim.requests.ChangePasswordRequest;
@@ -19,6 +20,7 @@ import org.cokeke.policysim.requests.CreateUserRequest;
 import org.cokeke.policysim.requests.LoginRequest;
 import org.cokeke.policysim.requests.LogoutRequest;
 import org.cokeke.policysim.requests.NewTokenRequest;
+import org.cokeke.policysim.requests.SendEmailRequest;
 import org.cokeke.policysim.responses.ChangePasswordResponse;
 import org.cokeke.policysim.responses.LoginResponse;
 import org.cokeke.policysim.responses.MeResponse;
@@ -61,7 +63,6 @@ public class UserController {
 
     @PostMapping(Environment.LOGIN)
     public ResponseEntity<ApiResponse<LoginResponse>> loginUser(@RequestBody LoginRequest req) {
-        System.out.println("LOGIN CONTROLLER REACHED");
         LoginUserServiceRes res = userSvc.loginUser(req.email(), req.password(), req.ipAddress(), req.deviceInfo());
         User u = res.user();
         AppSession session = res.session();
@@ -92,8 +93,18 @@ public class UserController {
 
     @PostMapping(Environment.LOGOUT)
     public ResponseEntity<ApiResponse<String>> logoutUser(@RequestBody LogoutRequest req) {
-        userSvc.logoutUser(req.token(), req.refreshToken());
-        return ResponseEntity.ok(ApiResponse.ok("Logout successful"));
+        boolean logout = userSvc.logoutUser(req.refreshToken());
+        ResponseCookie cookie = ResponseCookie.from("auth_token", "")
+            .httpOnly(true)
+            .secure(Environment.IS_PRODUCTION)
+            .path("/")
+            .maxAge(0)
+            .sameSite("Strict")
+            .build();
+
+        return ResponseEntity.ok()
+        .header(HttpHeaders.SET_COOKIE, cookie.toString())
+        .body(ApiResponse.ok(logout ? "Logout successful" : "Logout failed"));
     }
 
     @PostMapping(Environment.USERS)
@@ -200,5 +211,13 @@ public class UserController {
     public ResponseEntity<ApiResponse<String>> deleteAccount(@PathVariable Long id) {
         userSvc.deleteUser(id);
         return ResponseEntity.ok(ApiResponse.ok("Account deleted successfully"));
+    }
+
+    @PostMapping(Environment.EMAIL_SUPPORT)
+    public ResponseEntity<ApiResponse<Email>> contactSupport(@RequestBody SendEmailRequest req) {
+        Email email = userSvc.contactSupport(req.userId(), req.senderEmail(), req.title(), 
+        req.subject(), req.content());
+
+        return ResponseEntity.ok(ApiResponse.ok(201, email));
     }
 }

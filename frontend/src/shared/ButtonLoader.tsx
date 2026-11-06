@@ -2,6 +2,6 @@ import './ButtonLoader.css';
 
 export const ButtonLoader = () => {
     return (
-        <div className='loader'></div>
+        <div className='btn_loader'></div>
     )
 }

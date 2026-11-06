@@ -130,7 +130,7 @@
     display: flex;
     align-items: center;
     gap: var(--gap-10);
-    cursor: pointer;
+    cursor: pointer;    
 }
 
 
@@ -407,4 +407,12 @@
     align-items: center;
     width: 100%;
     gap: var(--gap-10);
+}
+
+.leave_warning {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    font-size: 13px;
+    color: var(--text-muted);
 }
