@@ -14,6 +14,7 @@ public class Environment {
     public static final String REFRESH = "/users/refresh";
     public static final String ME = "/users/me";
     public static final String EMAIL_SUPPORT = "/users/support";
+    public static final String SERVER_STATUS = "/server/status";
 
 
     // GameController.java

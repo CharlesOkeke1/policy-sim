@@ -66,7 +66,8 @@ public class SecurityConfig {
                     "/swagger-ui.html",
                     "/webjars/**",
                     "/api/usernames",
-                    "/h2-console/**"
+                    "/h2-console/**",
+                    "/api/server/status"
                 ).permitAll()
 
                 .anyRequest().authenticated()
@@ -83,7 +84,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:4173"));
+        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:4173", "http://45.77.225.189:5173", "https://policysim.charlesokeke.com"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

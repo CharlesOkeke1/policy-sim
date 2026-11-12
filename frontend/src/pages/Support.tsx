@@ -9,6 +9,7 @@ import { customFetch } from '../utils/FetchWrapper';
 import { validateEmail } from '../utils/Formatting';
 import { FiChevronLeft } from 'react-icons/fi';
 import { CustomIcon } from '../shared/Icon';
+import { contactSupport } from '../services/ApiService';
 
 const Support = () => {
     const {user} = useAuth();
@@ -26,21 +27,13 @@ const Support = () => {
     const [submitted, setSubmitted] = useState(false);
 
     async function sendEmail() {
-        setSubmitted(true);
-        const payload = {
-            userId: user ? user.id : null,
-            senderEmail: senderEmail,
-            title: title,
-            subject: subject,
-            content: content
-        }
-        const url = "http://localhost:8080/api/users/support";
-
-        const res: ApiResponse<any> = await customFetch({
-            method: "POST",
-            url: url,
-            body: payload
-        });
+        const res: ApiResponse<any> = await contactSupport(
+            user ? user.id : null,
+            senderEmail,
+            title, 
+            subject,
+            content
+        )
 
         if (res.code > 200 && res.code < 210) {
             setSubmitted(false);

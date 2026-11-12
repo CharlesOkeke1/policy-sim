@@ -1,0 +1,30 @@
+.maintenance_button_main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--gap-10);
+    height: 52px;
+    border-radius: var(--radius-xl);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    font-size: var(--text-body);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+    cursor: pointer;
+    border: 2px solid var(--line);
+    width: 100%;
+}
+
+.info_Row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0;
+    gap: 10px;
+    padding: 18px 24px;
+    background: #FFFFFF;
+    border: 1px solid var(--line-emphasis);
+    border-radius: 12px;
+    font-size: 14px;
+    text-align: left;
+}

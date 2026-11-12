@@ -10,8 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import { YourEconomyStat } from '../shared/YourEconomyStat';
 import { ProgressBar } from '../shared/ProgressBar';
 import PolicyCard from '../shared/PolicyCard';
-import { customFetch, handleTokenRefresh } from '../utils/FetchWrapper';
-import { NewGame } from '../components/NewGame';
+import { customFetch, devSocketUrl, devurl, handleTokenRefresh, produrl } from '../utils/FetchWrapper';
 import {
   ResponsiveContainer,
   LineChart,
@@ -23,7 +22,7 @@ import {
   Legend
 } from 'recharts';
 import { StatusPill } from '../shared/StatusPill';
-import { formatDate, formatDateSeconds } from '../utils/Formatting';
+import { formatDateSeconds } from '../utils/Formatting';
 import { MiniStatCard } from '../shared/MiniStatCard';
 import type { ApiResponse } from '../dtos/Models';
 import { resumeGameInProgress } from '../services/ApiService';
@@ -85,7 +84,7 @@ export const GameInterface = () => {
     
     useEffect(() => {
         getPolicies();
-        const socket = new WebSocket("ws://localhost:8081");
+        const socket = new WebSocket(devSocketUrl);
         socketRef.current = socket;
 
         socket.addEventListener("open", () => {
@@ -207,7 +206,7 @@ export const GameInterface = () => {
 
     async function createGame() {
         const res: ApiResponse<string> = await 
-        customFetch({url: `http://localhost:8080/api/tokens/${sessionStorage.getItem("userId")}`,
+        customFetch({url: `${devurl}/api/tokens/${sessionStorage.getItem("userId")}`,
         method: "GET"});
         const token = res.result;
 
@@ -220,7 +219,7 @@ export const GameInterface = () => {
 
         try {
             gameInitTime = `${(new Date(Date.now())).toISOString()}`;
-            const res: any = await customFetch({method: "POST", url: "http://localhost:8080/api/games",
+            const res: any = await customFetch({method: "POST", url: `${devurl}/api/games`,
                 body: payload
             })
 
@@ -261,7 +260,7 @@ export const GameInterface = () => {
     function resumeGame() { setPaused(false); }
 
     async function getPolicies() {
-        const url = "http://localhost:8080/api/games/policies";
+        const url = `${devurl}/api/games/policies`;
         const res: any = await customFetch({method: "GET", url: url});
         setPolicyList(res.result);
     }
@@ -311,8 +310,8 @@ export const GameInterface = () => {
 
     async function resumeGameInProg() {
         const tokenRes: ApiResponse<string> = await 
-        customFetch({url: `http://localhost:8080/api/tokens/${sessionStorage.getItem("userId")}`,
-        method: "GET"});
+            customFetch({url: `${devurl}/api/tokens/${sessionStorage.getItem("userId")}`,
+            method: "GET"});
         const token = tokenRes.result;
         try {
             const res: ApiResponse<any> = await resumeGameInProgress(location.state.game.id);

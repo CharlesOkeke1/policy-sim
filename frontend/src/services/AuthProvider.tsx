@@ -12,17 +12,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const router = useNavigate();
 
     useEffect(() => {
-        async function authenticate() {
-            const authenticatedUser = await isUserAuthenticated();
-            setUser(authenticatedUser);
-    
-            if (authenticatedUser === undefined) router("/login");
-            else router("/home");
-            setLoading(false);
-        }
-
         authenticate();
     }, []);
+
+    async function authenticate() {
+        try {
+            
+            const authenticatedUser = await isUserAuthenticated();
+            setUser(authenticatedUser);
+            
+            if (authenticatedUser === undefined) router("/login");
+            else router("/home");
+
+        } catch(error) {
+            console.log("Provider error");
+            if (error instanceof TypeError) {
+                console.error("Backend unavailable:", error);
+                router("/server-error");
+            }
+        } finally {
+            setLoading(false);
+        }
+    }
 
     async function login(req: LoginRequest): Promise<string> {
         setLoading(true);
@@ -60,7 +71,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             user,
             loading,
             login,
-            logout
+            logout,
+            authenticate
         }}>
             {children}
         </AuthContext.Provider>

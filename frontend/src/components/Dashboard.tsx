@@ -22,7 +22,7 @@ import {
 } from 'recharts';
 import { PieChartLegend } from '../shared/PieChartLegend';
 import { RecentActivity } from '../shared/RecentActivity';
-import { customFetch } from '../utils/FetchWrapper';
+import { customFetch, produrl } from '../utils/FetchWrapper';
 import { formatDate } from '../utils/Formatting';
 import { useNavigate } from 'react-router';
 import type { ChildProps } from '../pages/Home';
@@ -31,6 +31,7 @@ import { CustomIcon } from '../shared/Icon';
 import { forkJoin } from 'rxjs';
 import { API_DELAY, getUserData, getUserStats } from '../services/ApiService';
 import PageLoader from '../shared/PageLoader';
+import type { ApiResponse } from '../dtos/Models';
 
 export interface EconomyData {
     name: string;
@@ -198,9 +199,6 @@ export const Dashboard = ({setStep}: ChildProps) => {
                             <MiniStatCard label='Inflation (annual)' stat='TODO' supporting='Down 0.4 points'></MiniStatCard>
                             <MiniStatCard label='Unemployment' stat='TODO' supporting='Down 0.4 points'></MiniStatCard>
                             <MiniStatCard label='Debt / GDP' stat='TODO' supporting='Down 0.4 points'></MiniStatCard>
-                            {/* <MiniStatCard label='Stability' stat='TODO' supporting='Down 0.4 points'></MiniStatCard>
-                            <MiniStatCard label='Real growth (annual)' stat='TODO' supporting='Down 0.4 points'></MiniStatCard>
-                            <MiniStatCard label='Average final rank' stat='TODO' supporting='Down 0.4 points'></MiniStatCard> */}
                         </div>
                     </div>
                     <div className='recent_games'>

@@ -6,7 +6,7 @@ import './MyGames.css';
 import './NewGame.css';
 import MyGameCard from '../shared/MyGameCard';
 import type { ApiResponse, StatePreview } from '../dtos/Models';
-import { customFetch } from '../utils/FetchWrapper';
+import { customFetch, devurl } from '../utils/FetchWrapper';
 import { act, useEffect, useState } from 'react';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import PageLoader from '../shared/PageLoader';
@@ -44,9 +44,8 @@ export const MyGames = ({setStep}: ChildProps) => {
   async function getPaginatedGames(start: number, stop: number) {
     setLoading(true);
     
-    const url = `http://localhost:8080/api/games/${user?.id}/paginated?start=${start}&stop=${stop}`;
+    const url = `${devurl}/api/games/${user?.id}/paginated?start=${start}&stop=${stop}`;
     const res: ApiResponse<any> = await customFetch({method: "GET", url: url});
-    //console.log(res);
 
     setGamesList(res.result.games);
     console.log(res.result);

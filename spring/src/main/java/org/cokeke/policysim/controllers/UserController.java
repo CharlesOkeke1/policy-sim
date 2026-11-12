@@ -21,11 +21,13 @@ import org.cokeke.policysim.requests.LoginRequest;
 import org.cokeke.policysim.requests.LogoutRequest;
 import org.cokeke.policysim.requests.NewTokenRequest;
 import org.cokeke.policysim.requests.SendEmailRequest;
+import org.cokeke.policysim.requests.SuperUserRequest;
 import org.cokeke.policysim.responses.ChangePasswordResponse;
 import org.cokeke.policysim.responses.LoginResponse;
 import org.cokeke.policysim.responses.MeResponse;
 import org.cokeke.policysim.responses.NewTokenResponse;
 import org.cokeke.policysim.responses.UserResponse;
+import org.cokeke.policysim.responses.ServerStatusResponse;
 import org.cokeke.policysim.services.AppSessionService;
 import org.cokeke.policysim.services.TokenService;
 import org.cokeke.policysim.services.UserService;
@@ -84,7 +86,8 @@ public class UserController {
 
         LocalDateTime expTime = session.getRefreshTokenExpiryTime();
         LoginResponse userResponse = new LoginResponse(u.getId(), u.getEmail(),
-        u.getUserName(), tokenString, expTime, session.getRefreshToken(), session.getCreatedAt(), session.getId());
+        u.getUserName(), tokenString, expTime, session.getRefreshToken(), 
+        session.getCreatedAt(), session.getId(), u.getUserRole());
 
         return ResponseEntity.ok()
             .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -219,5 +222,16 @@ public class UserController {
         req.subject(), req.content());
 
         return ResponseEntity.ok(ApiResponse.ok(201, email));
+    }
+
+    @GetMapping(Environment.SERVER_STATUS)
+    public ResponseEntity<ApiResponse<ServerStatusResponse>> getServerStatus() {
+        return ResponseEntity.ok(ApiResponse.ok(userSvc.getServerStatus()));
+    }
+
+    @PostMapping(Environment.SERVER_STATUS)
+    public ResponseEntity<ApiResponse<String>> setServerStatus(@RequestBody SuperUserRequest req) {
+        String message = userSvc.setServerStatus(req.userId(), req.secret(), req.status(), req.expectedUpTime());
+        return ResponseEntity.ok(ApiResponse.ok(message));
     }
 }

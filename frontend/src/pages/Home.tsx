@@ -32,10 +32,14 @@ import { CustomIcon } from '../shared/Icon';
 import { IoHelpOutline } from 'react-icons/io5';
 import { GoTrophy } from 'react-icons/go';
 import { PiTrophy } from 'react-icons/pi';
+import { customFetch, devurl, produrl } from '../utils/FetchWrapper';
+import { useRef } from 'react';
+
 
 export interface ChildProps {
   setStep: (num: number) => void;
   setMin: (val: boolean) => void;
+  windowWidth?: number;
 }
 
 type Theme = 'Light' | 'Dark' | 'System';
@@ -86,14 +90,32 @@ const Home = () => {
     }  
   }
 
-  // async function getUser() {
-  //   const url = `http://localhost:8080/api/users/${sessionStorage.getItem("userId")}`;
-  //   const res: any = await customFetch({method: "GET", url: url});
-  //   setUser(res.result);
-  // }
+  async function logoutUser() {
+    const payload = {
+      token: sessionStorage.getItem("authToken"),
+      refreshToken: localStorage.getItem("refreshToken")
+    }
 
-  function logoutUser() {
-    logout();
+    const url = `${devurl}/api/users/logout`;
+
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${sessionStorage.getItem('authToken')}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    })
+    .then((res) => {
+      return res.json();
+    })
+    .then((data) => {
+      if (data.code === 200) {
+        localStorage.setItem("authenticated", JSON.stringify(false));
+        sessionStorage.clear();
+        router("/login");
+      }
+    });    
   }
 
   function pushActiveStep(step: number) {
@@ -176,7 +198,7 @@ const Home = () => {
               case 1:
                 return <MyGames setMin={setNavBarMinimized} setStep={setActiveStep}/>
               case 2:
-                return <NewGame setStep={setActiveStep} setMin={setNavBarMinimized}/>
+                return <NewGame setStep={setActiveStep} setMin={setNavBarMinimized} windowWidth={windowWidth}/>
               case 3:
                 return <GlobalRankings/>
               case 4:
@@ -234,7 +256,7 @@ const Home = () => {
                 <ThemeSelector theme='System' currentTheme={currentTheme} onClick={() => setTheme("System")}/>
               </div>
             </div>
-            <div className='userdrop_row logout' >
+            <div className='userdrop_row logout' onClick={() => logoutUser()}>
               <img src={logoutIcon}/>
               <p>Logout</p>
             </div>

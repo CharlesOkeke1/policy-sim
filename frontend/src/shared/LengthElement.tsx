@@ -4,6 +4,7 @@ interface LengthEl {
     step: number,
     activeStep: number;
     years: number;
+    windowWidth:  number | undefined;
     onClick: () => void;
 }
 
@@ -14,7 +15,7 @@ export type Length = {
 }
 
 
-export const LengthElement = ({step, activeStep, years, onClick}: LengthEl) => {
+export const LengthElement = ({step, activeStep, years, onClick, windowWidth}: LengthEl) => {
     const style: Length = step === activeStep ? {
         color: "var(--btn-primary-text)",
         fontWeight: "var(--weight-medium)",
@@ -24,7 +25,12 @@ export const LengthElement = ({step, activeStep, years, onClick}: LengthEl) => {
         <div className='lengthElementComponent'
         style={{color: style.color, backgroundColor: style.bgColor,
         fontWeight: style.fontWeight}} onClick={() => onClick()}>
-            <p className='text_length'>{years} years</p>
+            {
+                windowWidth && windowWidth > 900 ?
+                <p className='text_length'>{years} years</p>
+                :
+                <p className='text_length'>{years}</p>
+            }
         </div>
     )
 }
