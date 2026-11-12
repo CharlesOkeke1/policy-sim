@@ -101,4 +101,44 @@ public class RoundService {
 
         return out;
     }
+
+    public List<SpringRoundDTO> roundListToSpringRoundDTOListWithoutGameObject(List<Round> rounds) {
+        List<SpringRoundDTO> out = new ArrayList<>();
+
+        for (Round round : rounds) {
+            SpringRoundDTO dto = new SpringRoundDTO(
+                round.getCurrentMonth(),
+                round.getStateId(),
+                round.getStateName(),
+                round.getPopulation(),
+                round.getProductivity(),
+                round.getPublicCapital(),
+                round.getPriceLevel(),
+                round.getLastInflation(),
+                round.getHouseholdWealth(),
+                round.getGovernmentDebt(),
+                round.getStability(),
+                round.getTaxRate(),
+                round.getSpendingShare(),
+                round.getInvestmentShare(),
+                round.getTransferShare(),
+                round.getOutput(),
+                round.getOutputGap(),
+                round.getUnemployment(),
+                round.getFederalTax(),
+                round.getAllocation(),
+                round.getSpending(),
+                round.getTransfers(),
+                round.getInterest(),
+                round.getPolicy(),
+                round.getFederalResourcePrice(),
+                round.getNationalNetWorth(),
+                round.getFederalTaxShare(),
+                round.getRoundScore(),
+                round.getRoundRank()
+            );
+            out.add(dto);
+        }
+        return out;
+    }
 }

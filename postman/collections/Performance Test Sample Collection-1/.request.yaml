@@ -1,0 +1,12 @@
+$kind: http-request
+name: ""
+url: http://localhost:8080/api/users
+method: POST
+body:
+  type: json
+  content: ""
+scripts:
+  - type: afterResponse
+    code: ""
+    language: text/javascript
+order: 1000

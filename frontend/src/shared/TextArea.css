@@ -1,0 +1,21 @@
+.text_input {
+    height: 100%;
+    border: none;
+    color: var(--auth-text);
+    font-size: var(--text-body);
+    padding: 0;
+    margin: 0;
+    outline: none;
+}
+
+.input_container {
+    background: var(--bg-surface);
+    padding: var(--padding-sm);
+    border: 1px solid var(--auth-input-border);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    box-sizing: border-box;
+    height: var(--input-height);
+    overflow-y: scroll;
+    overflow-x: hidden;
+}

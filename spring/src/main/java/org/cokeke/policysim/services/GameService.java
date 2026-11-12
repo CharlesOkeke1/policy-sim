@@ -1,24 +1,38 @@
 package org.cokeke.policysim.services;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import org.cokeke.policysim.dtos.StatePreview;
 import org.cokeke.policysim.dtos.Policy;
+import org.cokeke.policysim.dtos.ResumeGameSvcRes;
+import org.cokeke.policysim.dtos.StatePreview;
 import org.cokeke.policysim.exceptions.GameNotFoundException;
+import org.cokeke.policysim.exceptions.GameSessionNotFoundException;
+import org.cokeke.policysim.exceptions.InvalidRequestException;
 import org.cokeke.policysim.exceptions.UserNotFoundException;
 import org.cokeke.policysim.models.Game;
 import org.cokeke.policysim.models.Round;
+import org.cokeke.policysim.models.Session;
 import org.cokeke.policysim.models.User;
 import org.cokeke.policysim.repos.GameRepository;
+import org.cokeke.policysim.repos.GameSessionRepository;
 import org.cokeke.policysim.responses.DashboardStats;
+import org.cokeke.policysim.responses.GameResponse;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.CacheEvict;
+//import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 
 @Service
 public class GameService {
     private final GameRepository repo;
     private final RoundService roundSvc;
     private final UserService userService;
+    private final GameSessionRepository sessionRepo;
     private static final List<StatePreview> STATES = List.of(
         new StatePreview("birmingham", "Birmingham", 1.15, 1.00, 60, "Even start", "BHM"),
         new StatePreview("coventry", "Coventry", 0.35, 0.95, 60, "Tough start", "COV"),
@@ -52,12 +66,16 @@ public class GameService {
         "plymouth", "Plymouth"
     );
 
-    public GameService(GameRepository gameRepository, UserService userService, RoundService roundSvc) {
+    public GameService(GameRepository gameRepository, UserService userService, RoundService roundSvc,
+        GameSessionRepository sessionRepo
+    ) {
         this.repo = gameRepository;
         this.userService = userService;
         this.roundSvc = roundSvc;
+        this.sessionRepo = sessionRepo;
     }
 
+    @Cacheable(value = "game", key = "#game.id")
     public Game createGame(String stateName, Long userId, int totalRounds, int seed, String difficulty) {
         User user = userService.getUserById(userId);
         Game game = new Game(stateName, user, totalRounds, seed, difficulty);
@@ -71,15 +89,18 @@ public class GameService {
         repo.save(game);
     }
 
+    @Cacheable(value = "game", key = "#id")
     public Game getGameById(Long id) {
-        return repo.findById(id).orElseThrow(() -> new GameNotFoundException("Game doesn't seem to exist"));
+        return repo.findById(id).orElseThrow(() -> new GameNotFoundException("We cannot find game with specified id"));
     }
 
+    @CacheEvict (value = "game", key = "#game.id")
     public void deleteById(Long id) {
         Game game = this.getGameById(id);
         repo.deleteById(game.getId());
     }
 
+    @Cacheable (value = "games", key ="'allGames'")
     public List<Game> getAllGames() {
         return repo.findAll();
     }
@@ -88,6 +109,7 @@ public class GameService {
         return repo.findByCompleted(status);
     }
 
+    @Cacheable (value = "userGames", key = "#userId")
     public List<Game> getUserGames(Long userId) {
         User user = userService.getUserById(userId);
         if (user == null) {
@@ -97,9 +119,14 @@ public class GameService {
         return repo.findByUserId(userId);
     }
 
+    @Cacheable (value = "noOfUserGames", key = "#userId")
+    public int getUserGameCount(Long userId) {
+        return getUserGames(userId).size();
+    }
+
+    @Cacheable(value = "gameRounds", key = "#gameId")
     public List<Round> getAGamesRounds(Long gameId) {
         List<Round> rounds = roundSvc.getRoundsByGameId(gameId);
-
         return rounds;
     }
 
@@ -113,37 +140,64 @@ public class GameService {
         game.setEndDate(Instant.now());
         game.setScore(score);
         game.setRank(rank);
+
+        Session gSession = sessionRepo.findById(game.getSessionId()).orElseThrow(() -> new GameSessionNotFoundException("Game session not found"));
+        gSession.setEndTime(Instant.now());
         return repo.save(game);
     }
 
+    @Cacheable(value = "game", key = "#gameId")
+    public Game saveGame(Long gameId, double score, int rank) {
+        Game game = repo.findById(gameId).orElse(null);
+        if (game == null) {
+            throw new GameNotFoundException("Game not found");
+        }  
+
+        game.setScore(score);
+        game.setRank(rank);
+        return repo.save(game);
+    }
+
+    @Cacheable(value = "states", key = "'allStates'")
     public List<StatePreview> getStates() {
         return STATES;
     } 
 
+    @Cacheable(value = "stateName", key = "#stateId")
     public String getStateName(String stateId) {
         return STATES_MAP.get(stateId);
     }
 
+    public GameResponse gameToGameResponse(Game g) {
+        List<Round> gRounds = roundSvc.getRoundsByGameId(g.getId());
+        GameResponse res = new GameResponse(g.getId(), g.getSeed(), 
+        g.getTotalRounds(), g.getStateId(), g.getStartDate(), g.getEndDate(),
+        userService.userToUserResponse(g.getUser()), roundSvc.roundListToRoundListWithoutGameObject(gRounds), 
+        g.isCompleted(), g.getScore(), g.getRank(), g.getDifficulty());
+
+        return res;
+    }
+
+    @Cacheable(value = "policies", key = "'allPolicies'")
     public List<Policy> getPolicies() {
         return POLICIES;
     }
 
+    @Cacheable(value = "userDashboardStats1", key = "#id")
     public DashboardStats getUserDashboardStats(Long id) {
         List<Game> games = getUserGames(id);
+        double totalScore = 0;
+        int totalMonths = 0;
+        int completed = 0; int abandoned = 0; int inProgress = 0;
+        Map<Integer, Integer> positionMap = new HashMap<>();
 
         if (games.isEmpty()) {
             return new DashboardStats(id, 0, 0, 0, new HashMap<>(), 0, 0, 0);
         }
-        double totalScore = 0;
-        int totalMonths = 0;
-        int completed = 0; int abandoned = 0; int inProgress = 0;
-        int finalRank = 0;
-        Map<Integer, Integer> positionMap = new HashMap<>();
 
         for (Game g : games) {
             // Tally up scores
             totalScore += g.getScore();
-            finalRank += g.getRank();
 
             List<Round> rounds = getAGamesRounds(g.getId());
             if (rounds.isEmpty()) continue;
@@ -176,5 +230,37 @@ public class GameService {
 
         return new DashboardStats(id, totalScore/games.size(), positionMap.get(1), totalMonths,
         positionMap, completed, abandoned, inProgress);
+    }
+
+    public ResumeGameSvcRes resumeGame(Long gameId) {
+        Game game = getGameById(gameId);
+        
+        if (game.isCompleted()) {
+            throw new IllegalStateException("Cannot resume a completed game");
+        }
+
+        List<Round> rounds = getAGamesRounds(gameId);
+        Session session = sessionRepo.findById(game.getSessionId()).orElseThrow(() -> new GameSessionNotFoundException("No active session found for this game"));
+        return new ResumeGameSvcRes(gameToGameResponse(game), session, roundSvc.roundListToSpringRoundDTOListWithoutGameObject(rounds));
+    }
+
+    @Cacheable(value = "userPaginatedGames", key = "#userId + '-' + #start + '-' + #stop")
+    public List<Game> getPaginatedGames(int start, int stop, Long userId) {
+        List<Game> games = getUserGames(userId);
+        if (start < 0 || start > games.size()) {
+            throw new InvalidRequestException("Paginated start index is invalid");
+        }
+        games.sort((a,b) -> b.getStartDate().compareTo(a.getStartDate()));
+        List<Game> out = new ArrayList<>();
+
+        if (stop > games.size()) {
+            stop = games.size();
+        }
+
+        for (int i = start; i < stop; i++) {
+            out.add(games.get(i));
+        }
+
+        return out;
     }
 }

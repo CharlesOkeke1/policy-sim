@@ -81,7 +81,7 @@ public class Game {
     public User getUser() { return this.user; }
     public String getDifficulty() { return this.difficulty; }
     public String getContractId() { return this.contractId; }
-    public Long getSesionId() { return this.sessionId; }
+    public Long getSessionId() { return this.sessionId; }
 
     public void setStateId(String stateName) { this.stateId = stateName; }
     public void setStartDate(Instant startDate) { this.startDate = startDate; }

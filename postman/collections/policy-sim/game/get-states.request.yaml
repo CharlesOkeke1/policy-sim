@@ -1,0 +1,17 @@
+$kind: http-request
+name: Get States
+order: 5000
+method: GET
+url: '{{base_url}}/api/games/states'
+headers:
+  - key: Authorization
+    value: 'Bearer {{auth_token}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("States returned (200)", () => pm.response.to.have.status(200));
+      pm.test("States list not empty", () => {
+        const json = pm.response.json();
+        pm.expect(json.data).to.be.an("array").that.is.not.empty;
+      });

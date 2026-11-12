@@ -1,0 +1,65 @@
+$kind: http-example
+name: New Request
+request:
+  url: http://localhost:8080/api/users
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \    \"username\": \"{{username}}\",\r
+
+      \    \"email\": \"{{email}}\",\r
+
+      \    \"password\": \"{{password}}\"\r
+
+      }"
+response:
+  statusCode: 201
+  statusText: ""
+  headers:
+    - key: Vary
+      value: Origin
+    - key: Vary
+      value: Access-Control-Request-Method
+    - key: Vary
+      value: Access-Control-Request-Headers
+    - key: Location
+      value: /api/users/26
+    - key: X-Content-Type-Options
+      value: nosniff
+    - key: X-XSS-Protection
+      value: "0"
+    - key: Cache-Control
+      value: no-cache, no-store, max-age=0, must-revalidate
+    - key: Pragma
+      value: no-cache
+    - key: Expires
+      value: "0"
+    - key: X-Frame-Options
+      value: DENY
+    - key: Content-Type
+      value: application/json
+    - key: Transfer-Encoding
+      value: chunked
+    - key: Date
+      value: Fri, 30 Oct 2026 17:38:31 GMT
+    - key: Keep-Alive
+      value: timeout=60
+    - key: Connection
+      value: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "code": 201,
+        "message": "success",
+        "error": null,
+        "result": {
+          "id": 26,
+          "email": "bot300@charlesokeke.com",
+          "name": "bot300",
+          "authToken": null
+        }
+      }
+order: 2000

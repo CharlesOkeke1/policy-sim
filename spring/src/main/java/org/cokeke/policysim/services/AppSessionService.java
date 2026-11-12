@@ -5,11 +5,17 @@ import java.util.List;
 
 import org.cokeke.policysim.common.TokenGenerator;
 import org.cokeke.policysim.exceptions.AppSessionNotFoundException;
+import org.cokeke.policysim.exceptions.AppSessionExpiredException;
+import org.cokeke.policysim.exceptions.InvalidRefreshTokenException;
 import org.cokeke.policysim.models.AppSession;
 import org.cokeke.policysim.models.Token;
 import org.cokeke.policysim.repos.AppSessionRepository;
 import org.cokeke.policysim.repos.TokenRepository;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.Cacheable;
+
 
 
 /**
@@ -32,10 +38,12 @@ public class AppSessionService {
         return repo.findAll();
     }
 
+    @Cacheable (value = "session", key = "#id")
     public AppSession getSessionById(Long id) {
         return repo.findById(id).orElseThrow(() -> new AppSessionNotFoundException("Session does not exist"));
     }
 
+    @Cacheable (value = "session", key = "#token")
     public AppSession getBySessionRefreshToken(String token) {
         return repo.getByRefreshToken(token).orElseThrow(() -> new AppSessionNotFoundException("Session does not exist"));
     }
@@ -56,22 +64,27 @@ public class AppSessionService {
         return repo.save(newSession);
     }
 
+    @Transactional
     public Token getNewAuthToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new InvalidRefreshTokenException("Refresh token is missing");
+        }
+
         AppSession session = repo.getByRefreshToken(refreshToken).orElse(null);
 
         if (session == null) throw new AppSessionNotFoundException("Session does not exist");
         if (session.isExpiredOrRevoked()) { 
-            createNewSession(session.getUserId(), session.getIpAddress(), session.getDeviceInfo());
+            throw new AppSessionExpiredException("Refresh Token is now invalid");
         }
 
+        // Craft a new token 
         String newToken = TokenGenerator.generateRefreshToken();
         Token newTokenObject = new Token(newToken, session.getUserId());
 
-        Token oldToken = tokenRepo.findByUserId(session.getUserId()).orElse(null);
-        if (oldToken != null) tokenRepo.deleteById(oldToken.getId());
-
-        tokenRepo.save(newTokenObject);
-        return newTokenObject;
+        // Delete the old token
+        int count = tokenRepo.deleteByUserId(session.getUserId());
+        System.out.println("Amount of tokens deleted " + count);
+        return tokenRepo.save(newTokenObject);
     }
 
     public void revokeSession(String refToken) {

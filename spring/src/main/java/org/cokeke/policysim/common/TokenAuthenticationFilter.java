@@ -16,6 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -27,33 +28,59 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+        FilterChain filterChain) throws ServletException, IOException {
 
-        String header = request.getHeader("Authorization");
-
-        if (header == null || !header.startsWith("Bearer ")) {
+        String path = request.getServletPath();
+        if (path.equals("/api/users/login")
+            || path.equals("/api/users")
+            || path.equals("/api/users/refresh")
+            || path.equals("/api/users/me")
+            || path.startsWith("/v3/api-docs")
+            || path.equals("/swagger-ui.html")
+            || path.startsWith("/swagger-ui/")
+            || path.startsWith("/webjars/")
+            || path.equals("/api/usernames")
+            || path.startsWith("/h2-console/")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String tokenString = header.substring(7).trim();
+        String tokenString = null;
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            tokenString = authHeader.substring(7).trim();
+        }
+
+        if (tokenString == null || tokenString.isBlank()) {
+            Cookie[] cookies = request.getCookies();
+
+            if (cookies != null) {
+                for (Cookie c : cookies) {
+                    if ("auth_token".equals(c.getName())) {
+                        tokenString = c.getValue();
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (tokenString == null || tokenString.isBlank()) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
 
         try {
             User user = tokenService.getAuthenticatedUser(tokenString);
-
-            var authentication =
+            var authentication = 
                 new UsernamePasswordAuthenticationToken(
                     user,
                     null,
                     List.of()
                 );
 
-            SecurityContext context =
-                SecurityContextHolder.createEmptyContext();
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
 
             context.setAuthentication(authentication);
             SecurityContextHolder.setContext(context);
@@ -70,7 +97,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             );
             return;
         }
-
         filterChain.doFilter(request, response);
     }
 }

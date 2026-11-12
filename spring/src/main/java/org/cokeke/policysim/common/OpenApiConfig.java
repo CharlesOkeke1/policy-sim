@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
+import io.swagger.v3.oas.annotations.servers.Server;
 
 @Configuration
 @SecurityScheme(
@@ -18,8 +19,13 @@ import org.springframework.context.annotation.Bean;
     bearerFormat = "JWT"
 )
 @OpenAPIDefinition(
+    servers = {
+        @Server(url = "https://api.charlesokeke.com", description = "Production"),
+        @Server(url = "http://localhost:8080", description = "Local development")
+    },
     security = @SecurityRequirement(name = "bearerAuth")
 )
+
 public class OpenApiConfig {
 
     @Bean

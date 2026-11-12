@@ -12,7 +12,7 @@
     gap: 6px;
     padding: 14px;
     min-height: 40px;
-    width: 200px;
+    width: clamp(160px, 210px, 240px);
     text-align: left;
     border-radius: 12px;
     background: var(--bg-surface);        

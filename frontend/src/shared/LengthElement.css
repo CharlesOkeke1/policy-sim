@@ -7,3 +7,9 @@
     cursor: pointer;
     justify-content: center;
 }
+
+.text_length {
+    word-break: break-all;
+    max-height: 20px;
+    overflow: hidden;
+}

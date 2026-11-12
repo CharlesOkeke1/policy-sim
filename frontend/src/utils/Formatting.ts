@@ -30,3 +30,8 @@ export function formatDateSeconds(date: string): string {
     const daysAgo = Math.floor(hoursAgo / 24);
     return `${daysAgo}d ago`;
 }
+
+export const validateEmail = (email: string): boolean => {
+    const regex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+    return regex.test(email);
+}

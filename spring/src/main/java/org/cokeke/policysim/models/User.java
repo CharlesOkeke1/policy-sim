@@ -8,6 +8,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.time.Instant;
+
 @Entity
 @Table(name = "users")
 public class User {
@@ -21,22 +23,25 @@ public class User {
     private String email;
 
     @Column(nullable = false)
-    @Schema(example = "$2a$12$6K2f7w9R...", description = "The secure BCrypt cryptographically hashed user password string")
     private String passwordHash;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     @Schema(example = "SimCommander2026", description = "The unique public display username chosen by the user")
     private String username;
 
+    @Column(nullable = true)
+    private Instant lastLogin;
 
     public Long getId() { return this.id; }
     public String getEmail() { return this.email; }
     public String getHash() { return this.passwordHash; }
     public String getUserName() { return username; }
+    public Instant getLastLogin() { return this.lastLogin; }
 
     public void setEmail(String email) { this.email = email; }
     public void setUserName(String n) { this.username = n; }
     public void setHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public void setLastLogin(Instant lastLogin) { this.lastLogin = lastLogin; }
 
     protected  User() {}
 
@@ -44,6 +49,7 @@ public class User {
         this.email = email;
         this.passwordHash = pass;
         this.username = name;
+        this.lastLogin = null;
     }
 
     @Override

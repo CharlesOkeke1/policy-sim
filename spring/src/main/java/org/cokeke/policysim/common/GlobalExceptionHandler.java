@@ -1,16 +1,18 @@
 package org.cokeke.policysim.common;
 
+import org.cokeke.policysim.exceptions.AppSessionAlreadyExistsException;
+import org.cokeke.policysim.exceptions.AppSessionExpiredException;
+import org.cokeke.policysim.exceptions.AppSessionNotFoundException;
+import org.cokeke.policysim.exceptions.EmailSendException;
 import org.cokeke.policysim.exceptions.GameNotFoundException;
+import org.cokeke.policysim.exceptions.InvalidContractException;
+import org.cokeke.policysim.exceptions.InvalidRequestException;
+import org.cokeke.policysim.exceptions.InvalidTokenException;
 import org.cokeke.policysim.exceptions.LoginFailedException;
+import org.cokeke.policysim.exceptions.RoundNotFoundException;
 import org.cokeke.policysim.exceptions.TokenExpiredException;
 import org.cokeke.policysim.exceptions.UserAlreadyExistsException;
-import org.cokeke.policysim.exceptions.AppSessionNotFoundException;
-import org.cokeke.policysim.exceptions.AppSessionExpiredException;
-import org.cokeke.policysim.exceptions.RoundNotFoundException;
-import org.cokeke.policysim.exceptions.AppSessionAlreadyExistsException;
 import org.cokeke.policysim.exceptions.UserNotFoundException;
-import org.cokeke.policysim.exceptions.InvalidTokenException;
-import org.cokeke.policysim.exceptions.InvalidContractException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -94,5 +96,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.valueOf(400))
             .body(ApiResponse.error(400, ex.getMessage(), ErrorCode.INVALID_REQUEST));
+    }
+    
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<ApiResponse<String>> handleInvalidRequest(InvalidRequestException ex) {
+        return ResponseEntity
+            .status(HttpStatus.valueOf(400))
+            .body(ApiResponse.error(400, ex.getMessage(), ErrorCode.INVALID_REQUEST));
+    }
+
+    @ExceptionHandler(EmailSendException.class)
+    public ResponseEntity<ApiResponse<String>> handleInvalidRequest(EmailSendException ex) {
+        return ResponseEntity
+            .status(HttpStatus.valueOf(500))
+            .body(ApiResponse.error(500, ex.getMessage(), ErrorCode.INTERNAL_SERVER_ERROR));
     }
 }

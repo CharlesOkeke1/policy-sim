@@ -1,0 +1,9 @@
+$kind: http-request
+name: New Request
+url: http://localhost:8080/api/users
+method: GET
+body:
+  type: json
+  content: ""
+examples: .resources/.resources/examples
+order: 1000

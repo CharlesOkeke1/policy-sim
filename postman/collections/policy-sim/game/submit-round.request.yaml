@@ -1,0 +1,49 @@
+$kind: http-request
+name: Submit Round
+order: 2000
+method: POST
+url: '{{base_url}}/api/games/{{game_id}}/rounds'
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{auth_token}}'
+body:
+  type: json
+  content: |-
+    {
+      "currentMonth": 1,
+      "stateId": "CA",
+      "stateName": "California",
+      "population": 39500000,
+      "productivity": 1.05,
+      "publicCapital": 0.8,
+      "priceLevel": 1.02,
+      "lastInflation": 0.03,
+      "householdWealth": 250000,
+      "governmentDebt": 500000000,
+      "stability": 0.75,
+      "taxRate": 0.25,
+      "spendingShare": 0.3,
+      "investmentShare": 0.2,
+      "transferShare": 0.15,
+      "output": 3500000000,
+      "outputGap": 0.01,
+      "unemployment": 0.05,
+      "federalTax": 0.15,
+      "allocation": 0.4,
+      "spending": 1050000000,
+      "transfers": 525000000,
+      "interest": 0.04,
+      "policy": "BALANCED",
+      "federalResourcePrice": 1.0,
+      "nationalNetWorth": 10000000000,
+      "federalTaxShare": 0.2,
+      "roundScore": 72.5,
+      "roundRank": 2
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Round submitted (200)", () => pm.response.to.have.status(200));

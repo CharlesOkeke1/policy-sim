@@ -1,0 +1,28 @@
+$kind: http-request
+name: Create Game
+order: 1000
+method: POST
+url: '{{base_url}}/api/games'
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{auth_token}}'
+body:
+  type: json
+  content: |-
+    {
+      "stateId": "CA",
+      "rounds": 12,
+      "seed": 42,
+      "difficulty": "Normal"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Game created (201)", () => pm.response.to.have.status(201));
+      const json = pm.response.json();
+      if (json.data && json.data.game) {
+        pm.collectionVariables.set("game_id", String(json.data.game.id));
+      }

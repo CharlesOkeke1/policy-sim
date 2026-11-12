@@ -24,8 +24,11 @@ dependencies {
 
     // Database and ORM
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    //runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.postgresql:postgresql'
     runtimeOnly 'com.h2database:h2'
+
+    // compileOnly 'org.projectlombok:lombok'
+    // annotationProcessor 'org.projectlombok:lombok'
 
     // Authentication and password hashing
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -36,11 +39,24 @@ dependencies {
     // Development
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
+    // Redis for caching
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+    // Mail trap
+    implementation 'io.mailtrap:mailtrap-java:1.10.0'
+
+    // Dotenv
+    implementation 'io.github.cdimascio:dotenv-java:3.2.0'
+
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'it.ozimov:embedded-redis:0.7.3'
+
     testRuntimeOnly 'com.h2database:h2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

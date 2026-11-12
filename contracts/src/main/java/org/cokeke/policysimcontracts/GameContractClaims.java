@@ -8,4 +8,17 @@ public record GameContractClaims(
         String audience,
         long issuedAt,
         long expiresAt
-) {}
+) {
+        @Override
+        public String toString() {
+        return "GameContractClaims{" +
+                "contractId='" + contractId + '\'' +
+                ", userId=" + userId +
+                ", gameId=" + gameId +
+                ", issuer='" + issuer + '\'' +
+                ", audience='" + audience + '\'' +
+                ", issuedAt=" + issuedAt +
+                ", expiresAt=" + expiresAt +
+                '}';
+        }
+}

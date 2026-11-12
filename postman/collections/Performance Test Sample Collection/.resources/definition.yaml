@@ -1,0 +1,8 @@
+$kind: collection
+variables:
+  botCounter: ""
+  username: ""
+  email: ""
+  password: ""
+  userId: ""
+  authToken: ""

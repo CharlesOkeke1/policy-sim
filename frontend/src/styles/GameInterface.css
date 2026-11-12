@@ -115,7 +115,7 @@
     padding: 32px 80px;
     display: grid;
     grid-template-areas: 'left center right';
-    grid-template-columns: 0.5fr 1fr 0.5fr;
+    grid-template-columns: 1fr 2fr 1fr;
     background-color: var(--bg-page);
     gap: var(--gap-xxl);
     box-sizing: border-box;
@@ -126,15 +126,11 @@
     overflow-y: scroll;
 }
 
-/* .main_game_int > * {
-    border: 1px solid red;
-} */
-
 .save_and_exit_container {
     display: flex;
     align-items: center;
     gap: var(--gap-10);
-    cursor: pointer;
+    cursor: pointer;    
 }
 
 
@@ -216,7 +212,8 @@
     background: var(--bg-surface);
     border: 1px solid var(--line);
     border-radius: 14px;
-    width: 90%;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .your_economy_header {
@@ -410,4 +407,12 @@
     align-items: center;
     width: 100%;
     gap: var(--gap-10);
+}
+
+.leave_warning {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    font-size: 13px;
+    color: var(--text-muted);
 }

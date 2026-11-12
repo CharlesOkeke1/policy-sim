@@ -1,22 +1,24 @@
 interface FetchOptions {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   url: string;
+  credentials?: 'include' | 'same-origin' | 'omit' ;
   body?: unknown;
 }
 
+/**
+ * Once the credentials: "include" prop is set and working, all storage of the authentication tokens in session storage will end
+ * Only the refreshToken will be stored in localStorage. 
+ */
+
 export async function customFetch<T>({ method, url, body }: FetchOptions): Promise<T> {
-  const accessToken = sessionStorage.getItem('authToken');
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
 
-  if (accessToken) {
-    headers['Authorization'] = `Bearer ${accessToken}`;
-  }
-
   const config: RequestInit = {
     method,
+    credentials: 'include',
     headers,
     body: body ? JSON.stringify(body) : undefined,
   };
@@ -28,17 +30,10 @@ export async function customFetch<T>({ method, url, body }: FetchOptions): Promi
     const refreshSuccess = await handleTokenRefresh();
     
     if (refreshSuccess) {
-      // Get the fresh token that was just saved to storage
-      const newAccessToken = sessionStorage.getItem('authToken');
-      if (newAccessToken) {
-        (config.headers as Record<string, string>)['Authorization'] = `Bearer ${newAccessToken}`;
-      }
-      // Retry the exact original request
       response = await fetch(url, config);
     } else {
       // Refresh token failed or expired
       //sessionStorage.clear();
-      //window.location.href = '/login';
       throw new Error('Session expired. Please log in again.');
     }
   }
@@ -57,13 +52,13 @@ export async function handleTokenRefresh(): Promise<boolean> {
   try {
     const res = await fetch(`${produrl}/api/users/refresh`, {
       method: 'POST',
+      credentials: "include",
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
     });
 
     if (res.ok) {
       const data = await res.json(); 
-      sessionStorage.setItem('authToken', data.result.authToken);
       localStorage.setItem('refreshToken', data.result.refreshToken);
       return true;
     }

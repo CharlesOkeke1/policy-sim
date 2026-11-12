@@ -1,5 +1,5 @@
 /* HTML: <div class="loader"></div> */
-.loader {
+.btn_loader {
   width: 60px;
   aspect-ratio: 4;
   --_g: no-repeat radial-gradient(circle closest-side,#000 90%,#0000);

@@ -9,5 +9,4 @@ public record GetUserGames(Long id, int seed, int noOfRounds,
     String stateName, Instant startDate, Instant endDate, 
     List<RoundWithoutGame> rounds, Boolean completed, 
     Double score, int rank, String difficulty) {
-    
 }
