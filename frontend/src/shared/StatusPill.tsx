@@ -1,15 +1,16 @@
 import './StatusPill.css';
 
-export type PillType = 'SUCCESS' | 'FAILURE' | 'INFORMATION' | 'WARNING' | 'NULL';
+export type PillType = 'SUCCESS' | 'FAILURE' | 'INFORMATION' | 'WARNING' | 'NEUTRAL' | 'NULL';
 
 
 interface PillProps {
     content: string;
     type: PillType;
-
+    icon?: string;
+    width?: number;
 }
 
-export const StatusPill = ({content, type}: PillProps) => {
+export const StatusPill = ({content, type, icon, width}: PillProps) => {
     let border = "1px solid "
     let bgColor = "";
     let textColor = "";
@@ -38,9 +39,21 @@ export const StatusPill = ({content, type}: PillProps) => {
             bgColor = "var(--status-info-bg)";
             break;
 
+        case "NEUTRAL": 
+            textColor = "var(--status-neutral)";
+            border += "var(--status-neutral)";
+            bgColor = "var(--status-neutral-bg)";
+            break;
+
     }
     return (
-        <div className='pillComponent' style={{backgroundColor: bgColor, border: border}}>
+        <div className='pillComponent' style={{backgroundColor: bgColor, border: border, width: width ? width + "px" : ""}}>
+            {
+                icon ?
+                <img className='status_pill_icon' src={icon}/>
+                : 
+                ""
+            }
             <p className='pill_content' style={{color: textColor}}>{content}</p>
         </div>
     )

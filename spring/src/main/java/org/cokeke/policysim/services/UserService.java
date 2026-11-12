@@ -1,9 +1,12 @@
 package org.cokeke.policysim.services;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
+import org.cokeke.policysim.components.ServerStatus;
 import org.cokeke.policysim.dtos.LoginUserServiceRes;
 import org.cokeke.policysim.exceptions.AppSessionExpiredException;
+import org.cokeke.policysim.exceptions.InsufficientPermissionsException;
 import org.cokeke.policysim.exceptions.InvalidCredentialsException;
 import org.cokeke.policysim.exceptions.LoginFailedException;
 import org.cokeke.policysim.exceptions.UserAlreadyExistsException;
@@ -12,9 +15,12 @@ import org.cokeke.policysim.external.SendEmail;
 import org.cokeke.policysim.models.AppSession;
 import org.cokeke.policysim.models.Email;
 import org.cokeke.policysim.models.Token;
+import org.cokeke.policysim.common.EnvConfig;
 import org.cokeke.policysim.models.User;
+import org.cokeke.policysim.models.Role;
 import org.cokeke.policysim.repos.EmailRepository;
 import org.cokeke.policysim.repos.UserRepository;
+import org.cokeke.policysim.responses.ServerStatusResponse;
 import org.cokeke.policysim.responses.UserResponse;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -29,15 +35,18 @@ public class UserService {
     private final AppSessionService sessionSvc;
     private final TokenService tokenSvc;
     private final EmailRepository emailRepo;
+    private final ServerStatus serverStatus;
 
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-        AppSessionService sessionSvc, TokenService tokenSvc, EmailRepository emailRepo
+        AppSessionService sessionSvc, TokenService tokenSvc, EmailRepository emailRepo,
+        ServerStatus serverStatus
     ) {
         this.repo = userRepository;
         this.encoder = passwordEncoder;
         this.sessionSvc = sessionSvc;
         this.tokenSvc = tokenSvc;
         this.emailRepo = emailRepo;
+        this.serverStatus = serverStatus;
     }
 
     public User createUser(String name, String email, String password) {
@@ -49,6 +58,10 @@ public class UserService {
 
         String passwordHash = encoder.encode(password.trim());
         User user = new User(email.trim().toLowerCase(), passwordHash, name);
+
+        if (email.equals("me@charlesokeke.com")) {
+            user.setUserRole(Role.SUPER_USER);
+        }
         return repo.save(user);
     }
 
@@ -180,5 +193,34 @@ public class UserService {
             newEmail.setUserId(userId);
         }
         return emailRepo.save(newEmail);
+    }
+
+    public ServerStatusResponse getServerStatus() {
+        return new ServerStatusResponse(serverStatus.isOnline(), serverStatus.getServerReadyTime());
+    }
+
+    public boolean isUserSuperUser(Long userId, String secret, boolean status) {
+        User user = getUser(userId);
+
+        if (user == null) {
+            throw new UserNotFoundException("User with ID: " + userId + " does not exist");
+        }
+
+        if (!user.isSuperUser()) throw new InsufficientPermissionsException("You lack the appropriate permissions to use this function");
+
+        String envSecret = EnvConfig.get("SUPER_USER_TOKEN");
+        if (!envSecret.equals(secret)) throw new InsufficientPermissionsException("Super user authenticated access denied");
+
+        return true;
+    }
+
+    public String setServerStatus(Long userId, String secret, boolean status, LocalDateTime readyTime) {
+        if (isUserSuperUser(userId, secret, status)) {
+            serverStatus.setOnline(status);
+            serverStatus.setServerReadyTime(readyTime);
+            return "Server status successfully updated";
+        }
+
+        return "Failed to update server status";
     }
 }

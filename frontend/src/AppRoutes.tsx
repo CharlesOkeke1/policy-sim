@@ -13,6 +13,9 @@ import { useAuth } from "./services/AuthProvider";
 import PageLoader from "./shared/PageLoader";
 import '../src/styles/Home.css';
 import Support from "./pages/Support";
+import NotFoundPage from "./pages/NotFoundPage";
+import ServerError from "./pages/ServerError";
+import Maintenance from "./pages/Maintenace";
 
 export default function AppRoutes() {
   const { user, loading } = useAuth();
@@ -32,13 +35,19 @@ export default function AppRoutes() {
           <Route path="/home" element={<Home />} />
           <Route path="/game" element={<GameInterface />} />
           <Route path="/game/resume/:gameId" element={<GameInterface />} />
+          <Route path="/not-found" element={<NotFoundPage />} />
+          <Route path="/server-not-responding" element={<ServerError />} />
+          <Route path="/maintenace" element={<Maintenance />} />
         </Route>
       ) : (
         <Route element={<PublicLayout />}>
-            <Route path="/" element={<SignUp />} />
-            <Route path="/sign-up" element={<SignUp />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/support" element={<Support/>}/>
+        <Route path="/" element={<SignUp />} />
+        <Route path="/sign-up" element={<SignUp />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/support" element={<Support/>}/>
+        <Route path="/not-found" element={<NotFoundPage />} />
+        <Route path="/server-error" element={<ServerError />} />
+        <Route path="/maintenace" element={<Maintenance />} />
         </Route>
       )}
     </Routes>

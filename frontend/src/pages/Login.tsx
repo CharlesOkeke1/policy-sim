@@ -5,9 +5,14 @@ import lightLogo from '../assets/Policy_Sim_Logo_Light_PNG.png';
 import { useNavigate } from 'react-router';
 import { ButtonLoader } from '../shared/ButtonLoader';
 import getDeviceInfo from '../utils/GetDeviceInfo';
-import { produrl } from '../utils/FetchWrapper';
 import { useAuth } from '../services/AuthProvider';
 
+interface LoginRequest {
+    email: string;
+    password: string;
+    ipAddress: string;
+    deviceInfo: string;
+}
 
 const Login = () => {
     const [email, setEmail] = useState("");
@@ -51,6 +56,10 @@ const Login = () => {
             setError(res.message);
 
         } catch (error) {
+            if (error instanceof TypeError) {
+                console.error("Backend unavailable:", error);
+                router("/server-error");
+            }
             setError(
                 error instanceof Error ? error.message : "Login failed"
             );

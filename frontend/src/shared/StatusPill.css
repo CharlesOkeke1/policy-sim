@@ -1,6 +1,6 @@
 .pillComponent {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     border-radius: var(--radius-xxl);
     height: var(--text-body);
@@ -20,4 +20,9 @@
     font-family: 'IBM Plex Mono', monospace;
     font-size: 13px;
     color: var(--text-secondary); 
+}
+
+.status_pill_icon {
+    height: 20px;
+    width: 20px;
 }

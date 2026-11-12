@@ -1,4 +1,5 @@
 import Login from '../pages/Login';
+import Maintenance from '../pages/Maintenace';
 export interface ApiResponse<T> {
     code: number;
     result: T;
@@ -47,6 +48,7 @@ export interface AuthContextType {
     loading: boolean;
     login: (req: LoginRequest) => Promise<ApiResponse<any>>;
     logout: () => void;
+    authenticate: () => void;
 }
 
 export interface LoginRequest {
@@ -56,8 +58,11 @@ export interface LoginRequest {
     deviceInfo: string;
 }
 
-// export interface LoginFn {
-//     req: LoginRequest;
-//     setError: (err: string) => void;
-//     setSubmitted: (sub: boolean) => void;
-// }
+export interface ServerStatus {
+    serverStatus: boolean;
+    expectedUpTime: string; 
+}
+
+export interface MaintenanceProps {
+    expectedUpTime: string; 
+}

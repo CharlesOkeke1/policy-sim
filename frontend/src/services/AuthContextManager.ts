@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router";
 import type { User } from "../dtos/Models";
+import { devurl, produrl } from "../utils/FetchWrapper";
 
 export async function isUserAuthenticated(): Promise<User | undefined> {
     const payload = {
@@ -7,7 +8,7 @@ export async function isUserAuthenticated(): Promise<User | undefined> {
     };
 
     try {
-        const response = await fetch("https://policysimapi.charlesokeke.com/api/users/me", {
+        const response = await fetch(`${produrl}/api/users/me`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -32,7 +33,7 @@ export async function isUserAuthenticated(): Promise<User | undefined> {
         };
 
     } catch (error) {
-        console.error("Authentication error:", error);
+        if (error instanceof TypeError) throw error;
         return undefined;
     }
 }

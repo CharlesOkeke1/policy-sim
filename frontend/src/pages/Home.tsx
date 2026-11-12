@@ -25,17 +25,18 @@ import {
   FaGear, 
   FaHouse, 
   FaPlus, 
-  FaTrophy, 
   FaUser 
 } from 'react-icons/fa6';
 import { CustomIcon } from '../shared/Icon';
 import { IoHelpOutline } from 'react-icons/io5';
-import { GoTrophy } from 'react-icons/go';
 import { PiTrophy } from 'react-icons/pi';
+import { produrl } from '../utils/FetchWrapper';
+
 
 export interface ChildProps {
   setStep: (num: number) => void;
   setMin: (val: boolean) => void;
+  windowWidth?: number;
 }
 
 type Theme = 'Light' | 'Dark' | 'System';
@@ -86,8 +87,30 @@ const Home = () => {
     }  
   }
 
-  function logoutUser() {
-    logout();
+  async function logoutUser() {
+    const payload = {
+      token: sessionStorage.getItem("authToken"),
+      refreshToken: localStorage.getItem("refreshToken")
+    }
+
+    const url = `${produrl}/api/users/logout`;
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    })
+    .then((res) => {
+      return res.json();
+    })
+    .then((data) => {
+      if (data.code === 200) {
+        localStorage.setItem("authenticated", JSON.stringify(false));
+        sessionStorage.clear();
+        router("/login");
+      }
+    });    
   }
 
   function pushActiveStep(step: number) {
@@ -170,7 +193,7 @@ const Home = () => {
               case 1:
                 return <MyGames setMin={setNavBarMinimized} setStep={setActiveStep}/>
               case 2:
-                return <NewGame setStep={setActiveStep} setMin={setNavBarMinimized}/>
+                return <NewGame setStep={setActiveStep} setMin={setNavBarMinimized} windowWidth={windowWidth}/>
               case 3:
                 return <GlobalRankings/>
               case 4:

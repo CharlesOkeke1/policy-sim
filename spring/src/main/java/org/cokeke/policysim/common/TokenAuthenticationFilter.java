@@ -32,6 +32,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         FilterChain filterChain) throws ServletException, IOException {
 
         String path = request.getServletPath();
+        String method = request.getMethod();
         if (path.equals("/api/users/login")
             || path.equals("/api/users")
             || path.equals("/api/users/refresh")
@@ -42,6 +43,11 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             || path.startsWith("/webjars/")
             || path.equals("/api/usernames")
             || path.startsWith("/h2-console/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        if (path.equals("/api/server/status") && "GET".equals(method)) {
             filterChain.doFilter(request, response);
             return;
         }

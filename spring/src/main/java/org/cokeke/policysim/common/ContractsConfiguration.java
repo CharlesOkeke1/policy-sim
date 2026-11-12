@@ -10,10 +10,9 @@ import java.util.Base64;
 @Configuration
 public class ContractsConfiguration {
     @Bean
-    public GameContractService gameContractService(JacksonConfiguration objectMapper, 
-    @Value("${contracts.secret}") String secretBase64) {
+    public GameContractService gameContractService(JacksonConfiguration objectMapper) {
         byte[] secret = Base64.getDecoder()
-                .decode(secretBase64);
+                .decode(EnvConfig.get("CONTRACTS_SECRET"));
 
         return new GameContractService(
                 secret,

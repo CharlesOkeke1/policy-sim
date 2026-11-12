@@ -25,7 +25,7 @@ export interface Difficulty {
   explanation: string
 }
 
-export const NewGame = ({setStep, setMin}: ChildProps) => {
+export const NewGame = ({setStep, setMin, windowWidth}: ChildProps) => {
   const router = useNavigate();
   const [activeDifficulty, setActiveDifficulty] = useState<number>(0);
   const [activeState, setActiveState] = useState<number>(0);
@@ -169,9 +169,9 @@ export const NewGame = ({setStep, setMin}: ChildProps) => {
                 <div className='length_and_seed_row'>
                   <div className='length_container'>
                     <div className='length_obj'>
-                      <LengthElement step={0} activeStep={activeLength} years={10} onClick={() => {setActiveLength(0); setChosenLength(10)}}/>
-                      <LengthElement step={1} activeStep={activeLength} years={20} onClick={() => {setActiveLength(1); setChosenLength(20)}}/>
-                      <LengthElement step={2} activeStep={activeLength} years={30} onClick={() => {setActiveLength(2); setChosenLength(30)}}/>
+                      <LengthElement step={0} activeStep={activeLength} years={10} onClick={() => {setActiveLength(0); setChosenLength(10)}} windowWidth={windowWidth}/>
+                      <LengthElement step={1} activeStep={activeLength} years={20} onClick={() => {setActiveLength(1); setChosenLength(20)}} windowWidth={windowWidth}/>
+                      <LengthElement step={2} activeStep={activeLength} years={30} onClick={() => {setActiveLength(2); setChosenLength(30)}} windowWidth={windowWidth}/>
                       <input 
                         className='custom_length' 
                         placeholder='Custom...'

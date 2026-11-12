@@ -2,7 +2,6 @@ package org.cokeke.policysim.services;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,11 +20,16 @@ import org.cokeke.policysim.models.User;
 import org.cokeke.policysim.repos.GameRepository;
 import org.cokeke.policysim.repos.GameSessionRepository;
 import org.cokeke.policysim.responses.DashboardStats;
+import org.cokeke.policysim.responses.DashboardStats2;
 import org.cokeke.policysim.responses.GameResponse;
-import org.springframework.stereotype.Service;
 import org.springframework.cache.annotation.CacheEvict;
-//import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
+/**
+ * All user statistics will eventually be dated except where specified.
+ * That is to say, statistics returned will be within a certain range of days provided by the user.
+ */
 
 @Service
 public class GameService {
@@ -116,7 +120,14 @@ public class GameService {
             throw new UserNotFoundException("User not found");
         }
 
-        return repo.findByUserId(userId);
+        List<Game> games = repo.findByUserId(userId);
+
+        // Remove dead games if any slipped by
+        games.removeIf((game) -> game.getStartDate() == null);
+
+        // Return a sorted list
+        games.sort((a,b) -> b.getStartDate().compareTo(a.getStartDate()));
+        return games;
     }
 
     @Cacheable (value = "noOfUserGames", key = "#userId")
@@ -247,6 +258,7 @@ public class GameService {
     @Cacheable(value = "userPaginatedGames", key = "#userId + '-' + #start + '-' + #stop")
     public List<Game> getPaginatedGames(int start, int stop, Long userId) {
         List<Game> games = getUserGames(userId);
+
         if (start < 0 || start > games.size()) {
             throw new InvalidRequestException("Paginated start index is invalid");
         }
@@ -263,4 +275,69 @@ public class GameService {
 
         return out;
     }
+
+    @Cacheable(value = "last12Games", key = "#userId")
+    public List<Game> get12MostRecentGames(Long userId) {
+        List<Game> games = getUserGames(userId);
+
+        games.sort((a,b) -> b.getStartDate().compareTo(a.getStartDate()));
+
+        return games.subList(0, 12);
+    }
+
+    public List<Double> getWinToLossRatioOverTime(Long userId, int noOfGames) {
+        List<Game> inp = getUserGames(userId);
+        List<Game> games = new ArrayList<>();
+        List<Double> out = new ArrayList<>();
+
+        // Reverse the list so we can easily do dp
+        for (int i = inp.size() - 1; i >= 0; i--) {
+            games.add(inp.get(i));
+        }
+
+        if (games.size() < noOfGames) {
+            noOfGames = games.size();
+        }
+
+        // Compute the wins
+        List<Integer> wins = new ArrayList<>();
+        for (int i = 0; i < games.size(); i++) {
+            Game g = games.get(i);
+
+            if (i == 0) {
+                if (g.getRank() == 1) wins.add(1);
+                else wins.add(0);
+                continue;
+            }
+
+            if (g.getRank() == 1) wins.add(1 + wins.get(i-1));
+            else wins.add(wins.get(i-1));            
+        }
+
+        // Populate the ratio list
+        for (int i = 0; i < wins.size(); i++) {
+            double ratio = wins.get(i)/(i+1);
+            out.add(ratio);
+        }
+
+        return out;
+    }
+
+    /**
+     * Unemployment, inflation, debt, output, avg final rank, real growth (annual),
+     * stability, houehold wealth
+     */
+
+    // public DashboardStats2 getDashboardStats2(Long userId) {
+    //     List<Game> games = getUserGames(userId);
+
+    //     //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    //     Instant daysAgo30 = Instant.now().minusSeconds(60 * 60 * 24 * 30L); // 3o days ago. Potentially be adjusted for user to provide how long they want
+    //     games.removeIf((game) -> game.getStartDate().isBefore(daysAgo30));
+
+    //     for (Game game : games) {
+    //         List<Round> rounds = getAGamesRounds(game.getId());
+    //     }
+
+    // }
 }

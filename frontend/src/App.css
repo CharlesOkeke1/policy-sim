@@ -166,6 +166,8 @@ select {
   --status-bad-bg: rgba(185, 28, 28, 0.08);
   --status-info: #1D4ED8;
   --status-info-bg: rgba(29, 78, 216, 0.08);
+  --status-neutral: #52525B;
+  --status-neutral-bg: rgba(82, 82, 91, 0.08);
   /* Pill border = status colour at ~27% alpha (append "44" to the hex) */
 
   /* Charts */
@@ -223,6 +225,8 @@ select {
   --status-bad-bg: rgba(242, 119, 106, 0.12);
   --status-info: #60A5FA;
   --status-info-bg: rgba(96, 165, 250, 0.12);
+  --status-neutral: #A1A1AA;
+  --status-neutral-bg: rgba(161, 161, 170, 0.12);
   /* Pill border = status colour at ~33% alpha (append "55" to the hex) */
 
   /* Charts: checked for colour-blind separation and contrast on #191A1E */

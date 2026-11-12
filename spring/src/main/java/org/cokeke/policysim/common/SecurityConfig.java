@@ -66,7 +66,8 @@ public class SecurityConfig {
                     "/swagger-ui.html",
                     "/webjars/**",
                     "/api/usernames",
-                    "/h2-console/**"
+                    "/h2-console/**",
+                    "/api/server/status"
                 ).permitAll()
 
                 .anyRequest().authenticated()

@@ -8,6 +8,7 @@ import org.cokeke.policysim.exceptions.GameNotFoundException;
 import org.cokeke.policysim.exceptions.InvalidContractException;
 import org.cokeke.policysim.exceptions.InvalidRequestException;
 import org.cokeke.policysim.exceptions.InvalidTokenException;
+import org.cokeke.policysim.exceptions.InsufficientPermissionsException;
 import org.cokeke.policysim.exceptions.LoginFailedException;
 import org.cokeke.policysim.exceptions.RoundNotFoundException;
 import org.cokeke.policysim.exceptions.TokenExpiredException;
@@ -110,5 +111,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.valueOf(500))
             .body(ApiResponse.error(500, ex.getMessage(), ErrorCode.INTERNAL_SERVER_ERROR));
+    }
+    
+    @ExceptionHandler(InsufficientPermissionsException.class)
+    public ResponseEntity<ApiResponse<String>> handleInsufficientPermissions(InsufficientPermissionsException ex) {
+        return ResponseEntity
+            .status(HttpStatus.valueOf(403))
+            .body(ApiResponse.error(403, ex.getMessage(), ErrorCode.INSUFFICIENT_PERMISSIONS));
     }
 }

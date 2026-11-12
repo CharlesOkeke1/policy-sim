@@ -1,17 +1,20 @@
 package org.cokeke.policysim.models;
 
+import java.time.Instant;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import java.time.Instant;
-
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {
+    @Index(name = "idx_user_role", columnList= "role")
+})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,15 +35,21 @@ public class User {
     @Column(nullable = true)
     private Instant lastLogin;
 
+    @Column(nullable = false)
+    private Role role;
+
     public Long getId() { return this.id; }
     public String getEmail() { return this.email; }
     public String getHash() { return this.passwordHash; }
     public String getUserName() { return username; }
     public Instant getLastLogin() { return this.lastLogin; }
+    public Role getUserRole() { return this.role; }
+    public boolean isSuperUser() { return this.role == Role.SUPER_USER; }
 
     public void setEmail(String email) { this.email = email; }
     public void setUserName(String n) { this.username = n; }
     public void setHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public void setUserRole(Role role) { this.role = role; }
     public void setLastLogin(Instant lastLogin) { this.lastLogin = lastLogin; }
 
     protected  User() {}
@@ -50,6 +59,7 @@ public class User {
         this.passwordHash = pass;
         this.username = name;
         this.lastLogin = null;
+        this.role = Role.USER;
     }
 
     @Override

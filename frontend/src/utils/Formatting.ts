@@ -6,6 +6,37 @@ export function formatDate(date: string): string {
     });
 }
 
+export function getSecondsBetweenDates(date1: string, date2: string): number {
+    const start = new Date(date1).getTime();
+    const end = new Date(date2).getTime();
+
+    return Math.abs(end - start) / 1000;
+}
+
+export function formatSecondsBetweenDates(secondsAgo: number): string {
+    if (secondsAgo <= 0) return "expected now";
+
+    if (secondsAgo > 0 && secondsAgo < 60) {
+        return `${secondsAgo}s`;
+    }
+
+    const minutesAgo = Math.floor(secondsAgo / 60);
+    const secondsPart = secondsAgo - (minutesAgo * 60);
+    if (minutesAgo < 60) {
+        return `${minutesAgo}min ${secondsPart}s`;
+    }
+
+    const hoursAgo = Math.floor(minutesAgo / 60);
+    const minsPart = minutesAgo - (hoursAgo * 60);
+    if (hoursAgo < 24) {
+        return `${hoursAgo}h ${minsPart}min ${secondsPart}s`;
+    }
+    
+    const daysAgo = Math.floor(hoursAgo / 24);
+    const hoursPart = hoursAgo - (daysAgo * 24);
+    return `${daysAgo}d ${hoursPart}h ${minsPart}min ${secondsPart}s`;
+    
+}
 
 export function formatDateSeconds(date: string): string {
     const timestamp = new Date(date).getTime();

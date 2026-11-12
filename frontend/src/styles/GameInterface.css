@@ -6,7 +6,7 @@
     height: 45px;
     border-bottom: 1px solid var(--line);
     background-color: var(--bg-surface);
-    padding: 12px clamp(40px, 80px, 80px);
+    padding: 12px clamp(40px, 70px, 80px);
 }
 
 .game_interface {
@@ -97,6 +97,7 @@
     align-items: center;
     gap: var(--padding-lg);
     height: 100%;
+    border: var(--t-b);
 }   
 
 .header_left {
@@ -105,6 +106,11 @@
     gap: var(--padding-lg);
     height: 100%;
     width: 100%;
+    border: var(--t-b);
+}
+
+.header_left > *{
+    border: var(--t-b);
 }
 
 .rank_gap {

@@ -47,6 +47,8 @@ public class RequestService {
     private boolean schedulerStarted = false;
     private final AtomicInteger heartbeatFailures = new AtomicInteger(0);
     private static final int MAX_PING_FAILURES = 3;
+    private static final String PROD_URL = "https://policysimapi.charlesokeke.com";
+    private static final String DEV_URL = "http://localhost:8080";
 
     private final HttpClient client = HttpClient.newBuilder().build();
 
@@ -230,7 +232,7 @@ public class RequestService {
      * @return Session Object returned from backend.
      */
     public SessionDTO startGameSession(Long gameId, Long userId, String contractId, String token) {
-        String api = "https://policysimapi.charlesokeke.com/api/games/session";
+        String api = PROD_URL + "/api/games/session";
         try {
             String body = mapper.writeValueAsString(
                 new SessionInitDTO(gameId, userId, contractId)
@@ -295,7 +297,7 @@ public class RequestService {
         double score = rankedState.score();
         int rank = rankedState.rank();
         
-        String api = "https://policysimapi.charlesokeke.com/api/games/save/" + gameId;
+        String api = PROD_URL + "/api/games/save/" + gameId;
         if (!pendingUpdates.isEmpty()) {
             pushToSpring();
         }
@@ -337,7 +339,7 @@ public class RequestService {
         double score = rankedState.score();
         int rank = rankedState.rank();
         
-        String api = "https://policysimapi.charlesokeke.com/api/games/" + gameId;
+        String api = DEV_URL + "/api/games/" + gameId;
         if (!pendingUpdates.isEmpty()) {
             pushToSpring();
         }
@@ -366,7 +368,7 @@ public class RequestService {
      * Function should be called every minute using the batched queue
     */
     public void pushToSpring() {
-        String api = "https://policysimapi.charlesokeke.com/api/games/rounds/batchUpload";
+        String api = DEV_URL + "/api/games/rounds/batchUpload";
         SpringUploadData payload = new SpringUploadData(pendingUpdates, gameConfig.getGameId());
 
         try {
