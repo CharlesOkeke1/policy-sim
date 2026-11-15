@@ -207,9 +207,7 @@ export const GameInterface = () => {
             }
 
             const response: any = await postToServer("INITIALIZE_SESSION", initData);
-            if (response.success) {
-                setGameStarted(true);
-            }
+            setGameStarted(true);
         } catch (error) {
             console.error(error);
         }
@@ -303,9 +301,7 @@ export const GameInterface = () => {
             }
 
             const response: any = await postToServer("RESUME_GAME", initData);
-            if (response.success) {
-                setGameStarted(true);
-            }            
+            setGameStarted(true);                       
         } catch (error) {
             console.error(error);
         }
