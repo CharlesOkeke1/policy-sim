@@ -1,0 +1,9 @@
+*.yml linguist-detectable=true
+*.yaml linguist-detectable=true
+*.ts linguist-detectable=true
+*.java linguist-detectable=true
+*.sql linguist-detectable=true
+*.sh linguist-detectable=true
+*.css linguist-detectable=true
+*.html linguist-detectable=true
+*.bat linguist-detectable=true
