@@ -3,6 +3,7 @@ package org.cokeke.policysim.common;
 import java.util.List;
 
 import org.cokeke.policysim.services.TokenService;
+import org.cokeke.policysim.components.ServerStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,6 +24,12 @@ import jakarta.servlet.http.HttpServletResponse;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private final ServerStatus serverStatus;
+
+    public SecurityConfig(ServerStatus serverStatus) {
+        this.serverStatus = serverStatus;
+    }
+    
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
@@ -48,33 +55,54 @@ public class SecurityConfig {
                         HttpServletResponse.SC_UNAUTHORIZED
                     )
                 )
-            )
+            );
 
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    HttpMethod.POST,
-                    "/api/users",
-                    "/api/users/me",
-                    "/api/users/login",
-                    "/api/users/refresh"
-                ).permitAll()
+            if (serverStatus.isOnline()) {
+                http.authorizeHttpRequests(auth -> auth
+                    .requestMatchers(
+                        HttpMethod.POST,
+                        "/api/users",
+                        "/api/users/me",
+                        "/api/users/login",
+                        "/api/users/refresh"
+                    ).permitAll()
 
-                .requestMatchers(
-                    HttpMethod.GET,
-                    "/v3/api-docs/**",
-                    "/swagger-ui/**",
-                    "/swagger-ui.html",
-                    "/webjars/**",
-                    "/api/usernames",
-                    "/h2-console/**",
-                    "/api/server/status"
-                ).permitAll()
+                    .requestMatchers(
+                        HttpMethod.GET,
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/webjars/**",
+                        "/api/usernames",
+                        "/h2-console/**",
+                        "/api/server/status"
+                    ).permitAll()
 
-                .anyRequest().authenticated()
-            )
+                    .anyRequest().authenticated()
+                );
+            } else {
+                http.authorizeHttpRequests(auth -> auth
+                    .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/server/status",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html"
+                    ).permitAll()
 
-            .addFilterBefore(
-                new TokenAuthenticationFilter(tokenService),
+                    .requestMatchers(
+                        HttpMethod.POST,
+                        "/api/users/login",
+                        "/api/server/status"
+                    ).permitAll()
+
+                    .anyRequest().denyAll()
+                );
+            }
+
+
+            http.addFilterBefore(
+                new TokenAuthenticationFilter(tokenService, serverStatus),
                 UsernamePasswordAuthenticationFilter.class
             );
 
@@ -84,7 +112,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:4173", "http://45.77.225.189:5173", "https://policysim.charlesokeke.com"));
+        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:4173", "http://45.77.225.189:5173", "https://policysim.charlesokeke.com", "https://policysimapi.charlesokeke.com"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

@@ -1,6 +1,6 @@
 .pillComponent {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     border-radius: var(--radius-xxl);
     height: var(--text-body);

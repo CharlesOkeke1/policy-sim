@@ -7,6 +7,7 @@ import org.cokeke.policysim.exceptions.EmailSendException;
 import org.cokeke.policysim.exceptions.GameNotFoundException;
 import org.cokeke.policysim.exceptions.InvalidContractException;
 import org.cokeke.policysim.exceptions.InvalidRequestException;
+import org.cokeke.policysim.exceptions.UnauthorizedRequestException;
 import org.cokeke.policysim.exceptions.InvalidTokenException;
 import org.cokeke.policysim.exceptions.InsufficientPermissionsException;
 import org.cokeke.policysim.exceptions.LoginFailedException;
@@ -107,7 +108,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(EmailSendException.class)
-    public ResponseEntity<ApiResponse<String>> handleInvalidRequest(EmailSendException ex) {
+    public ResponseEntity<ApiResponse<String>> handleSendEmail(EmailSendException ex) {
         return ResponseEntity
             .status(HttpStatus.valueOf(500))
             .body(ApiResponse.error(500, ex.getMessage(), ErrorCode.INTERNAL_SERVER_ERROR));
@@ -118,5 +119,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.valueOf(403))
             .body(ApiResponse.error(403, ex.getMessage(), ErrorCode.INSUFFICIENT_PERMISSIONS));
+    }
+
+    @ExceptionHandler(UnauthorizedRequestException.class)
+    public ResponseEntity<ApiResponse<String>> handleInsufficientAuthorization(UnauthorizedRequestException ex) {
+        return ResponseEntity
+            .status(HttpStatus.valueOf(401))
+            .body(ApiResponse.error(401, ex.getMessage(), ErrorCode.RESOURCE_REQUIRES_AUTHORIZATION));
     }
 }

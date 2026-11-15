@@ -1,6 +1,6 @@
 import './App.css';
 import { useEffect, useState } from 'react';
-import { devurl } from './utils/FetchWrapper';
+import { produrl } from './utils/FetchWrapper';
 import type { ApiResponse, ServerStatus } from './dtos/Models';
 import MaintenanceGate from './services/MaintenanceGate';
 import { useNavigate } from 'react-router';
@@ -12,7 +12,7 @@ export default function App() {
 
     async function getServerStatus() {
         try {
-            const url = `${devurl}/api/server/status`;
+            const url = `${produrl}/api/server/status`;
             const response = await fetch(url, {
                 method: "GET",
                 headers: {

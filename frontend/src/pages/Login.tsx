@@ -43,17 +43,15 @@ const Login = () => {
         setError("");
 
         try {
-            const res = await login({
+            const message = await login({
                 email,
                 password,
                 ipAddress: ip,
                 deviceInfo: getDeviceInfo()
             });
 
-            router(`/home`, { replace: true, state : {
-                sessionId: res.result.sessionId
-            }});
-            setError(res.message);
+            router("/home", { replace: true });
+            setError(message);
 
         } catch (error) {
             if (error instanceof TypeError) {

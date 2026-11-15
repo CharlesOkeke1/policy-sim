@@ -2,6 +2,7 @@ package org.cokeke.policysim.services;
 
 import java.util.List;
 import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.cokeke.policysim.components.ServerStatus;
 import org.cokeke.policysim.dtos.LoginUserServiceRes;
@@ -11,6 +12,7 @@ import org.cokeke.policysim.exceptions.InvalidCredentialsException;
 import org.cokeke.policysim.exceptions.LoginFailedException;
 import org.cokeke.policysim.exceptions.UserAlreadyExistsException;
 import org.cokeke.policysim.exceptions.UserNotFoundException;
+import org.cokeke.policysim.exceptions.InvalidRequestException;
 import org.cokeke.policysim.external.SendEmail;
 import org.cokeke.policysim.models.AppSession;
 import org.cokeke.policysim.models.Email;
@@ -129,6 +131,7 @@ public class UserService {
         }      
 
         AppSession session = sessionSvc.createNewSession(user.getId(), ipAddress, deviceInfo);
+        user.setLastLogin(Instant.now());
         return new LoginUserServiceRes(user, session);
     }
 
@@ -217,10 +220,14 @@ public class UserService {
     public String setServerStatus(Long userId, String secret, boolean status, LocalDateTime readyTime) {
         if (isUserSuperUser(userId, secret, status)) {
             serverStatus.setOnline(status);
+
+            if (!readyTime.isAfter(LocalDateTime.now())) {
+                throw new InvalidRequestException("Expected server uptime is invalid");
+            }
+            
             serverStatus.setServerReadyTime(readyTime);
             return "Server status successfully updated";
         }
-
         return "Failed to update server status";
     }
 }

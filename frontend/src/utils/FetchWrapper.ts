@@ -61,7 +61,7 @@ export async function handleTokenRefresh(): Promise<boolean> {
   if (!refreshToken) return false;
 
   try {
-    const res = await fetch(`${devurl}/api/users/refresh`, {
+    const res = await fetch(`${produrl}/api/users/refresh`, {
       method: 'POST',
       credentials: "include",
       headers: { 'Content-Type': 'application/json' },

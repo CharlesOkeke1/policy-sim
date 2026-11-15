@@ -3,7 +3,7 @@ import '../styles/Maintenance.css';
 import lightLogo from '../assets/Policy_Sim_Logo_Light_PNG.png';
 import { useEffect, useState } from 'react';
 import { StatusPill } from '../shared/StatusPill';
-import { formatSecondsBetweenDates, getSecondsBetweenDates } from '../utils/Formatting';
+import { formatDate, formatDateFull, formatSecondsBetweenDates, getSecondsBetweenDates } from '../utils/Formatting';
 import type { MaintenanceProps } from '../dtos/Models';
 
 const Maintenance = ({expectedUpTime}: MaintenanceProps) => {
@@ -23,6 +23,7 @@ const Maintenance = ({expectedUpTime}: MaintenanceProps) => {
         
         return () => clearInterval(interval); 
     }, [time]);
+
 
     return (
         <div className='not_found_page'>

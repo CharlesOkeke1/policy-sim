@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import { YourEconomyStat } from '../shared/YourEconomyStat';
 import { ProgressBar } from '../shared/ProgressBar';
 import PolicyCard from '../shared/PolicyCard';
-import { customFetch, devurl, handleTokenRefresh, prodSocketUrl, produrl } from '../utils/FetchWrapper';
+import { customFetch, handleTokenRefresh, prodSocketUrl, produrl } from '../utils/FetchWrapper';
 import {
   ResponsiveContainer,
   LineChart,
@@ -139,51 +139,26 @@ export const GameInterface = () => {
 
     async function playRound() {
         setPreviousUserRoundData(userRoundData);
-        const socket = socketRef.current;
-
         roundInitTime = `${(new Date(Date.now())).toISOString()}`;
-
-        if (!socket || socket.readyState !== WebSocket.OPEN) {
-            console.error("WebSocket is not open");
-            return;
+        let res;
+        const advancePayload = {
+            policyId: currentPolicy.policyId,
+            stateId: gameInitState.state.id
         }
 
-        const res: any = await new Promise((resolve, reject) => {
-            socket.onmessage = (event) => {
-                resolve(JSON.parse(event.data));
-                if (currentMonth === totalRounds) {
-                    closeConnection();
-                    navToStep(0);
-                }
-            };
+        const finishPayload = { gameId: gameData.game.id, stateId: gameInitState.state.id }
 
+        if (currentMonth < totalRounds) { 
+            res = await postToServer("ADVANCE_ROUND", advancePayload);
+        } else if (currentMonth === totalRounds) {
+            res = await postToServer("FINISH_GAME", finishPayload);
+            if (res.success) closeConnection();
+        }
 
-            socket.onerror = (event) => {
-                console.error("Play round error", event);
-                reject();
-            }
-
-            if (currentMonth < totalRounds) {
-                const payload = {
-                    policyId: currentPolicy.policyId,
-                    stateId: gameInitState.state.id
-                }
-                socket.send(JSON.stringify({
-                    type: "ADVANCE_ROUND",
-                    payload: payload
-                }));
-            } else if (currentMonth === totalRounds) {
-                const payload = { gameId: gameData.game.id, stateId: gameInitState.state.id }
-                socket.send(JSON.stringify({
-                    type: "FINISH_GAME",
-                    payload: payload
-                }));
-            }
-        });
-
-        const userData = res.data.result?.find((el: any) => el.stateId === gameInitState.state.id);
+        
+        const userData = res?.data.result?.find((el: any) => el.stateId === gameInitState.state.id);
         setCurrentMonth(userData.currentMonth);
-        setRoundData(res.data.result);
+        setRoundData(res?.data.result);
         addToChart(userData)
         //calculateRRT(roundInitTime, res.data.responseTime);
         setUserRoundData(userData);
@@ -219,7 +194,7 @@ export const GameInterface = () => {
 
         try {
             gameInitTime = `${(new Date(Date.now())).toISOString()}`;
-            const res: any = await customFetch({method: "POST", url: `${devurl}/api/games`,
+            const res: any = await customFetch({method: "POST", url: `${produrl}/api/games`,
                 body: payload
             })
 
@@ -231,7 +206,10 @@ export const GameInterface = () => {
                 authToken: token,
             }
 
-            postToServer("INITIALIZE_SESSION", initData);
+            const response: any = await postToServer("INITIALIZE_SESSION", initData);
+            if (response.success) {
+                setGameStarted(true);
+            }
         } catch (error) {
             console.error(error);
         }
@@ -260,7 +238,7 @@ export const GameInterface = () => {
     function resumeGame() { setPaused(false); }
 
     async function getPolicies() {
-        const url = `${devurl}/api/games/policies`;
+        const url = `${produrl}/api/games/policies`;
         const res: any = await customFetch({method: "GET", url: url});
         setPolicyList(res.result);
     }
@@ -277,7 +255,7 @@ export const GameInterface = () => {
         setCurrentPolicy(policy);
     }
 
-    async function postToServer(type: string, data: any) {
+    async function postToServer(type: string, data: any): Promise<any> {
         const socket = socketRef.current;
 
         if (!socket) {
@@ -294,15 +272,10 @@ export const GameInterface = () => {
 
         if (socket.readyState === WebSocket.OPEN) {
             socket.send(JSON.stringify({ type, payload: data }));
-            socket.addEventListener("message", (e) => {
+            socket.onmessage = function(e) {
                 const res = JSON.parse(e.data);
-                console.log(res);
-                if (res.type === "INITIALIZE_SESSION" || "RESUME_GAME")  {
-                    setGameStarted(true);
-                    return "Game started";
-                }
-            });
-            return;
+                return res;
+            };
         }
 
         console.error("WebSocket is closed or closing:", socket.readyState);
@@ -329,7 +302,10 @@ export const GameInterface = () => {
                 authToken: token,
             }
 
-            postToServer("RESUME_GAME", initData);
+            const response: any = await postToServer("RESUME_GAME", initData);
+            if (response.success) {
+                setGameStarted(true);
+            }            
         } catch (error) {
             console.error(error);
         }

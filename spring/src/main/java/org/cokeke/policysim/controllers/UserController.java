@@ -202,7 +202,9 @@ public class UserController {
             .build();
 
         MeResponse res = new MeResponse(u.getId(), u.getEmail(),
-        u.getUserName(), tokenString, session.getSessionExpiryTime(), session.getRefreshToken(), session.getCreatedAt(), session.getId());
+        u.getUserName(), tokenString, session.getSessionExpiryTime(), 
+        session.getRefreshToken(), session.getCreatedAt(), 
+        session.getId(), u.getUserRole());
 
         return ResponseEntity.ok()
         .header(HttpHeaders.SET_COOKIE, cookie.toString())

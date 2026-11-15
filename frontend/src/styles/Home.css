@@ -88,9 +88,10 @@
     justify-content: space-between;
     align-items: center;
     height: 65px;
+    width: 92%;
     border-bottom: 1px solid var(--line);
     background-color: var(--bg-surface);
-    padding: 12px 80px;
+    padding: 12px clamp(16px, 4vw, 80px);
 }
 
 .active_component {
@@ -119,7 +120,7 @@
     display: flex;
     align-items: center;
     height: 50px;
-    width: 25%;
+    width: 40%;
     box-sizing: border-box;
     background: var(--bg-page);
     border: 1px solid var(--line);

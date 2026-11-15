@@ -6,5 +6,6 @@ export default defineConfig({
   plugins: [react()],
   server: {
     allowedHosts: ["policysim.charlesokeke.com"]
-  }
+  },
+  build: { sourcemap: false }
 })

@@ -50,6 +50,10 @@ dependencies {
     // Dotenv
     implementation 'io.github.cdimascio:dotenv-java:3.2.0'
 
+    // Flyway DB Migration
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
+
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'

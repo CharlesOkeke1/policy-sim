@@ -47,14 +47,18 @@ export const StatusPill = ({content, type, icon, width}: PillProps) => {
 
     }
     return (
-        <div className='pillComponent' style={{backgroundColor: bgColor, border: border, width: width ? width + "px" : ""}}>
+        <div className='pillComponent' style={{backgroundColor: bgColor, border: border,
+            width: width ? width + "px" : ""}}>
             {
                 icon ?
-                <img className='status_pill_icon' src={icon}/>
+                <div className='pillComponent' style={{justifyContent: icon ? "space-between" : "center", width: width ? width + "px" : ""}}>
+                    <img className='status_pill_icon' src={icon}/>
+                    <p className='pill_content' style={{color: textColor}}>{content}</p>
+                </div>
+                
                 : 
-                ""
+                <p className='pill_content' style={{color: textColor}}>{content}</p>
             }
-            <p className='pill_content' style={{color: textColor}}>{content}</p>
         </div>
     )
 }

@@ -20,7 +20,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
 )
 @OpenAPIDefinition(
     servers = {
-        @Server(url = "https://api.charlesokeke.com", description = "Production"),
+        @Server(url = "https://policysimapi.charlesokeke.com", description = "Production"),
         @Server(url = "http://localhost:8080", description = "Local development")
     },
     security = @SecurityRequirement(name = "bearerAuth")

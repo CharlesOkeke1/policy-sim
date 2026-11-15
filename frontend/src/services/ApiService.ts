@@ -6,7 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Difficulty } from "../components/NewGame";
 import type { ApiResponse, Stat, StatePreview, Policy, LoginRequest, User } from "../dtos/Models";
-import { customFetch, devurl, produrl } from "../utils/FetchWrapper";
+import { customFetch, produrl } from "../utils/FetchWrapper";
 import { useNavigate } from "react-router";
 
 export const API_DELAY = 350; // 0.35seconds
@@ -49,7 +49,7 @@ export const contactSupport = async (userId: number | null, sender: string, titl
         subject: subject,
         content: content
     }
-    const url = `${devurl}/api/users/support`;
+    const url = `${produrl}/api/users/support`;
 
     const res: ApiResponse<any> = await customFetch({
         method: "POST",

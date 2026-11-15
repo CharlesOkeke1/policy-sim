@@ -25,12 +25,15 @@ import {
   FaGear, 
   FaHouse, 
   FaPlus, 
+  FaTrophy, 
   FaUser 
 } from 'react-icons/fa6';
 import { CustomIcon } from '../shared/Icon';
 import { IoHelpOutline } from 'react-icons/io5';
+import { GoTrophy } from 'react-icons/go';
 import { PiTrophy } from 'react-icons/pi';
-import { produrl } from '../utils/FetchWrapper';
+import { customFetch, devurl, produrl } from '../utils/FetchWrapper';
+import { useRef } from 'react';
 
 
 export interface ChildProps {
@@ -88,29 +91,7 @@ const Home = () => {
   }
 
   async function logoutUser() {
-    const payload = {
-      token: sessionStorage.getItem("authToken"),
-      refreshToken: localStorage.getItem("refreshToken")
-    }
-
-    const url = `${produrl}/api/users/logout`;
-    fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    })
-    .then((res) => {
-      return res.json();
-    })
-    .then((data) => {
-      if (data.code === 200) {
-        localStorage.setItem("authenticated", JSON.stringify(false));
-        sessionStorage.clear();
-        router("/login");
-      }
-    });    
+    logout();  
   }
 
   function pushActiveStep(step: number) {
@@ -189,7 +170,7 @@ const Home = () => {
           {(() => {
             switch(activeStep) {
               case 0:
-                return <Dashboard setMin={setNavBarMinimized} setStep={setActiveStep}/>
+                return <Dashboard setMin={setNavBarMinimized} setStep={setActiveStep} windowWidth={windowWidth}/>
               case 1:
                 return <MyGames setMin={setNavBarMinimized} setStep={setActiveStep}/>
               case 2:

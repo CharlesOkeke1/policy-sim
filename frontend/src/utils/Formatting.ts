@@ -6,6 +6,18 @@ export function formatDate(date: string): string {
     });
 }
 
+export function formatDateFull(date: string): string {
+    return new Date(date).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        timeZone: "UTC"
+    });
+}
+
+
 export function getSecondsBetweenDates(date1: string, date2: string): number {
     const start = new Date(date1).getTime();
     const end = new Date(date2).getTime();

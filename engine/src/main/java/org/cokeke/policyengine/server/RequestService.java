@@ -339,7 +339,7 @@ public class RequestService {
         double score = rankedState.score();
         int rank = rankedState.rank();
         
-        String api = DEV_URL + "/api/games/" + gameId;
+        String api = PROD_URL + "/api/games/" + gameId;
         if (!pendingUpdates.isEmpty()) {
             pushToSpring();
         }
@@ -368,7 +368,7 @@ public class RequestService {
      * Function should be called every minute using the batched queue
     */
     public void pushToSpring() {
-        String api = DEV_URL + "/api/games/rounds/batchUpload";
+        String api = PROD_URL + "/api/games/rounds/batchUpload";
         SpringUploadData payload = new SpringUploadData(pendingUpdates, gameConfig.getGameId());
 
         try {

@@ -1,14 +1,16 @@
-
 package org.cokeke.policysim.common;
 
 import java.io.IOException;
 import java.util.List;
 
+import org.cokeke.policysim.components.ServerStatus;
 import org.cokeke.policysim.exceptions.InvalidTokenException;
 import org.cokeke.policysim.exceptions.TokenExpiredException;
+import org.cokeke.policysim.exceptions.UnauthorizedRequestException;
 import org.cokeke.policysim.exceptions.UserNotFoundException;
 import org.cokeke.policysim.models.User;
 import org.cokeke.policysim.services.TokenService;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,9 +24,11 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
     private final TokenService tokenService;
+    private final ServerStatus status;
 
-    public TokenAuthenticationFilter(TokenService tokenService) {
+    public TokenAuthenticationFilter(TokenService tokenService, ServerStatus status) {
         this.tokenService = tokenService;
+        this.status = status;
     }
 
     @Override
@@ -33,53 +37,34 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
         String method = request.getMethod();
-        if (path.equals("/api/users/login")
-            || path.equals("/api/users")
-            || path.equals("/api/users/refresh")
-            || path.equals("/api/users/me")
-            || path.startsWith("/v3/api-docs")
-            || path.equals("/swagger-ui.html")
-            || path.startsWith("/swagger-ui/")
-            || path.startsWith("/webjars/")
-            || path.equals("/api/usernames")
-            || path.startsWith("/h2-console/")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
 
-        if (path.equals("/api/server/status") && "GET".equals(method)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String tokenString = null;
-        String authHeader = request.getHeader("Authorization");
-
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            tokenString = authHeader.substring(7).trim();
-        }
-
-        if (tokenString == null || tokenString.isBlank()) {
-            Cookie[] cookies = request.getCookies();
-
-            if (cookies != null) {
-                for (Cookie c : cookies) {
-                    if ("auth_token".equals(c.getName())) {
-                        tokenString = c.getValue();
-                        break;
-                    }
-                }
+        // Server offline: only explicitly permitted endpoints are accessible.
+        if (!status.isOnline()) {
+            if (isOfflinePublicEndpoint(path, method)) {
+                filterChain.doFilter(request, response);
+                return;
             }
-        }
 
-        if (tokenString == null || tokenString.isBlank()) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            response.sendError(
+                HttpServletResponse.SC_SERVICE_UNAVAILABLE,
+                "Server is currently offline"
+            );
             return;
         }
 
+        // Server online: skip authentication for public endpoints.
+        if (isOnlinePublicEndpoint(path, method)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // Authenticate protected endpoints.
         try {
+            String tokenString = extractToken(request);
+
             User user = tokenService.getAuthenticatedUser(tokenString);
-            var authentication = 
+
+            var authentication =
                 new UsernamePasswordAuthenticationToken(
                     user,
                     null,
@@ -87,22 +72,93 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 );
 
             SecurityContext context = SecurityContextHolder.createEmptyContext();
-
             context.setAuthentication(authentication);
             SecurityContextHolder.setContext(context);
 
-        } catch (InvalidTokenException
-                | TokenExpiredException
-                | UserNotFoundException ex) {
-
+        } catch (
+            InvalidTokenException
+            | TokenExpiredException
+            | UserNotFoundException
+            | UnauthorizedRequestException ex
+        ) {
             SecurityContextHolder.clearContext();
 
             response.sendError(
                 HttpServletResponse.SC_UNAUTHORIZED,
                 "Invalid or expired token"
             );
+
             return;
         }
+
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isOfflinePublicEndpoint(String path, String method) {
+
+        if (HttpMethod.GET.matches(method)) {
+            return path.equals("/api/server/status")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-ui/")
+                || path.equals("/swagger-ui.html");
+        }
+
+        if (HttpMethod.POST.matches(method)) {
+            return path.equals("/api/users/login")
+                || path.equals("/api/server/status");
+        }
+
+        return false;
+    }
+
+    private boolean isOnlinePublicEndpoint(String path, String method) {
+        if (HttpMethod.POST.matches(method)) {
+            return path.equals("/api/users")
+                || path.equals("/api/users/me")
+                || path.equals("/api/users/login")
+                || path.equals("/api/users/refresh");
+        }
+
+        if (HttpMethod.GET.matches(method)) {
+            return path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-ui/")
+                || path.equals("/swagger-ui.html")
+                || path.startsWith("/webjars/")
+                || path.equals("/api/usernames")
+                || path.startsWith("/h2-console/")
+                || path.equals("/api/server/status");
+        }
+
+        return false;
+    }
+
+    private String extractToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7).trim();
+
+            if (!token.isBlank()) {
+                return token;
+            }
+        }
+
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("auth_token".equals(cookie.getName())) {
+                    String token = cookie.getValue();
+
+                    if (token != null && !token.isBlank()) {
+                        return token;
+                    }
+                }
+            }
+        }
+
+        throw new InvalidTokenException(
+            "Invalid authentication token"
+        );
     }
 }

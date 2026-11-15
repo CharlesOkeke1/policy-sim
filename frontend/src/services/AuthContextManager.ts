@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router";
 import type { User } from "../dtos/Models";
-import { devurl, produrl } from "../utils/FetchWrapper";
+import { produrl } from "../utils/FetchWrapper";
 
 export async function isUserAuthenticated(): Promise<User | undefined> {
     const payload = {

@@ -27,7 +27,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch(error) {
             console.log("Provider error");
             if (error instanceof TypeError) {
-                console.error("Backend unavailable:", error);
                 router("/server-error");
             }
         } finally {

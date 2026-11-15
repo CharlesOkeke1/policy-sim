@@ -8,7 +8,6 @@ interface MaintenanceGateProps {
 }
 
 export default function MaintenanceGate({ status, upTime }: MaintenanceGateProps) {
-
     if (!status) {
         return(
             <Routes>

@@ -46,7 +46,7 @@ export interface User {
 export interface AuthContextType {
     user: User | undefined;
     loading: boolean;
-    login: (req: LoginRequest) => Promise<ApiResponse<any>>;
+    login: (req: LoginRequest) => Promise<string>;
     logout: () => void;
     authenticate: () => void;
 }

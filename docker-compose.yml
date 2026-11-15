@@ -1,17 +1,17 @@
 services:
   # 1. Database Layer (PostgreSQL)
-  #postgres-db:
-  #  image: postgres:15-alpine
-  #  container_name: policy_db
-  #  environment:
-  #    POSTGRES_USER: admin
-  #    POSTGRES_PASSWORD: admin
-  #    POSTGRES_DB: policy_sim_db
-  #  ports:
-  #    - "5432:5432"
-  #  volumes:
-  #    - pgdata:/var/lib/postgresql/data
-  #  restart: always
+  postgres-db:
+   image: postgres:16-alpine
+   container_name: policy_db
+   environment:
+     POSTGRES_USER: postgres
+     POSTGRES_PASSWORD: admin98fhb3Password
+     POSTGRES_DB: policysimdb
+   ports:
+     - "5432:5432"
+   volumes:
+     - pgdata:/var/lib/postgresql/data
+   restart: always
 
   # 2. Java Spring Boot API Container
   spring-backend:
@@ -40,16 +40,16 @@ services:
     restart: always
 
   # 4. React Frontend Workspace Container
-  frontend-ui:
-    image: node:24-alpine
-    container_name: policy_frontend
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app/frontend
-    working_dir: /app/frontend
-    command: sh -c "echo 'React Frontend workspace ready.' && tail -f /dev/null"
-    restart: always
+  # frontend-ui:
+  #   image: node:24-alpine
+  #   container_name: policy_frontend
+  #   ports:
+  #     - "5173:5173"
+  #   volumes:
+  #     - ./frontend:/app/frontend
+  #   working_dir: /app/frontend
+  #   command: sh -c "echo 'React Frontend workspace ready.' && tail -f /dev/null"
+  #   restart: always
 
 volumes:
   pgdata:

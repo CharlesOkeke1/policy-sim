@@ -32,6 +32,7 @@ import { forkJoin } from 'rxjs';
 import { API_DELAY, getUserData, getUserStats } from '../services/ApiService';
 import PageLoader from '../shared/PageLoader';
 import type { ApiResponse } from '../dtos/Models';
+import { LengthElement } from '../shared/LengthElement';
 
 export interface EconomyData {
     name: string;
@@ -42,9 +43,11 @@ export interface EconomyData {
     stability: number;
 }
 
-export const Dashboard = ({setStep}: ChildProps) => {
+export const Dashboard = ({setStep, windowWidth}: ChildProps) => {
     const [userGames, setUserGames] = useState<any>();
     const [userStats, setUserStats] = useState<any>();
+    const [days, setDays] = useState("");
+    const [showDayDrop, setShowDayDrop] = useState(false);
     const [loading, setLoading] = useState(false);
     const router = useNavigate();
     const outcomes = [
@@ -67,10 +70,10 @@ export const Dashboard = ({setStep}: ChildProps) => {
             setUserStats(stats);
             setTimeout(() => {
                 setLoading(false);
-          }, API_DELAY);
+            }, API_DELAY);
         });
         
-      }
+    }
     
     const bars = userStats ? Object.entries(userStats?.positions).map(([rank, count]) => ({
         rank: rank,
@@ -96,13 +99,20 @@ export const Dashboard = ({setStep}: ChildProps) => {
         setStep(2);
     }
 
+    function setActiveDay(day: string) {
+        if (showDayDrop) {
+            setDays(day);
+        }
+        setShowDayDrop(!showDayDrop);
+    }
+
     return (
         <>
         {
             loading ? 
             <PageLoader/>
             :
-            <div className='dashboard'>
+            <div className='dashboard' onClick={() => {showDayDrop ? setShowDayDrop(false) : ""}}>
                 <div className='dashboard_row'>
                     <div className='dashboard_text'>
                         <p className='dashboard_main'>Dashboard</p>
@@ -110,9 +120,40 @@ export const Dashboard = ({setStep}: ChildProps) => {
                     </div>
 
                     <div className='dashboard_right'>
-                        <div className='calendar'>
-                            <input className='date_input' type='date'/>
-                            <img src={dropdownIcon} className='date_icon'/>
+                        <div className="calendar" style={{border: showDayDrop ? "1px solid var(--line)" : ""}}>
+                            <div
+                                id="first_drop"
+                                className="calendar_item"
+                                onClick={() => setActiveDay("7")}
+                            >
+                                <p>{days ? days : 7} days</p>
+                            </div>
+
+                            {showDayDrop && (
+                                <div className="calendar_dropdown">
+                                    <div
+                                        className="calendar_item"
+                                        onClick={() => setActiveDay("14")}
+                                    >
+                                        <p>14 days</p>
+                                    </div>
+
+                                    <div
+                                        className="calendar_item"
+                                        onClick={() => setActiveDay("30")}
+                                    >
+                                        <p>30 days</p>
+                                    </div>
+
+                                    <input
+                                        className="date_input"
+                                        type="number"
+                                        placeholder="Custom days"
+                                        value={days}
+                                        onChange={(e) => setDays(e.target.value)}
+                                    />
+                                </div>
+                            )}
                         </div>
                         <div className='new_game_btn' onClick={() => toNewGame()}>
                             <div className='icon_bg'>
@@ -120,7 +161,12 @@ export const Dashboard = ({setStep}: ChildProps) => {
                                     <CustomIcon icon={FaPlus} fill='var(--text-primary)' strokeWidth={20} variant="circular" size={"var(--text-stat)"}/>
                                 </div>
                             </div>
-                            Start a new game
+                            {
+                                windowWidth && windowWidth > 900 ?
+                                "Start a new game"
+                                :
+                                "New game"
+                            }
                         </div>
                     </div>
                 </div>
