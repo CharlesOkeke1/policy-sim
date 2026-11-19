@@ -1,7 +1,14 @@
+buildscript {
+    dependencies {
+        classpath 'org.flywaydb:flyway-database-postgresql:12.4.0'
+    }
+}
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '4.1.1'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.flywaydb.flyway' version '12.4.0'
 }
 
 description = 'PolicySim server'
@@ -63,6 +70,14 @@ dependencies {
 
     testRuntimeOnly 'com.h2database:h2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+
+flyway {
+    url = 'jdbc:postgresql://postgres-db:5432/policysimdb'
+    user = 'postgres'
+    password = 'admin98fhb3Password'
+    schemas = ['public']
 }
 
 tasks.named('test') {

@@ -36,20 +36,49 @@ services:
     volumes:
       - .:/app
     working_dir: /app
-    command: sh -c "echo 'Simulation Engine workspace ready...' && tail -f /dev/null"
+    command: sh -c "echo 'op ready...' && tail -f /dev/null"
     restart: always
+    extra_hosts:
+      - "host.docker.internal:172.18.0.1"
+    depends_on:
+      redis-engine:
+        condition: service_healthy
 
   # 4. React Frontend Workspace Container
-  # frontend-ui:
-  #   image: node:24-alpine
-  #   container_name: policy_frontend
-  #   ports:
-  #     - "5173:5173"
-  #   volumes:
-  #     - ./frontend:/app/frontend
-  #   working_dir: /app/frontend
-  #   command: sh -c "echo 'React Frontend workspace ready.' && tail -f /dev/null"
-  #   restart: always
+  frontend-ui:
+    image: node:24-alpine
+    container_name: policy_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app/frontend
+    working_dir: /app/frontend
+    command: sh -c "echo 'React Frontend workspace ready.' && tail -f /dev/null"
+    restart: always
+
+  redis-engine:
+    image: redis:7-alpine
+    container_name: policy_engine_redis
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --requirepass
+      - "admin_redis_18_6380_Password"
+    volumes:
+      - engine_redis_data:/data
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - -a
+        - "admin_redis_18_6380_Password"
+        - ping
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 volumes:
   pgdata:
+  engine_redis_data:

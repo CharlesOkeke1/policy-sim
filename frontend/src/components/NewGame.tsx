@@ -6,13 +6,13 @@ import { DifficultyCard } from '../shared/DifficultyCard';
 import { useEffect, useState } from 'react';
 import { LengthElement } from '../shared/LengthElement';
 import { customFetch, produrl } from '../utils/FetchWrapper';
-import { FaDice, FaDiceFive } from 'react-icons/fa6';
+import { FaArrowRight, FaDice, FaDiceFive } from 'react-icons/fa6';
 import { CustomIcon } from '../shared/Icon';
 import type { IconType } from 'react-icons';
-import { forkJoin } from 'rxjs';
-import { API_DELAY, getDifficulty, getStates } from '../services/ApiService';
 import PageLoader from '../shared/PageLoader';
 import type { ChildProps } from '../pages/Home';
+import { useGameData } from '../services/GameDataKeys';
+
 
 type Length = {
   color: string;
@@ -29,36 +29,23 @@ export const NewGame = ({setStep, setMin, windowWidth}: ChildProps) => {
   const router = useNavigate();
   const [activeDifficulty, setActiveDifficulty] = useState<number>(0);
   const [activeState, setActiveState] = useState<number>(0);
-  const [statesList, setStatesList] = useState<any[]>([]);
-  const [difficultyList, setDifficultyList] = useState<Difficulty[]>([]);
   const [chosenState, setChosenState] = useState<any>(null);
   const [chosenDifficulty, setChosenDifficulty] = useState<Difficulty>();
   const [activeLength, setActiveLength] = useState<number>(0);
-  const [loading, setLoading] = useState(false);
   const [chosenLength, setChosenLength] = useState(1);
-  const [seed, setSeed] = useState(0);
+  const [seed, setSeed] = useState(8264);
   const [luckColor, setLuckColor] = useState("");
   const [diceIcon, setDiceIcon] = useState<IconType>(() => FaDiceFive);
+  const [statesQuery, difficultyQuery] = useGameData();
+  const isMobile = windowWidth && windowWidth >= 768;
 
   useEffect(() => {
     setMin(true);
-    getEndPoints();
   }, []);
 
-  function getEndPoints() {
-    setLoading(true);
-    forkJoin({
-      states: getStates(),
-      difficulty: getDifficulty()
-    }).subscribe(({states, difficulty}) => {
-      setStatesList(states);
-      setDifficultyList(difficulty);
-      setTimeout(() => {
-        setLoading(false);
-      }, API_DELAY);
-    });
-    
-  }
+  const statesList = statesQuery.data ?? [];
+  const difficultyList = difficultyQuery.data ?? [];
+  const loading = statesQuery.isPending || difficultyQuery.isPending;
 
   useEffect(() => {
     setChosenState(statesList[activeState]);
@@ -185,7 +172,10 @@ export const NewGame = ({setStep, setMin, windowWidth}: ChildProps) => {
                     </div>
                   </div>
                   <div className='seed_container'>
-                    <p style={{fontSize: '14px', color: 'var(--text-secondary)'}}>Seed (1 - 1 million)</p>
+                    <p style={{fontSize: '14px', color: 'var(--text-secondary)'}}>Seed {
+                      isMobile ? 
+                      "(1 - 1 million)" : ""
+                    }</p>
                     <div className='seed_row'>
                       <div className='seed_input_container'>
                         <input 
@@ -198,11 +188,17 @@ export const NewGame = ({setStep, setMin, windowWidth}: ChildProps) => {
                         }}
                         />
                       </div>
-                      <div className='random_seed_container' onClick={() => generateRandomSeed()}>
-                        <div style={{marginTop: '3px'}} className='dice_icon'>
-                          <CustomIcon icon={diceIcon} strokeWidth={30} variant="circular" size={"var(--text-stat)"}/>
+                      {
+                        isMobile ?
+                        <div className='random_seed_container' onClick={() => generateRandomSeed()}>
+                          <div style={{marginTop: '3px'}} className='dice_icon'>
+                            <CustomIcon icon={diceIcon} strokeWidth={30} variant="circular" size={"var(--text-stat)"}/>
+                          </div>
                         </div>
-                      </div>
+
+                        :
+                        ""
+                      }
                     </div>
                   </div>
                 </div>
@@ -246,7 +242,9 @@ export const NewGame = ({setStep, setMin, windowWidth}: ChildProps) => {
                   <button className='startGameBtn'>
                     <p>Start Game</p>
                   </button>
-                  <img src={rightArrow} className='icon'/>
+                  <div style={{marginTop: '3px'}}>
+                    <CustomIcon icon={FaArrowRight} fill='var(--btn-primary-text)' strokeWidth={10} variant="circular" size={"var(--text-stat)"}/>
+                  </div>
                 </div>
                 <p className='button_supporting'>Your game saves every month. You can leave and resume it from 
                   <a style={{textDecoration: 'underline', fontWeight: 'var(--weight-semibold)'}}

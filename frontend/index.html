@@ -1,13 +1,30 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/Policy_Sim_Logo_Light_PNG.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" type="image/png" href="/Policy_Sim_Logo_Light_PNG.png" />
+
+    <style>
+      :root[data-theme="light"] { --bg-page: #F4F4F5; color-scheme: light; }
+      :root[data-theme="dark"]  { --bg-page: #0a0a0a; color-scheme: dark; }
+      html, body { background-color: var(--bg-page); }
+    </style>
+
+    <script>
+      (function () {
+        var theme = (sessionStorage.getItem("current_theme") || "Light").toLowerCase();
+        var root = document.documentElement;
+        root.setAttribute("data-theme", theme);
+      })();
+    </script>
     <title>Policy Sim</title>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>

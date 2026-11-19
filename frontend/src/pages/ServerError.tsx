@@ -5,15 +5,17 @@ import { useEffect, useState } from 'react';
 import { FAILED_AUTH_RETRY } from '../utils/FetchWrapper';
 import { StatusPill } from '../shared/StatusPill';
 import { useAuth } from '../services/AuthProvider';
+import { useNavigate } from 'react-router';
 
 const ServerError = () => {
     const [countDown, setCountDown] = useState(FAILED_AUTH_RETRY);
     const {authenticate} = useAuth();
     const [autoRetry, setAutoRetry] = useState(0);
     const [mult, setMult] = useState(0);
+    const router = useNavigate();
 
     useEffect(() => {
-        if (autoRetry < 3) {
+        if (autoRetry < 2) {
             const interval = setInterval(() => {
                 setCountDown(currentCount => {
                     if (currentCount > 0) return currentCount - 1;
@@ -26,6 +28,7 @@ const ServerError = () => {
             setMult(curr => { return curr + 10; });
             return () => clearInterval(interval);
         } else {
+            router("/login");
             setCountDown(0);
         }
     }, [authenticate]);

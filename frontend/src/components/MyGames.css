@@ -21,6 +21,7 @@
 .game_page_row {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     font-size: 13px;
     color: var(--text-muted);
 }
@@ -28,7 +29,7 @@
 .page_row {
     width: 10%;
     display: flex;
-    justify-content: space-evenly;
+    justify-content: space-between;
     align-items: center;
 }
 
@@ -47,4 +48,22 @@
 
 .base_page {
     cursor: pointer;
+}
+
+@media(max-width: 768px) {
+    .games {
+        padding-bottom: 100px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
+        gap: var(--gap-xl);
+    }
+
+    .game_page_row {
+        padding: 0 20px 0 0;
+    }
+
+
+    .dashboard_right {
+        margin-right: 10px;
+    }
 }

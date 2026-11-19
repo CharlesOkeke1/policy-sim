@@ -3,11 +3,12 @@
  * This holds until I make interfaces for the return values.
  */
 
-import { useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Difficulty } from "../components/NewGame";
 import type { ApiResponse, Stat, StatePreview, Policy, LoginRequest, User } from "../dtos/Models";
 import { customFetch, produrl } from "../utils/FetchWrapper";
-import { useNavigate } from "react-router";
+import { useAuth } from "./AuthProvider";
+
 
 export const API_DELAY = 350; // 0.35seconds
 
@@ -36,8 +37,21 @@ export const getDifficulty = async (): Promise<Difficulty[]> => {
 }
 
 export const getPolicies = async (): Promise<Policy[]> => {
-    const api = `${produrl}/api/games/${sessionStorage.getItem("userId")}/policies`;
+    const api = `${produrl}/api/games/policies`;
     const res: ApiResponse<Policy[]> = await customFetch({method: "GET", url: api});
+    return res.result;
+}
+
+export const getUsernames = async (): Promise<String[]> => {
+    const api = `${produrl}/api/usernames`;
+    const res: ApiResponse<String[]> = await customFetch({method: "GET", url: api});
+    return res.result;
+}
+
+export const getPaginatedGames = async (userId: number, start: number, stop: number): Promise<any> => {
+    const url = `${produrl}/api/games/${userId}/paginated?start=${start}&stop=${stop}`;
+    const res: ApiResponse<any> = await customFetch({method: "GET", url: url});
+
     return res.result;
 }
 
@@ -60,9 +74,8 @@ export const contactSupport = async (userId: number | null, sender: string, titl
     return res;
 }
 
-
 export const resumeGameInProgress = async (gameId: number): Promise<ApiResponse<any>> => {
-    const url = `${produrl}m/api/games/${gameId}/resume`;
+    const url = `${produrl}/api/games/${gameId}/resume`;
     const res: ApiResponse<any> = await customFetch({method: "POST", url: url});
     return res;
 }

@@ -4,6 +4,8 @@ import lightLogo from '../assets/Policy_Sim_Logo_Light_PNG.png';
 import { useNavigate } from 'react-router';
 import { ButtonLoader } from '../shared/ButtonLoader';
 import { produrl } from '../utils/FetchWrapper';
+import { flushInput } from '../utils/Formatting';
+import { getUsernames } from '../services/ApiService';
 
 interface SignUpRequest {
     username: string;
@@ -17,19 +19,25 @@ const SignUp = () => {
     const [email, setEmail] = useState("");
     const [submitted, setSubmitted] = useState(false);
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [error, setError] = useState("");
     const router = useNavigate();
     const [strength, setStrength] = useState(0);
     const [takenUserNames, setTakenUsernames] = useState<String[]>([]);
     const passwordsMismatch = confirmPassword !== password;
-    const readyToPost = !passwordsMismatch && email.length > 0 && username.length > 0 && !isUsernameTaken();
+    const readyToPost = !passwordsMismatch && email.length > 0 && username.length > 0 && !isUsernameTaken() && !flushInput(username);
     
+    useEffect(() => {
+        if (flushInput(username)) {
+            setError("Username contains an invalid character");
+        }
+    }, [username]);
 
     useEffect(() => {
-        getUsernames();
+        getUNames();
     }, []);
 
     useEffect(() => {
-        isUsernameTaken();
+        if (isUsernameTaken()) setError("Username is already taken");
     }, [username]);
 
     useEffect(() => {
@@ -87,24 +95,9 @@ const SignUp = () => {
         return takenUserNames.includes(username);
     }
 
-    function getUsernames() {
-        const api = `${produrl}/api/usernames`;
-
-        fetch(api, {
-            method: "GET", 
-            headers: {
-                "Content-Type": "application/json"
-            },
-        })
-        .then((response) => {
-            return response.json();
-        })
-        .then((data) => {
-            setTakenUsernames(data.result);
-        })
-        .catch((e) => {
-            console.log(e)
-        });
+    async function getUNames() {
+        const res: String[] = await getUsernames();
+        setTakenUsernames(res);
     }
 
     return (
@@ -151,19 +144,23 @@ const SignUp = () => {
                             type='text' 
                             placeholder='John_Doe'
                             onChange={(e) => setUsername(e.target.value)}/>
-                            {
-                                isUsernameTaken() ? <p className='error'>Username is already taken</p> :
-                                <p className='supporting_text'>Username displayed to the public</p>
-                            }
                         </div>
-                        <div className='input_block'>
-                            <p className='input_label'>Email</p>
-                            <input 
-                            value={email} 
-                            type='text' 
-                            placeholder='JohnDoe@gmail.com'
-                            onChange={(e) => setEmail(e.target.value)}/>
+                        {
+                            isUsernameTaken() ? <p className='error'>{error}</p> :
+                            <p className='supporting_text'>Username displayed to the public</p>
+                        }
+                        
+                        <div style={{width: "100%", flexDirection: "column"}}>
+                            <div className='input_block'>
+                                <p className='input_label'>Email</p>
+                                <input 
+                                value={email} 
+                                type='text' 
+                                placeholder='JohnDoe@gmail.com'
+                                onChange={(e) => setEmail(e.target.value)}/>
+                            </div>
                         </div>
+                        
                         <div className='input_block'>
                             <p className='input_label'>Password</p>
                             <input 

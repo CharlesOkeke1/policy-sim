@@ -6,8 +6,8 @@ set -euo pipefail
 PROJECT_DIR="$HOME/policy-sim-dev"
 DEPLOY_DIR="/var/www/policysim/dist"
 CADDY_CONFIG="/etc/caddy/Caddyfile"
-CONTAINER="policy_frontend"
 CONTAINER_DIST="/app/frontend/dist"
+CONTAINER="policy_frontend"
 
 echo "================================"
 echo "   PolicySim Frontend Deploy"
@@ -37,6 +37,7 @@ sudo mkdir -p "$DEPLOY_DIR"
 docker cp "$CONTAINER:$CONTAINER_DIST/." "$DEPLOY_DIR/"
 
 sudo chmod -R a+rX "$DEPLOY_DIR"
+
 
 # 5. Validate and reload Caddy
 echo "[5/5] Validating Caddy..."

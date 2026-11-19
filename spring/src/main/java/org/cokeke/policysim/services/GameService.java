@@ -249,10 +249,8 @@ public class GameService {
         if (game.isCompleted()) {
             throw new IllegalStateException("Cannot resume a completed game");
         }
-
-        List<Round> rounds = getAGamesRounds(gameId);
         Session session = sessionRepo.findById(game.getSessionId()).orElseThrow(() -> new GameSessionNotFoundException("No active session found for this game"));
-        return new ResumeGameSvcRes(gameToGameResponse(game), session, roundSvc.roundListToSpringRoundDTOListWithoutGameObject(rounds));
+        return new ResumeGameSvcRes(gameId, game.getSeed(), game.getDifficulty(), game.getTotalRounds(), game.getUser().getId(), session.getEngineToken());
     }
 
     @Cacheable(value = "userPaginatedGames", key = "#userId + '-' + #start + '-' + #stop")

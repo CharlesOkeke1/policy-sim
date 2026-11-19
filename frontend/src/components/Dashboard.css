@@ -114,6 +114,13 @@
     justify-content: flex-end;
 }
 
+.dashboard__page_right {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-lg);
+    justify-content: flex-end;
+}
+
 .date_input {
     height: var(--height-sm);
     width: 100%;
@@ -298,4 +305,57 @@
     justify-content: center;
     align-self: center;
     height: 100%;
+}
+
+@media (max-width: 900px) {
+    .dashboard {
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
+        padding-bottom: 230px;
+        overflow-x: hidden;
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: var(--gap-xxl);
+    }
+
+    .previous_games {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: var(--gap-xxl);
+        width: 100%;
+    }
+
+    .chart_container { 
+        width: 87.5%;
+        max-height: 350px;
+    }
+    .recent_games { width: 87.5%; }
+
+    .mini_stats_container {
+        width: 87.5%;
+    }
+
+    .thick_nav {
+        font-size: var(--text-h2);
+        font-weight: var(--weight-medium);
+    }
+
+    .dashboard_row {
+        width: 100%;
+        padding: 0 12px 0 0;
+    }
+
+    .dashboard__page_right {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--gap-lg);
+        justify-content: flex-end;
+        width: 40%;
+    }
 }

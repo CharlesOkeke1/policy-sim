@@ -7,20 +7,21 @@ import java.net.http.HttpResponse;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.lettuce.core.*;
+
+import org.cokeke.policyengine.db.*;
 import org.cokeke.policyengine.functions.Engine;
 import org.cokeke.policyengine.functions.GameRanking;
 import org.cokeke.policyengine.models.EngineServerResponse;
 import org.cokeke.policyengine.models.FinishGameDTO;
 import org.cokeke.policyengine.models.GameConfig;
+import org.cokeke.policyengine.models.ApiResponse;
 import org.cokeke.policyengine.models.PolicyId;
 import org.cokeke.policyengine.models.RankedOutput;
 import org.cokeke.policyengine.models.SessionDTO;
@@ -31,9 +32,10 @@ import org.cokeke.policyengine.models.StateId;
 import org.cokeke.policysimcontracts.GameContractClaims;
 import org.cokeke.policysimcontracts.GameContractService;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JavaType;
 
 public class RequestService {
     public final GameContractService contractService;
@@ -41,16 +43,14 @@ public class RequestService {
     private Engine engine;
     public GameConfig gameConfig;
     private final Map<String, List<Double>> scoresMap = new ConcurrentHashMap<>();
-    private final List<SpringRoundDTO> pendingUpdates = Collections.synchronizedList(new ArrayList<>());
 
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private boolean schedulerStarted = false;
     private final AtomicInteger heartbeatFailures = new AtomicInteger(0);
     private static final int MAX_PING_FAILURES = 3;
     private static final String PROD_URL = "https://policysimapi.charlesokeke.com";
     private static final String DEV_URL = "http://localhost:8080";
 
     private final HttpClient client = HttpClient.newBuilder().build();
+    private final LettuceGameRepository dbRepo = RedisDB.getRepository();
 
     public RequestService(GameContractService contractService) {
         this.contractService = contractService;
@@ -121,11 +121,9 @@ public class RequestService {
             cleanUp();
         }
 
-        if (ping.isEmpty()) {
-            this.heartbeatFailures.getAndIncrement();
-        }
+        if (ping.isEmpty()) this.heartbeatFailures.getAndIncrement();
+        else this.heartbeatFailures.getAndSet(0);
 
-        this.heartbeatFailures.getAndSet(0);
         return "pong";
     }
 
@@ -152,24 +150,15 @@ public class RequestService {
         String token = payload.get("authToken").asText();
 
         SessionDTO session = startGameSession(claims.gameId(), claims.userId(), claims.contractId(), token);
-        if (session == null) return new EngineServerResponse<>("Failed to create session", ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT));
+        if (session == null) return new EngineServerResponse<String>("Failed to create session", ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT));
 
         this.engine = new Engine(seed);
         this.gameConfig = new GameConfig(0, rounds, claims.gameId(), seed, session.engineToken(), difficulty, claims.userId());
 
-        if (!schedulerStarted) {
-            scheduler.scheduleAtFixedRate(
-                this::pushToSpring,
-                1,
-                1,
-                TimeUnit.MINUTES
-            );
-
-            schedulerStarted = true;
-        }
         String time = ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
         return new EngineServerResponse<>("Game successfully initialized", time);
     }
+
     /**
      * Takes a json payload from the client and extracts the gameId, seed, rounds, difficulty, token and userId.
      * Add the preliminary scores and ranks to the scoresMap for each state. Does not touch the pendingUpdates List though.
@@ -178,44 +167,26 @@ public class RequestService {
      * @return Success message and timestamp.
      */
     public EngineServerResponse<String> resumeGame(JsonNode payload) {
-        Long gameId = payload.get("game").get("id").asLong();
-        int seed = payload.get("game").get("seed").asInt();
+        Long gameId = payload.get("gameId").asLong();
+        int seed = payload.get("seed").asInt();
+        int totalRounds = payload.get("noOfRounds").asInt();
         
-        int rounds = payload.get("game").get("noOfRounds").asInt();
-        String difficulty = payload.get("game").get("difficulty").asText();
-        String token = payload.get("session").get("engineToken").asText();
-        Long userId = payload.get("session").get("userId").asLong();
-        List<SpringRoundDTO> roundsList = mapper.convertValue(
-            payload.get("rounds"),
-            new TypeReference<List<SpringRoundDTO>>() {}
-        );        
+        String difficulty = payload.get("difficulty").asText();
+        Long userId = payload.get("userId").asLong(); 
+        
+        String engineToken = payload.get("engineToken").asText();
+
+        GameObject game = dbRepo.getGame(gameId);
+        List<SpringRoundDTO> roundsList = game.getRoundsAsSpringDTO();
+        if (game.getGameId() == gameId && !roundsList.isEmpty()) System.out.println("Game successfully loaded from redis");
+
         int currentMonth = !roundsList.isEmpty() ? roundsList.get(roundsList.size() - 1).currentMonth() : 0;
 
-        this.gameConfig = new GameConfig(currentMonth, rounds, gameId, seed, token, difficulty, userId);
+        this.gameConfig = new GameConfig(currentMonth, totalRounds, gameId, seed, engineToken, difficulty, userId);
         this.engine = new Engine(roundsList, seed, currentMonth); // Alternative engine init for resuming games.
 
-        for (SpringRoundDTO round : roundsList) {
-            if (scoresMap.containsKey(round.stateId())) {
-                List<Double> scores = scoresMap.get(round.stateId());
-                scores.add(round.roundScore());
-                scoresMap.put(round.stateId(), scores);
-            } else {
-                List<Double> scores = new ArrayList<>();
-                scores.add(round.roundScore());
-                scoresMap.put(round.stateId(), scores);
-            }
-        }
+        if (game.getGameId() == gameId && !roundsList.isEmpty()) populateScoreMap(roundsList);
 
-        if (!schedulerStarted) {
-            scheduler.scheduleAtFixedRate(
-                this::pushToSpring,
-                1,
-                1,
-                TimeUnit.MINUTES
-            );
-
-            schedulerStarted = true;
-        }
         String time = ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
         return new EngineServerResponse<>("Game successfully resumed", time);
     }
@@ -234,29 +205,55 @@ public class RequestService {
     public SessionDTO startGameSession(Long gameId, Long userId, String contractId, String token) {
         String api = PROD_URL + "/api/games/session";
         try {
-            String body = mapper.writeValueAsString(
-                new SessionInitDTO(gameId, userId, contractId)
-            );
+            SessionInitDTO body = new SessionInitDTO(gameId, userId, contractId);
+
+
+            ApiResponse<SessionDTO> response = postToSpring("POST", body, api, SessionDTO.class, token);
+            return response.result();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Cannot create game", e);
+        }
+    }
+
+    private <T> ApiResponse<T> postToSpring(
+        String method,
+        Object body,
+        String url,
+        Class<T> resultType,
+        String token
+    ) {
+        if (token == null) token = gameConfig.getAuthToken();
+        
+        try {
+            String stringified = body == null
+                ? ""
+                : mapper.writeValueAsString(body);
+
+            HttpRequest.BodyPublisher publisher = body == null
+                ? HttpRequest.BodyPublishers.noBody()
+                : HttpRequest.BodyPublishers.ofString(stringified);
 
             HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(api))
-                .header("Accept", "application/json")
+                .uri(URI.create(url))
                 .header("Authorization", "Bearer " + token)
                 .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .method(method, publisher)
                 .build();
 
-            System.out.println(request.uri());
-            HttpResponse<String> response = HttpClient.newHttpClient().send(
+            HttpResponse<String> response = client.send(
                 request,
                 HttpResponse.BodyHandlers.ofString()
             );
 
-            JsonNode root = mapper.readTree(response.body());
-            return mapper.treeToValue(root.get("result"), SessionDTO.class);
+            JavaType responseType = mapper.getTypeFactory()
+                .constructParametricType(ApiResponse.class, resultType);
+
+            System.out.println("Response code: " + response.statusCode());
+
+            return mapper.readValue(response.body(), responseType);
 
         } catch (Exception e) {
-            throw new IllegalArgumentException("Cannot create game", e);
+            throw new IllegalArgumentException("Spring request failed", e);
         }
     }
 
@@ -267,13 +264,49 @@ public class RequestService {
         StateId stateId = new StateId(state);
 
         List<SpringRoundDTO> rounds = requireEngine().getRound(stateId, id);
-        
+
+        dbRepo.saveRound(gameConfig.getGameId(), rounds);        
         gameConfig.setCurrentMonth(rounds.get(0).currentMonth());
-        pendingUpdates.addAll(rounds);
 
         /**
          * This will most likely be changes as a better approach will require changing a lot of stuff at the moment.
          */
+        populateScoreMap(rounds);
+
+        String time = ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
+        return new EngineServerResponse<List<SpringRoundDTO>>(rounds, time);
+    }
+
+    public String saveGame(JsonNode payload) {
+        try {
+            pushToSpring(); // Save all game rounds.
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+
+        Long gameId = gameConfig.getGameId();
+        String stateId = payload.get("stateId").asText();
+        RankedOutput rankedState = GameRanking.rank(scoresMap, stateId);
+
+        double score = rankedState.score();
+        int rank = rankedState.rank();
+        
+        String api = PROD_URL + "/api/games/save/" + gameId;
+        try {
+            FinishGameDTO body = new FinishGameDTO(score, rank);
+            ApiResponse<Object> response = postToSpring("POST", body, api, Object.class, null);
+            return response.message();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Finish game request failed");
+        }  
+    }
+
+    public String pauseGame() {
+        return "Game paused Successfully";
+    }
+
+    public void populateScoreMap(List<SpringRoundDTO> rounds) {
         for (SpringRoundDTO round : rounds) {
             if (scoresMap.containsKey(round.stateId())) {
                 List<Double> scores = scoresMap.get(round.stateId());
@@ -285,45 +318,6 @@ public class RequestService {
                 scoresMap.put(round.stateId(), scores);
             }
         }
-        String time = ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
-        return new EngineServerResponse<>(rounds, time);
-    }
-
-    public String saveGame(JsonNode payload) {
-        Long gameId = gameConfig.getGameId();
-        String stateId = payload.get("stateId").asText();
-        RankedOutput rankedState = GameRanking.rank(scoresMap, stateId);
-
-        double score = rankedState.score();
-        int rank = rankedState.rank();
-        
-        String api = PROD_URL + "/api/games/save/" + gameId;
-        if (!pendingUpdates.isEmpty()) {
-            pushToSpring();
-        }
-        try {
-            String body = mapper.writeValueAsString(new FinishGameDTO(score, rank));
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(api))
-                .header("Authorization", "Bearer " + this.gameConfig.getAuthToken())
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(body))
-                .build();
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            
-            handleBatchResponse(response, "Game finished successfully");
-            return "Game saved Successfully";
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Finish game request failed");
-        }  
-    }
-
-    public String pauseGame() {
-        if (!pendingUpdates.isEmpty()) {
-            pushToSpring();
-        }
-        return "Game paused Successfully";
     }
 
     /**
@@ -332,6 +326,12 @@ public class RequestService {
      * @return
      */
     private String finishGame(JsonNode payload) {
+        try {
+            pushToSpring(); // Save all game rounds.
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         Long gameId = gameConfig.getGameId();
         String stateId = payload.get("stateId").asText();
         RankedOutput rankedState = GameRanking.rank(scoresMap, stateId);
@@ -340,25 +340,13 @@ public class RequestService {
         int rank = rankedState.rank();
         
         String api = PROD_URL + "/api/games/" + gameId;
-        if (!pendingUpdates.isEmpty()) {
-            pushToSpring();
-        }
         try {
-            String body = mapper.writeValueAsString(new FinishGameDTO(score, rank));
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(api))
-                .header("Authorization", "Bearer " + this.gameConfig.getAuthToken())
-                .header("Content-Type", "application/json")
-                .PUT(HttpRequest.BodyPublishers.ofString(body))
-                .build();
-
-            System.out.println(request.uri());
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            FinishGameDTO body = new FinishGameDTO(score, rank);
+            ApiResponse<Object> response = postToSpring("PUT", body, api, Object.class, null);
             
-            handleBatchResponse(response, "Game finished successfully");
             cleanUp();
-            return "Game succeffully completed";
+            dbRepo.deleteGame(gameId);
+            return response.message();
         } catch (Exception e) {
             throw new IllegalArgumentException("Finish game request failed");
         }  
@@ -369,25 +357,12 @@ public class RequestService {
     */
     public void pushToSpring() {
         String api = PROD_URL + "/api/games/rounds/batchUpload";
-        SpringUploadData payload = new SpringUploadData(pendingUpdates, gameConfig.getGameId());
+        Long gameId = gameConfig.getGameId();
+        GameObject game = dbRepo.getGame(gameId);
+        SpringUploadData payload = new SpringUploadData(game.getRoundsAsSpringDTO(), gameConfig.getGameId());
 
         try {
-            if (!pendingUpdates.isEmpty()) {
-                String jsonBody = mapper.writeValueAsString(payload);
-                HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(api))
-                    .header("Authorization", "Bearer " + this.gameConfig.getAuthToken())
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .build();
-
-                System.out.println(request.uri());
-
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                
-                handleBatchResponse(response, "Batch saved successfully");
-                pendingUpdates.clear();  
-            }
+            postToSpring("POST", payload, api, Object.class, null);
         } catch (Exception e) {
             throw new IllegalArgumentException("Batched game data save failed");
         }     
@@ -396,16 +371,6 @@ public class RequestService {
 
     private double getProgress() {
         return requireEngine().getProgress(gameConfig.getTotalRounds());
-    }
-
-    public void handleBatchResponse(HttpResponse<String> response, String message) {
-        int status = response.statusCode();
-
-        if (status >= 200 && status < 300) {
-            return;
-        }
-
-        System.err.println("Batch request failed with status: " + status);
     }
 
     private Engine requireEngine() {
@@ -420,31 +385,9 @@ public class RequestService {
      * Call when the game finishes.
      */
     public void cleanUp() {
-        try {
-            if (!pendingUpdates.isEmpty()) {
-                pushToSpring();
-            }
-        
-        } catch(Exception e) {
-            System.out.println("Emergency round persistence failed during server clean up");
-        } finally {
-            if (scheduler != null && !scheduler.isShutdown()) {
-                scheduler.shutdown();
-
-                try {
-                    // If scheduler still hasnt shutdown after 5 seconds, force it.
-                    if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
-                        scheduler.shutdownNow(); 
-                    }
-                } catch (InterruptedException e) {
-                    scheduler.shutdownNow(); 
-                    Thread.currentThread().interrupt();
-                }
-            }
-
-            scoresMap.clear();
-            pendingUpdates.clear();
-            this.engine = null;
-        }
+        scoresMap.clear();
+        this.engine = null;
+        this.gameConfig = null;
+        this.heartbeatFailures.set(0);
     }
 }

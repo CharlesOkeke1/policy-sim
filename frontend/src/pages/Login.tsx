@@ -50,9 +50,8 @@ const Login = () => {
                 deviceInfo: getDeviceInfo()
             });
 
-            router("/home", { replace: true });
             setError(message);
-
+            router("/home", { replace: true });
         } catch (error) {
             if (error instanceof TypeError) {
                 console.error("Backend unavailable:", error);

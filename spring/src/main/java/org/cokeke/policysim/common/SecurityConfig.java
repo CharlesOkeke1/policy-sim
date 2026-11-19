@@ -77,7 +77,6 @@ public class SecurityConfig {
                         "/h2-console/**",
                         "/api/server/status"
                     ).permitAll()
-
                     .anyRequest().authenticated()
                 );
             } else {
@@ -95,7 +94,6 @@ public class SecurityConfig {
                         "/api/users/login",
                         "/api/server/status"
                     ).permitAll()
-
                     .anyRequest().denyAll()
                 );
             }

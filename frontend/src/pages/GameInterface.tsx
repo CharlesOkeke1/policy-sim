@@ -22,10 +22,12 @@ import {
   Legend
 } from 'recharts';
 import { StatusPill } from '../shared/StatusPill';
-import { formatDateSeconds } from '../utils/Formatting';
+import { displayElapsedTime, formatDateSeconds } from '../utils/Formatting';
 import { MiniStatCard } from '../shared/MiniStatCard';
 import type { ApiResponse } from '../dtos/Models';
 import { resumeGameInProgress } from '../services/ApiService';
+import { useAuth } from '../services/AuthProvider';
+import { useQueryClient } from '@tanstack/react-query';
 
 
 /**
@@ -53,7 +55,8 @@ interface Chart {
 }
 
 export const GameInterface = () => {
-    const router = useNavigate();    
+    const router = useNavigate();  
+    const {user} = useAuth();
     const [currentMonth, setCurrentMonth] = useState(0);
     const [totalRounds, setTotalRounds] = useState(0);
     const [roundData, setRoundData] = useState<any>(null);
@@ -65,7 +68,10 @@ export const GameInterface = () => {
     const [gameData, setGameData] = useState<any>(null);
     const socketRef = useRef<WebSocket | null>(null);
     const location = useLocation();
-    const gameInitState = location.state;
+    const gameResumeState = location.state.isInit ? undefined : location.state;
+    const gameInitState = location.state.isInit ? location.state : undefined;
+
+    console.log("Game resume state: ", gameResumeState);
 
     const [chartData, setChartData] = useState<Chart[]>([]);
 
@@ -73,14 +79,13 @@ export const GameInterface = () => {
     const [gameStarted, setGameStarted] = useState(false);
     const [paused, setPaused] = useState(false);
     const [pauseTime, setPauseTime] = useState<String>("");
-    const completion: string = userRoundData && gameStarted ? userRoundData.currentMonth/gameData.game.noOfRounds * 100 + "%" : "0%";
+    const completion: string = userRoundData && gameStarted ? userRoundData.currentMonth/totalRounds * 100 + "%" : "0%";
     const activeCaret = previousUserRoundData && userRoundData.roundScore > previousUserRoundData.roundScore ? upFillIcon : downFillIcon;
     const [pingInterval, setPingInterval] = useState<ReturnType<typeof setInterval>>();
     const [refreshInterval, setRefreshInterval] = useState<ReturnType<typeof setInterval>>();
-    let gameInitTime = "";
-    let roundInitTime = "";
 
     const [pauseDisplayTime, setPauseDisplayTime] = useState("");
+    const queryClient = useQueryClient();
     
     useEffect(() => {
         getPolicies();
@@ -115,7 +120,7 @@ export const GameInterface = () => {
     // Refresh user token so that server authentication works just fine
     useEffect(() => {
         setRefreshInterval(setInterval(() => { 
-            const refreshSuccess = handleTokenRefresh();
+            handleTokenRefresh();
         }, 29 * 60 * 1000));
     }, []);
 
@@ -138,8 +143,8 @@ export const GameInterface = () => {
     }
 
     async function playRound() {
+        const start = Date.now();
         setPreviousUserRoundData(userRoundData);
-        roundInitTime = `${(new Date(Date.now())).toISOString()}`;
         let res;
         const advancePayload = {
             policyId: currentPolicy.policyId,
@@ -150,22 +155,26 @@ export const GameInterface = () => {
 
         if (currentMonth < totalRounds) { 
             res = await postToServer("ADVANCE_ROUND", advancePayload);
+            console.log(`ADVANCE_ROUND took: [${displayElapsedTime(start)} ms]`);
         } else if (currentMonth === totalRounds) {
             res = await postToServer("FINISH_GAME", finishPayload);
-            if (res.success) closeConnection();
+            router("/home");
+            if (res.success) {
+                closeConnection(1000, "Game has finished");
+                navToStep(0);
+                queryClient.invalidateQueries({ queryKey: ['user_game_data'] })
+            }
         }
-
         
         const userData = res?.data.result?.find((el: any) => el.stateId === gameInitState.state.id);
         setCurrentMonth(userData.currentMonth);
         setRoundData(res?.data.result);
         addToChart(userData)
-        //calculateRRT(roundInitTime, res.data.responseTime);
         setUserRoundData(userData);
         return res;
     }
 
-    function closeConnection() {
+    function closeConnection(code: number, message: string) {
         const socket = socketRef.current;
 
         if (!socket || socket.readyState !== WebSocket.OPEN) {
@@ -173,13 +182,14 @@ export const GameInterface = () => {
             return;
         }
 
-        socket.close();
+        socket.close(code, message);
         clearInterval(pingInterval);
         clearInterval(refreshInterval);
         console.log("Connection successfully closed");
     }
 
     async function createGame() {
+        const start =  Date.now();
         const res: ApiResponse<string> = await 
         customFetch({url: `${produrl}/api/tokens/${sessionStorage.getItem("userId")}`,
         method: "GET"});
@@ -193,7 +203,6 @@ export const GameInterface = () => {
         };
 
         try {
-            gameInitTime = `${(new Date(Date.now())).toISOString()}`;
             const res: any = await customFetch({method: "POST", url: `${produrl}/api/games`,
                 body: payload
             })
@@ -207,24 +216,34 @@ export const GameInterface = () => {
             }
 
             const response: any = await postToServer("INITIALIZE_SESSION", initData);
-            setGameStarted(true);
+            if (response?.success) {
+                setGameStarted(true);
+                console.log(`INITIALIZE_SESSION took: [${displayElapsedTime(start)} ms]`);
+            }
         } catch (error) {
             console.error(error);
         }
     }
 
-    function saveGame() {
-        const id = gameInitState.state? gameInitState.state.id : gameData.game.stateId;
-        postToServer("SAVE_GAME", {stateId: id});
-        navToStep(0);
-        closeConnection();
+    async function saveGame() {
+        const id = gameInitState && gameInitState.state ? gameInitState.state.id : gameData.game.stateId;
+        const res: any = await postToServer("SAVE_GAME", {stateId: id});
+
+        if (res?.success) {
+            navToStep(0);
+            closeConnection(1000, "Game has been saved");
+        }
+        
     }
 
-    function abandonGame() {
+    async function abandonGame() {
         const payload = { gameId: gameData.game.id, stateId: gameInitState.state.id }
-        postToServer("ABANDON_GAME", payload);
-        closeConnection();
-        router("/home");
+        const res: any = await postToServer("ABANDON_GAME", payload);
+
+        if (res?.success) {
+            navToStep(0);
+            closeConnection(1000, "Game has been abandoned");
+        }
     }
 
     function pauseGame() {
@@ -241,13 +260,6 @@ export const GameInterface = () => {
         setPolicyList(res.result);
     }
 
-    function calculateRRT(initTime: string, resTime: string) {
-        const resSeconds = resTime.split(":")[2].split("").filter((el) => el.toLowerCase() !== "z").join("");
-        const reqSeconds = initTime.split(":")[2].split("").filter((el) => el.toLowerCase() !== "z").join("");
-
-        console.log("Request to response time => ", (Number(resSeconds) - Number(reqSeconds))*1000, "ms");
-    }
-
     function setPolicy(policyId: string) {
         const policy = policyList.find((el) => el.policyId === policyId);
         setCurrentPolicy(policy);
@@ -261,52 +273,55 @@ export const GameInterface = () => {
             return;
         }
 
-        if (socket.readyState === WebSocket.CONNECTING) {
-            socket.addEventListener("open", () => {
-            socket.send(JSON.stringify({ type, payload: data }));
-            }, { once: true });
-            return;
-        }
+        if (socket.readyState === WebSocket.OPEN) {            
+            const res: any = await new Promise((resolve, reject) => {
+                // Send requests
+                socket.send(JSON.stringify({ type, payload: data }));
 
-        if (socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({ type, payload: data }));
-            socket.onmessage = function(e) {
-                const res = JSON.parse(e.data);
-                return res;
-            };
+                // Process errors
+                socket.onerror = (event) => {
+                    console.error("Play round error", event);
+                    reject();
+                }
+
+                // Process successful responses
+                socket.onmessage = (e) => {
+                    let resp;
+
+                    try {
+                        resp = JSON.parse(e.data);
+                    } catch {
+                        reject(new Error(`Non-JSON reply from engine: ${String(e.data).slice(0, 100)}`));
+                        return;
+                    }
+
+                    if (resp.type !== type) return;
+                    resolve(resp);
+                };
+            });
+
+            return res;
         }
 
         console.error("WebSocket is closed or closing:", socket.readyState);
     }
 
     async function resumeGameInProg() {
-        const tokenRes: ApiResponse<string> = await 
-        customFetch({url: `${produrl}/api/tokens/${sessionStorage.getItem("userId")}`,
-        method: "GET"});
-        const token = tokenRes.result;
         try {
             const res: ApiResponse<any> = await resumeGameInProgress(location.state.game.id);
-            setGameData(res.result);
-            setTotalRounds(res.result.game.noOfRounds);
-            const userRound = res.result.game.rounds.filter((round: any) => {
-                round.currentMonth === res.result.game.rounds.at(-1).currentMonth 
-                && round.stateId === res.result.game.stateId
-            })
-
-
-            setUserRoundData(userRound[0]);
-            const initData = {
-                ...res.result, 
-                authToken: token,
+            if (gameResumeState) {
+                setGameData(gameResumeState.game);
+                setTotalRounds(res.result.noOfRounds);
+                setUserRoundData(gameResumeState.userLastRound);    
+                setPreviousUserRoundData(gameResumeState.prevLastRound);
             }
 
-            const response: any = await postToServer("RESUME_GAME", initData);
-            setGameStarted(true);                       
+            const response: any = await postToServer("RESUME_GAME", res.result);
+            if (response?.success) setGameStarted(true);                      
         } catch (error) {
             console.error(error);
         }
     }
-
 
     function navToStep(step: number) {
         sessionStorage.setItem("active_step", JSON.stringify(step));
@@ -337,15 +352,15 @@ export const GameInterface = () => {
                         <div className='game_chosen_state_container'>
                             <div className='state_initials'>
                                 <p style={{fontWeight: 'var(--weight-semibold)'}}>
-                                    {gameInitState.state.initials}
+                                    { gameInitState ? gameInitState.state.initials : gameResumeState.state.initials }
                                 </p>
                             </div>
                             <div>
                                 <p className='chosen_state_name'>
-                                    {gameInitState.state.name}
+                                    {gameInitState ? gameInitState.state.name : gameResumeState.state.name}
                                 </p>
                                 <p className='chosen_state_diff'>
-                                    Game #{gameData?.game.id} · {gameInitState.difficulty} · Seed {location.state.seed}
+                                    Game #{gameData?.game ? gameData?.game?.id : "N/A"} · {gameInitState ? gameInitState.difficulty : gameResumeState.game?.difficulty} · Seed {location.state.seed}
                                 </p>
                             </div>
                         </div>
@@ -354,9 +369,9 @@ export const GameInterface = () => {
                                 <div style={{display: 'flex', gap: '3px'}}>
                                     <p>Month</p>
                                     <p>{currentMonth}</p>
-                                    <p>/{gameData?.game.noOfRounds || 0}</p>
+                                    <p>/{gameData?.game ? gameData?.game?.noOfRounds : 0}</p>
                                 </div>
-                                <p>Year {Math.floor(userRoundData?.currentMonth / 12) + 1 || "0"} of {Math.floor(gameData?.game.noOfRounds / 12)}</p>
+                                <p>Year {Math.floor(userRoundData?.currentMonth / 12) + 1 || "0"} of {Math.floor(gameData?.game ? gameData?.game?.noOfRounds/12 : 0)}</p>
                             </div>
                             <div className='progress_container'>
                                 <div className='progress_el' style={{width: completion}}></div>
@@ -640,7 +655,7 @@ export const GameInterface = () => {
                         <div className='modal'>
                             <div className='pause_header'>
                                 <div>
-                                    <p className='modal_sub_header'>GAME #{gameInitState.game.id} · PAUSED</p>
+                                    <p className='modal_sub_header'>GAME #{gameResumeState?.game.id} · PAUSED</p>
                                     <p className='modal_header'>Resume game</p>
                                 </div>
                             </div>
@@ -649,15 +664,15 @@ export const GameInterface = () => {
                                     <div className='game_pause_state'>
                                         <div className='state_initials'>
                                             <p style={{fontWeight: 'var(--weight-semibold)'}}>
-                                                {gameInitState.state.initials}
+                                                {gameResumeState?.state.initials}
                                             </p>
                                         </div>
                                         <div>
                                             <p className='chosen_state_name'>
-                                                {gameInitState.state.name}
+                                                {gameResumeState?.state.name}
                                             </p>
                                             <p className='chosen_state_diff'>
-                                                {gameInitState.game.difficulty}
+                                                {gameResumeState?.game.difficulty}
                                             </p>
                                         </div>
                                     </div>
@@ -670,10 +685,10 @@ export const GameInterface = () => {
                                         </div>
                                         <div className='game_pause_rank'>
                                             <p>Score</p>
-                                            <p>{gameInitState.userLastRound?.roundScore.toFixed(2) ?? (0).toFixed(2)}</p>
+                                            <p>{gameResumeState?.userLastRound?.roundScore.toFixed(2) ?? (0).toFixed(2)}</p>
                                             <div style={{alignItems: 'center', display: 'flex'}}>
                                                 <img src={activeCaret}/>
-                                                <p style={{color: scoreUpdateColor}}>{((gameInitState.userLastRound?.roundScore - gameInitState.prevLastRound?.roundScore) || 0).toFixed(2)}</p>
+                                                <p style={{color: scoreUpdateColor}}>{((gameResumeState?.userLastRound?.roundScore - gameResumeState?.prevLastRound?.roundScore) || 0).toFixed(2)}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -683,12 +698,12 @@ export const GameInterface = () => {
                                         <div style={{display: 'flex', gap: '3px'}}>
                                             <p>Month</p>
                                             {/* <p>{gameInitState.game?.rounds?.at(-1).currentMonth ?? 0}</p> */}
-                                            <p>/{gameInitState.game.noOfRounds ?? 0}</p>
+                                            <p>/{gameResumeState?.game.noOfRounds ?? 0}</p>
                                         </div>
                                         {/* <p>{gameInitState?.game.noOfRounds - (gameInitState.game?.rounds?.at(-1).currentMonth ?? 0)} months left</p> */}
                                     </div>
                                     <div className='progress_container'>
-                                        <div className='progress_el' style={{width: (gameInitState.userLastRound?.currentMonth / gameInitState.game.noOfRounds * 100) + "%"}}></div>
+                                        <div className='progress_el' style={{width: (gameResumeState?.userLastRound?.currentMonth / gameResumeState?.game.noOfRounds * 100) + "%"}}></div>
                                     </div>
                                 </div>    
                             </div>

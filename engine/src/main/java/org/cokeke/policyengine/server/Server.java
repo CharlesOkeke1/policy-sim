@@ -8,17 +8,20 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.cokeke.policysimcontracts.GameContractService;
+import org.cokeke.policyengine.db.RedisDB;
+
 import org.java_websocket.WebSocket;
 import org.java_websocket.server.WebSocketServer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 
 public class Server extends WebSocketServer {
     private final ObjectMapper mapper = new ObjectMapper();
     private final Map<WebSocket, GameConnectionHandler> handlers = new ConcurrentHashMap<>();
     private final GameContractService contractService;
-
 
     public Server(GameContractService svc) {
         super(new InetSocketAddress(8081));
@@ -63,7 +66,6 @@ public class Server extends WebSocketServer {
             );
 
             conn.send(response);
-
         } catch (Exception e) {
             conn.send(e.getMessage());
         }
@@ -75,7 +77,8 @@ public class Server extends WebSocketServer {
             int code,
             String reason,
             boolean remote) {
-        System.out.println("Client disconnected");
+        handlers.remove(conn);
+        System.out.println("Client disconnected because [" + reason + "]");
     }
 
     @Override
@@ -91,6 +94,7 @@ public class Server extends WebSocketServer {
         }
     }
 
+
     public static void main(String[] args) {
         ObjectMapper mapper = new ObjectMapper();
         String secret = "fib6U1yiBuXQQ8j60kyccdg7YfLzGknvuNjHo4WfqVA=";
@@ -103,6 +107,7 @@ public class Server extends WebSocketServer {
             300
         );
 
+        RedisDB.init();
         new Server(contractService).start();       
     }
 }

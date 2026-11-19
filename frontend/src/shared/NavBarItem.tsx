@@ -19,7 +19,7 @@ interface NavBarItemProps {
 const NavBarItem = ({onClick, main_text: main, iconPath: icon, 
     step: step, current_step: curr, minimized, icon_size, fill,
     stroke}: NavBarItemProps) => {   
-    const width = minimized ? '60%' : '';
+    const width = minimized ? '45%' : '';
     return (
         <div
             className="component"
@@ -28,17 +28,26 @@ const NavBarItem = ({onClick, main_text: main, iconPath: icon,
                     step === curr
                         ? "var(--bg-active)"
                         : "var(--auth-link)",
-                width: width
+                width: width, 
+                justifyContent: minimized ? "center" : "space-between",
             }}
             onClick={() => onClick()}
         >
-        <div style={{marginTop: "5px"}}>
-            <CustomIcon icon={icon} strokeWidth={stroke ? stroke : 30} fill={fill} variant="circular" size={icon_size ? icon_size : "var(--text-h1)"}/>
-        </div>
-            {
-                minimized ?
-                "" : <p className="main">{main}</p>
-            }
+        {
+            minimized ?
+            <div style={{marginTop: "5px"}}>
+                <CustomIcon icon={icon} strokeWidth={stroke ? stroke : 30} fill={fill} variant="circular" size={icon_size ? icon_size : "var(--text-h1)"}/>
+            </div>
+            :
+            <div className='component' style={{marginLeft: "-20px"}}>
+                <div style={{marginTop: "5px"}}>
+                    <CustomIcon icon={icon} strokeWidth={stroke ? stroke : 30} fill={fill} variant="circular" size={icon_size ? icon_size : "var(--text-h1)"}/>
+                </div>
+                <p className="main">{main}</p>
+            </div>
+            
+            
+        }
         </div>
     );
 }

@@ -9,10 +9,7 @@ html,
 body,
 #root {
   font-family: var(--font-sans);
-}
-
-body {
-  background: var(--bg-page);
+  background-color: var(--bg-page);
   color: var(--text-primary);
 }
 
@@ -130,6 +127,7 @@ select {
   --bg-surface: #FFFFFF;     /* cards, sidebar, header, panels */
   --bg-inset: #F4F4F5;       /* city monogram square */
   --bg-active: #E9E9EC;      /* active nav item, current page, avatar */
+  
 
   /* Lines */
   --line: #E4E4E7;           /* all borders and dividers */

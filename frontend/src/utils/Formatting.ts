@@ -6,6 +6,17 @@ export function formatDate(date: string): string {
     });
 }
 
+export function formatDateNoSecond(date: string): string {
+    return new Date(date).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "UTC"
+    });
+}
+
+
 export function formatDateFull(date: string): string {
     return new Date(date).toLocaleDateString("en-GB", {
         day: "2-digit",
@@ -77,4 +88,13 @@ export function formatDateSeconds(date: string): string {
 export const validateEmail = (email: string): boolean => {
     const regex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
     return regex.test(email);
+}
+
+export function displayElapsedTime(startTime: number, endTime = Date.now()) {
+    const elapsed = endTime - startTime;
+    return elapsed;
+}
+
+export function flushInput(text: string): boolean {
+    return /[()[\]{};:/\\`~#"$%*-]/.test(text);
 }

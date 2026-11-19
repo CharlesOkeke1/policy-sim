@@ -205,10 +205,7 @@ public class UserService {
     public boolean isUserSuperUser(Long userId, String secret, boolean status) {
         User user = getUser(userId);
 
-        if (user == null) {
-            throw new UserNotFoundException("User with ID: " + userId + " does not exist");
-        }
-
+        if (user == null) throw new UserNotFoundException("User with ID: " + userId + " does not exist");
         if (!user.isSuperUser()) throw new InsufficientPermissionsException("You lack the appropriate permissions to use this function");
 
         String envSecret = EnvConfig.get("SUPER_USER_TOKEN");
@@ -219,12 +216,11 @@ public class UserService {
 
     public String setServerStatus(Long userId, String secret, boolean status, LocalDateTime readyTime) {
         if (isUserSuperUser(userId, secret, status)) {
-            serverStatus.setOnline(status);
-
             if (!readyTime.isAfter(LocalDateTime.now())) {
                 throw new InvalidRequestException("Expected server uptime is invalid");
             }
-            
+
+            serverStatus.setOnline(status);            
             serverStatus.setServerReadyTime(readyTime);
             return "Server status successfully updated";
         }

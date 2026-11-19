@@ -306,3 +306,44 @@
     align-items: center;
     min-height: 100vh;
 }
+
+@media (max-width: 768px) {
+
+    .left_nav_bar {
+        display: none;
+    }
+
+    .home_container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        overflow: hidden;
+    }
+
+    .main_app {
+        min-width: 100%;
+        margin-right: 10px;
+    }
+
+    .active_component {
+        min-width: 100%;
+    }
+
+    .input_container {
+        width: 35%;
+    }
+
+    .header {
+        align-items: center;
+        background-color: var(--bg-surface);
+    }
+
+    .min_nav_bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        padding: 10px 0;
+        padding-left: 15px;
+        border-bottom: 1px solid var(--line);
+        background-color: var(--bg-surface);
+    }
+}

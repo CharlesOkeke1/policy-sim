@@ -1,4 +1,4 @@
-import { useEffect, useState, createContext, useContext } from "react";
+import { useEffect, useState, createContext, useContext, useCallback } from "react";
 import type { ApiResponse, AuthContextType, LoginRequest, User } from "../dtos/Models";
 import { loginUser, logoutUser } from "./ApiService";
 import { isUserAuthenticated } from "./AuthContextManager";
@@ -9,30 +9,26 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | undefined>(undefined);
     const [loading, setLoading] = useState(true);
+    const isAuthenticated = user !== undefined;
     const router = useNavigate();
 
     useEffect(() => {
-        authenticate();
+        if (!isAuthenticated) authenticate();         
     }, []);
 
-    async function authenticate() {
+    const authenticate = useCallback(async () => {
         try {
-            
             const authenticatedUser = await isUserAuthenticated();
             setUser(authenticatedUser);
-            
-            if (authenticatedUser === undefined) router("/login");
-            else router("/home");
+        } catch (error) {
+            console.error("Provider error:", error);
 
-        } catch(error) {
-            console.log("Provider error");
-            if (error instanceof TypeError) {
-                router("/server-error");
-            }
+            setUser(undefined);
+            router("/server-error");
         } finally {
             setLoading(false);
         }
-    }
+    }, [router]);
 
     async function login(req: LoginRequest): Promise<string> {
         setLoading(true);
@@ -71,7 +67,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             loading,
             login,
             logout,
-            authenticate
+            authenticate,
+            isAuthenticated
         }}>
             {children}
         </AuthContext.Provider>

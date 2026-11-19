@@ -17,7 +17,6 @@
     height: 100%;
     width: 100%;
     background-color: var(--bg-surface);
-    padding: var(--commponent-padding-lg);
     row-gap: clamp(32px, 8vh, 90px);
     padding: clamp(24px, 4vw, 60px);
     box-sizing: border-box;
@@ -62,7 +61,7 @@
 .text_item {
     display: flex;
     gap: var(--gap-xxl);
-    padding: var(--padding-md) 0;
+    padding: var(--padding-sm) 0;
     width: var(--main_text_width);
     min-width: 300px;
     border-bottom: 1px solid var(--auth-panel-divider);
@@ -113,7 +112,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
-    row-gap: var(--gap-10);
+    row-gap: var(--gap-xs);
     width: 50%;
     padding: var(--padding-lg);
     border-radius: var(--radius-xl);
@@ -133,7 +132,7 @@
 
 .input_label {
     color: var(--auth-label);
-    font-size: var(--text-logo-mark);
+    font-size: var(--text-h2);
 }
 
 input {
@@ -238,7 +237,7 @@ input::placeholder {
     }
 
     .login_block {
-        max-width: 420px;
+        width: 320px;
     }
 }
 

@@ -24,7 +24,7 @@ export interface StatePreview {
     population: number;
     stability: number;
     productivity: number;
-    luck: string;
+    luck: "Even start" | "Tough start" | "Strong start";
     initials: string;
 }
 
@@ -49,6 +49,7 @@ export interface AuthContextType {
     login: (req: LoginRequest) => Promise<string>;
     logout: () => void;
     authenticate: () => void;
+    isAuthenticated: boolean;
 }
 
 export interface LoginRequest {

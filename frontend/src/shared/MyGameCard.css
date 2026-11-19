@@ -33,7 +33,7 @@
 .game_comp_mid_el {
     padding: 14px 10px;
     border-right: 2px solid var(--line);
-    font-size: 12px;
+    font-size: clamp(8px, 12px, 14px);
     color: var(--text-muted);
 }
 
@@ -124,7 +124,24 @@
 }
 
 .view_report {
-    background-color: var(--bg-footer); 
+    background-color: var(--bg-surface); 
     color: var(--text-secondary); 
+    border: 1px solid var(--line-emphasis);
+}
+
+.calendar_game {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: var(--gap-sm);
+    width: 30%;
+    min-height: var(--control-height);
+    background: var(--bg-surface);
+    border-radius: var(--radius-lg);
+    color: var(--text-secondary);
     border: 1px solid var(--line);
+    font-size: var(--text-ui);
+    cursor: pointer;
 }

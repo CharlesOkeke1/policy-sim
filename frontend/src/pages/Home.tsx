@@ -25,15 +25,12 @@ import {
   FaGear, 
   FaHouse, 
   FaPlus, 
-  FaTrophy, 
   FaUser 
 } from 'react-icons/fa6';
 import { CustomIcon } from '../shared/Icon';
 import { IoHelpOutline } from 'react-icons/io5';
-import { GoTrophy } from 'react-icons/go';
 import { PiTrophy } from 'react-icons/pi';
-import { customFetch, devurl, produrl } from '../utils/FetchWrapper';
-import { useRef } from 'react';
+
 
 
 export interface ChildProps {
@@ -42,13 +39,13 @@ export interface ChildProps {
   windowWidth?: number;
 }
 
-type Theme = 'Light' | 'Dark' | 'System';
+export type Theme = 'Light' | 'Dark' | 'System';
 
 const Home = () => {
   const router = useNavigate();
   const {user, logout} = useAuth();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState<Theme>(document.documentElement.getAttribute("data-theme") as Theme || "Light");
+  const [currentTheme, setCurrentTheme] = useState<Theme>("Light");
   const [activeStep, setActiveStep] = useState(Number(sessionStorage.getItem("active_step")) ?? 0);
   const [navBarMinimized, setNavBarMinimized] = useState(false);
   //const [ActiveComponent, setActiveComponent] = useState(<Dashboard setStep={setActiveStep}/>);
@@ -72,6 +69,11 @@ const Home = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    const theme = sessionStorage.getItem("current_theme") as Theme || "";
+    setTheme(theme);
+  }, []);
+
   function closeUserDrop() {
     if (showUserDropdown) {
       setShowUserDropdown(false);
@@ -83,9 +85,11 @@ const Home = () => {
       const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const systemTheme = isDarkMode ? 'Dark' : 'Light';
       setCurrentTheme("System");
+      sessionStorage.setItem("current_theme", "System");
       document.documentElement.setAttribute("data-theme", systemTheme.toLowerCase());
     } else {
       setCurrentTheme(theme);
+      sessionStorage.setItem("current_theme", theme);
       document.documentElement.setAttribute("data-theme", theme.toLowerCase());
     }  
   }
@@ -165,6 +169,21 @@ const Home = () => {
             </div>
           </div>
         </div>
+        {
+          windowWidth <= 768 ?
+          <div className='min_nav_bar'>
+            <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(0)} step={0} current_step={activeStep} iconPath={FaHouse} main_text='Dashboard'/>
+            <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(1)} step={1} current_step={activeStep} iconPath={FaGamepad} main_text='My Games' />
+            <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(2)} step={2} current_step={activeStep} iconPath={FaPlus} main_text='Play New Game' 
+            fill='var(--text-primary)' stroke={10}/>
+            <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(3)} step={3} current_step={activeStep} iconPath={PiTrophy} main_text='Global Rankings' 
+            fill='var(--text-primary)' stroke={1}/>
+            <NavBarItem minimized={navBarMinimized} onClick={() => pushActiveStep(4)} step={4} current_step={activeStep} iconPath={FaGear} main_text='Settings' />
+          </div>
+          : ""
+        }
+        
+        
         <div className='active_component'>
           <Outlet/>
           {(() => {
@@ -172,7 +191,7 @@ const Home = () => {
               case 0:
                 return <Dashboard setMin={setNavBarMinimized} setStep={setActiveStep} windowWidth={windowWidth}/>
               case 1:
-                return <MyGames setMin={setNavBarMinimized} setStep={setActiveStep}/>
+                return <MyGames setMin={setNavBarMinimized} setStep={setActiveStep} windowWidth={windowWidth}/>
               case 2:
                 return <NewGame setStep={setActiveStep} setMin={setNavBarMinimized} windowWidth={windowWidth}/>
               case 3:

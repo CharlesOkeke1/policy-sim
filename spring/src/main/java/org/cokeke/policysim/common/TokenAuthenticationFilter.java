@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.cokeke.policysim.components.ServerStatus;
 import org.cokeke.policysim.exceptions.InvalidTokenException;
+import org.cokeke.policysim.exceptions.InvalidRequestException;
 import org.cokeke.policysim.exceptions.TokenExpiredException;
 import org.cokeke.policysim.exceptions.UnauthorizedRequestException;
 import org.cokeke.policysim.exceptions.UserNotFoundException;
@@ -30,38 +31,64 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         this.tokenService = tokenService;
         this.status = status;
     }
-
+    
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-        FilterChain filterChain) throws ServletException, IOException {
-
+    protected void doFilterInternal(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain filterChain
+    ) throws ServletException, IOException {
         String path = request.getServletPath();
         String method = request.getMethod();
 
-        // Server offline: only explicitly permitted endpoints are accessible.
         if (!status.isOnline()) {
             if (isOfflinePublicEndpoint(path, method)) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            response.sendError(
-                HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-                "Server is currently offline"
-            );
-            return;
+            if (path.equals("/api/server/status") && HttpMethod.POST.matches(method)) {
+                if (!setAuthContext(request, response)) {
+                    return;
+                }
+
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            throw new InvalidRequestException("Server is currently down");
         }
 
-        // Server online: skip authentication for public endpoints.
         if (isOnlinePublicEndpoint(path, method)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Authenticate protected endpoints.
+        if (!setAuthContext(request, response)) return;
+        filterChain.doFilter(request, response);
+    }
+
+    private boolean isOfflinePublicEndpoint(String path, String method) {
+        if (HttpMethod.GET.matches(method)) {
+            return path.equals("/api/server/status")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-ui/")
+                || path.equals("/swagger-ui.html");
+        }
+
+        if (HttpMethod.POST.matches(method)) {
+            return path.equals("/api/users/login");
+        }
+
+        return false;
+    }
+
+    private boolean setAuthContext(
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) throws IOException {
         try {
             String tokenString = extractToken(request);
-
             User user = tokenService.getAuthenticatedUser(tokenString);
 
             var authentication =
@@ -71,9 +98,13 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                     List.of()
                 );
 
-            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            SecurityContext context =
+                SecurityContextHolder.createEmptyContext();
+
             context.setAuthentication(authentication);
             SecurityContextHolder.setContext(context);
+
+            return true;
 
         } catch (
             InvalidTokenException
@@ -88,27 +119,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 "Invalid or expired token"
             );
 
-            return;
+            return false;
         }
-
-        filterChain.doFilter(request, response);
-    }
-
-    private boolean isOfflinePublicEndpoint(String path, String method) {
-
-        if (HttpMethod.GET.matches(method)) {
-            return path.equals("/api/server/status")
-                || path.startsWith("/v3/api-docs")
-                || path.startsWith("/swagger-ui/")
-                || path.equals("/swagger-ui.html");
-        }
-
-        if (HttpMethod.POST.matches(method)) {
-            return path.equals("/api/users/login")
-                || path.equals("/api/server/status");
-        }
-
-        return false;
     }
 
     private boolean isOnlinePublicEndpoint(String path, String method) {
@@ -134,7 +146,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private String extractToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
-
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7).trim();
 
@@ -144,7 +155,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         }
 
         Cookie[] cookies = request.getCookies();
-
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if ("auth_token".equals(cookie.getName())) {

@@ -1,3 +1,0 @@
---Naming must start from V2 and not v1. Naming must nit be followed strictly because flyway keeps a history
--- but the current DB state us technically v1 so flyway will skip any v1 files
--- The file begins with BEGIN and ends with COMMIT. The migration data is nested in between.

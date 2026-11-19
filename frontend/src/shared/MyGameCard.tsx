@@ -6,13 +6,14 @@ import dropdownIcon from '../assets/dropdown.svg';
 import downFillIcon from '../assets/caret-down-sharp-fill.svg';
 import { StatusPill, type PillType } from './StatusPill';
 import type { StatePreview } from '../dtos/Models';
+import { formatDate, formatDateNoSecond } from '../utils/Formatting';
 
 interface MyGameCardProps {
     stateId: string;
     gameId: number;
     gameDifficulty: string;
     gameSeed: number;
-    gameStartDate?: string;
+    gameStartDate: string;
     isGameCompleted: boolean;
     currentMonth: number;
     score: number;
@@ -61,10 +62,6 @@ const MyGameCard = (props: MyGameCardProps) => {
     const getUserState = (stateId: string): StatePreview | undefined=> {
         const state = props.stateList?.find((state) => state.id === stateId);
         return state ? state : undefined;
-    }
-
-    function resumeGameInProgress() {
-
     }
 
     return (
@@ -144,9 +141,8 @@ const MyGameCard = (props: MyGameCardProps) => {
                 </div>
             </div>
             <div className='game_comp_footer'>
-                <div className='calendar'>
-                    <input className='date_input' type='date'/>
-                    <img src={dropdownIcon} className='date_icon'/>
+                <div className='calendar_game'>
+                    {formatDateNoSecond(props.gameStartDate)}
                 </div>
                 {
                     tag === "Completed" ?
