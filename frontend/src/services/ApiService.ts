@@ -5,12 +5,13 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import type { Difficulty } from "../components/NewGame";
-import type { ApiResponse, Stat, StatePreview, Policy, LoginRequest, User } from "../dtos/Models";
+import type { ApiResponse, Stat, StatePreview, Policy, LoginRequest, User, ThemeResponse } from "../dtos/Models";
 import { customFetch, produrl } from "../utils/FetchWrapper";
 import { useAuth } from "./AuthProvider";
 
 
 export const API_DELAY = 350; // 0.35seconds
+export const THEME_DEBOUNCE_TIME = 7500;
 
 export const getUserData = async (): Promise<any> => {
     const api = `${produrl}/api/users/${sessionStorage.getItem("userId")}/games`;
@@ -34,6 +35,21 @@ export const getDifficulty = async (): Promise<Difficulty[]> => {
     const api = `${produrl}/api/games/difficulty`;
     const res: ApiResponse<Difficulty[]> = await customFetch({method: "GET", url: api});
     return res.result;
+}
+
+export const getUserTheme = async (userId: number): Promise<ThemeResponse> => {
+    const api = `${produrl}/api/users/${userId}/theme`;
+    const res: ApiResponse<ThemeResponse> = await customFetch({method: "GET", url: api});
+    return res.result;
+}
+
+export const setUserTheme = async (userId: number, preferredTheme: string) => {
+    const url = `${produrl}/api/users/${userId}/theme`;
+    const body = {
+        userId: userId,
+        preferredTheme: preferredTheme
+    }
+    const res: ApiResponse<String> = await customFetch({method: "POST", url: url, body: body});
 }
 
 export const getPolicies = async (): Promise<Policy[]> => {
@@ -118,16 +134,6 @@ export async function loginUser(req: LoginRequest): Promise<ApiResponse<any>> {
         });
 
         const data: ApiResponse<any> = await response.json();
-
-        if (!response.ok || data.code !== 200) {
-            throw new Error(data.message || "Login failed");
-        }
-
-        sessionStorage.clear();
-        sessionStorage.setItem("userId", data.result.id);
-        sessionStorage.setItem("expirytime", data.result.tokenExpirationTime);
-
-        localStorage.setItem("refreshToken", data.result.refreshToken);
 
         return data;
     } catch (error) {

@@ -11,9 +11,9 @@ interface FetchOptions {
  */
 
 export const FAILED_AUTH_RETRY = 10;
+export const MAX_HEARTBEAT_FAILURES = 3;
 
 export async function customFetch<T>({ method, url, body }: FetchOptions): Promise<T> {
-
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };

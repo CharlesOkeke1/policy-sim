@@ -122,7 +122,11 @@ export const MyGames = ({setStep, windowWidth}: ChildProps) => {
                     click={() => router(`/game/${game.id}?mode=resume`, {
                       state: {
                         game: game,
+                        difficulty: game.difficulty,
+                        seed:game.seed,
                         isInit: false,  
+                        noOfStates: stateList?.length,
+                        noOfRounds: game.noOfRounds,
                         userLastRound: game.rounds.filter((round: any) => round.currentMonth === game.rounds.at(-1).currentMonth &&
                         game.stateId === round.stateId)[0],
                         prevLastRound: game.rounds.filter((round: any) => round.currentMonth === game.rounds.at(-1).currentMonth - 1 &&

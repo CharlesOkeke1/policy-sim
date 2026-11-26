@@ -1,6 +1,6 @@
 package org.cokeke.policysim.external;
 
-import org.cokeke.policysim.common.EnvConfig;
+import org.cokeke.policysim.security.EnvConfig;
 import org.flywaydb.core.Flyway;
 
 public class FlywayRepair {

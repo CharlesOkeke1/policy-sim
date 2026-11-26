@@ -43,23 +43,27 @@ const Login = () => {
         setError("");
 
         try {
-            const message = await login({
+            const res = await login({
                 email,
                 password,
                 ipAddress: ip,
                 deviceInfo: getDeviceInfo()
             });
 
-            setError(message);
-            router("/home", { replace: true });
+            if (res.code === 200) {
+                sessionStorage.clear();
+                sessionStorage.setItem("userId", res.result.id);
+                sessionStorage.setItem("expirytime", res.result.tokenExpirationTime);
+
+                localStorage.setItem("refreshToken", res.result.refreshToken);
+                router("/home", { replace: true });
+            }
         } catch (error) {
             if (error instanceof TypeError) {
-                console.error("Backend unavailable:", error);
                 router("/server-error");
+                setError("We cant reach policysim right now")
             }
-            setError(
-                error instanceof Error ? error.message : "Login failed"
-            );
+            setError("Login failed, please try again");
         } finally {
             setSubmitted(false);
         }
@@ -128,8 +132,7 @@ const Login = () => {
                         {
                             error ?
                             <div className='error_div'><p>{error}</p></div>  : ""
-                        }
-                                         
+                        }                                         
                     </div>
                 </div>
             </div>

@@ -2,8 +2,8 @@ package org.cokeke.policysim.external;
 
 import java.util.List;
 
-import org.cokeke.policysim.common.EnvConfig;
 import org.cokeke.policysim.exceptions.EmailSendException;
+import org.cokeke.policysim.security.EnvConfig;
 
 import io.mailtrap.client.MailtrapClient;
 import io.mailtrap.config.MailtrapConfig;

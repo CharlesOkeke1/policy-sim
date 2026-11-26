@@ -1,0 +1,3 @@
+BEGIN;
+    ALTER TABLE users ADD COLUMN theme_changed_last TIMESTAMP DEFAULT NOW();
+COMMIT;

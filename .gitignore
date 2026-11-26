@@ -51,3 +51,10 @@ application.properties
 ### FrontEnd
 frontend/node_modules/
 frontend/dist/
+
+.env
+*.rdb
+*.dump
+*.tar.gz
+
+moving.txt

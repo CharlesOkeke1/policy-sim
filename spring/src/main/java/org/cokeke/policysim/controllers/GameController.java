@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.cokeke.policysim.common.ApiResponse;
-import org.cokeke.policysim.common.AuthContextHolder;
 import org.cokeke.policysim.common.Environment;
 import org.cokeke.policysim.dtos.Difficulty;
 import org.cokeke.policysim.dtos.Policy;
@@ -22,6 +21,7 @@ import org.cokeke.policysim.responses.GameResponse;
 import org.cokeke.policysim.responses.GameSessionInitResponse;
 import org.cokeke.policysim.responses.GameSessionResponse;
 import org.cokeke.policysim.responses.PaginatedGamesResponse;
+import org.cokeke.policysim.security.AuthContextHolder;
 import org.cokeke.policysim.responses.GetUserGames;
 import org.cokeke.policysim.services.GameService;
 import org.cokeke.policysim.services.GameSessionService;

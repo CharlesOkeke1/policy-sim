@@ -5,13 +5,14 @@ import org.cokeke.policysim.exceptions.GameSessionNotFoundException;
 import org.cokeke.policysim.exceptions.InvalidContractException;
 import org.cokeke.policysim.exceptions.GameNotFoundException;
 import org.cokeke.policysim.repos.GameSessionRepository;
+import org.cokeke.policysim.security.TokenGenerator;
 import org.cokeke.policysim.repos.GameRepository;
-import org.cokeke.policysim.common.TokenGenerator;
 import org.cokeke.policysim.models.Game;
 import org.cokeke.policysim.models.Session;
 import java.time.Instant;
 
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 
 
@@ -46,6 +47,7 @@ public class GameSessionService {
 
     public GameContractService getContractService() { return this.contractService; }
 
+    @Cacheable (value = "gameSession", key = "#result.id")
     public Session createGameSession(Long gameId, Long userId, String contractId) {
         Game game = gameRepo.findById(gameId).orElse(null);
 
@@ -70,6 +72,7 @@ public class GameSessionService {
         return newSess;
     }
 
+    @CachePut (value = "gameSession", key = "#sessionId")
     public Session resumeAGameSession(Long sessionId) {
         Session session = sessionRepo.findById(sessionId).orElseThrow(() -> new GameSessionNotFoundException("Game session does not exist"));
         // Give user a new token

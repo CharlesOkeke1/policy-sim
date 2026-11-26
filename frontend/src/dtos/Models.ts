@@ -46,7 +46,7 @@ export interface User {
 export interface AuthContextType {
     user: User | undefined;
     loading: boolean;
-    login: (req: LoginRequest) => Promise<string>;
+    login: (req: LoginRequest) => Promise<ApiResponse<any>>;
     logout: () => void;
     authenticate: () => void;
     isAuthenticated: boolean;
@@ -66,4 +66,9 @@ export interface ServerStatus {
 
 export interface MaintenanceProps {
     expectedUpTime: string; 
+}
+
+export interface ThemeResponse {
+    theme: string;
+    lastChanged: string;
 }

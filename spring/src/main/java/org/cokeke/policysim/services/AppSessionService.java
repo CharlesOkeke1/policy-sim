@@ -3,7 +3,6 @@ package org.cokeke.policysim.services;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.cokeke.policysim.common.TokenGenerator;
 import org.cokeke.policysim.exceptions.AppSessionNotFoundException;
 import org.cokeke.policysim.exceptions.AppSessionExpiredException;
 import org.cokeke.policysim.exceptions.InvalidRefreshTokenException;
@@ -11,9 +10,11 @@ import org.cokeke.policysim.models.AppSession;
 import org.cokeke.policysim.models.Token;
 import org.cokeke.policysim.repos.AppSessionRepository;
 import org.cokeke.policysim.repos.TokenRepository;
-
+import org.cokeke.policysim.security.TokenGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 
 
@@ -34,20 +35,22 @@ public class AppSessionService {
         this.tokenRepo = t;
     }
 
+    @Cacheable (value = "all_app_session", key = "'all_app_session'")
     public List<AppSession> getAllSessions() {
         return repo.findAll();
     }
 
-    @Cacheable (value = "session", key = "#id")
+    @Cacheable (value = "app_session", key = "#id")
     public AppSession getSessionById(Long id) {
         return repo.findById(id).orElseThrow(() -> new AppSessionNotFoundException("Session does not exist"));
     }
 
-    @Cacheable (value = "session", key = "#token")
+    @Cacheable (value = "app_session", key = "#token")
     public AppSession getBySessionRefreshToken(String token) {
         return repo.getByRefreshToken(token).orElseThrow(() -> new AppSessionNotFoundException("Session does not exist"));
     }
 
+    @CachePut (value = "app_session", key = "#result.id")
     public AppSession createNewSession(Long userId, String ipAddress, String deviceInfo) {
         String refreshToken = TokenGenerator.generateRefreshToken();
         List<AppSession> sessions = repo.getByUserId(userId).orElse(null);
@@ -58,12 +61,14 @@ public class AppSessionService {
         if (existingSession != null) {
             existingSession.setRevoked(true);
             existingSession.setSessionExpiryTime(LocalDateTime.now());
+            existingSession.setRefreshTokenExpiryTime(LocalDateTime.now());
         }
         
         AppSession newSession = new AppSession(refreshToken, userId, ipAddress, deviceInfo);
         return repo.save(newSession);
     }
 
+    @CachePut (value = "token", key = "#result.id")
     @Transactional
     public Token getNewAuthToken(String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
@@ -82,11 +87,11 @@ public class AppSessionService {
         Token newTokenObject = new Token(newToken, session.getUserId());
 
         // Delete the old token
-        int count = tokenRepo.deleteByUserId(session.getUserId());
-        System.out.println("Amount of tokens deleted " + count);
+        tokenRepo.deleteByUserId(session.getUserId());
         return tokenRepo.save(newTokenObject);
     }
 
+    @CacheEvict (value = "app_session", key = "#refToken")
     public void revokeSession(String refToken) {
         AppSession session = repo.getByRefreshToken(refToken).orElseThrow(() -> new AppSessionNotFoundException("Session does not exist"));
         session.setRevoked(true);

@@ -22,7 +22,7 @@ public class Email {
     private Long id;
 
     @Column
-    @Schema(example = "42", description = "Associated user ID; null if not associated with a user")
+    @Schema(example = "42", description = "Associated user ID, null if not associated with a user")
     private Long userId;
 
     @Column(nullable = false)
@@ -45,8 +45,7 @@ public class Email {
 
     protected Email() {}
 
-    public Email(String senderEmail, String title,
-                  String subject, String content, String reason) {
+    public Email(String senderEmail, String title, String subject, String content, String reason) {
         this.userId = null;
         this.senderEmail = senderEmail;
         this.title = title;

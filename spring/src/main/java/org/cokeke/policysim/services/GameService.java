@@ -23,6 +23,7 @@ import org.cokeke.policysim.responses.DashboardStats;
 import org.cokeke.policysim.responses.DashboardStats2;
 import org.cokeke.policysim.responses.GameResponse;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -79,7 +80,7 @@ public class GameService {
         this.sessionRepo = sessionRepo;
     }
 
-    @Cacheable(value = "game", key = "#game.id")
+    @Cacheable(value = "game", key = "#result.id")
     public Game createGame(String stateName, Long userId, int totalRounds, int seed, String difficulty) {
         User user = userService.getUserById(userId);
         Game game = new Game(stateName, user, totalRounds, seed, difficulty);
@@ -98,7 +99,7 @@ public class GameService {
         return repo.findById(id).orElseThrow(() -> new GameNotFoundException("We cannot find game with specified id"));
     }
 
-    @CacheEvict (value = "game", key = "#game.id")
+    @CacheEvict (value = "game", key = "#id")
     public void deleteById(Long id) {
         Game game = this.getGameById(id);
         repo.deleteById(game.getId());
@@ -109,9 +110,9 @@ public class GameService {
         return repo.findAll();
     }
 
-    public List<Game> getGamesByStatus(Boolean status) {
-        return repo.findByCompleted(status);
-    }
+    // public List<Game> getGamesByStatus(Boolean status) {
+    //     return repo.findByCompleted(status);
+    // }
 
     @Cacheable (value = "userGames", key = "#userId")
     public List<Game> getUserGames(Long userId) {
@@ -120,7 +121,7 @@ public class GameService {
             throw new UserNotFoundException("User not found");
         }
 
-        List<Game> games = repo.findByUserId(userId);
+        List<Game> games = repo.findByUser_Id(userId);
 
         // Remove dead games if any slipped by
         games.removeIf((game) -> game.getStartDate() == null);
@@ -141,6 +142,7 @@ public class GameService {
         return rounds;
     }
 
+    @CachePut(value = "game", key = "#gameId")
     public Game finishGame(Long gameId, double score, int rank) {
         Game game = repo.findById(gameId).orElse(null);
         if (game == null) {
@@ -157,7 +159,7 @@ public class GameService {
         return repo.save(game);
     }
 
-    @Cacheable(value = "game", key = "#gameId")
+    @CachePut(value = "game", key = "#gameId")
     public Game saveGame(Long gameId, double score, int rank) {
         Game game = repo.findById(gameId).orElse(null);
         if (game == null) {
@@ -174,11 +176,14 @@ public class GameService {
         return STATES;
     } 
 
+    // Unnecessary function. Can be replaced by storing the stateName as a field in the game Obj
+    // Though it doesn't hit the DB but the function is inherently unnecessary.
     @Cacheable(value = "stateName", key = "#stateId")
     public String getStateName(String stateId) {
         return STATES_MAP.get(stateId);
     }
 
+    @Cacheable(value="gameResponse", key = "#g.id")
     public GameResponse gameToGameResponse(Game g) {
         List<Round> gRounds = roundSvc.getRoundsByGameId(g.getId());
         GameResponse res = new GameResponse(g.getId(), g.getSeed(), 
@@ -194,7 +199,7 @@ public class GameService {
         return POLICIES;
     }
 
-    @Cacheable(value = "userDashboardStats1", key = "#id")
+    @CachePut(value = "userDashboardStats1", key = "#id")
     public DashboardStats getUserDashboardStats(Long id) {
         List<Game> games = getUserGames(id);
         double totalScore = 0;
@@ -274,7 +279,7 @@ public class GameService {
         return out;
     }
 
-    @Cacheable(value = "last12Games", key = "#userId")
+    @CachePut(value = "last12Games", key = "#userId")
     public List<Game> get12MostRecentGames(Long userId) {
         List<Game> games = getUserGames(userId);
 
@@ -283,6 +288,7 @@ public class GameService {
         return games.subList(0, 12);
     }
 
+    @CachePut (value = "userWinRate", key = "#userId")
     public List<Double> getWinToLossRatioOverTime(Long userId, int noOfGames) {
         List<Game> inp = getUserGames(userId);
         List<Game> games = new ArrayList<>();

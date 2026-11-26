@@ -67,9 +67,11 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'it.ozimov:embedded-redis:0.7.3'
+    testImplementation 'org.mockito:mockito-core'
 
     testRuntimeOnly 'com.h2database:h2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    
 }
 
 

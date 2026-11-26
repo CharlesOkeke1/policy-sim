@@ -1,83 +1,135 @@
-services:
-  # 1. Database Layer (PostgreSQL)
-  postgres-db:
-   image: postgres:16-alpine
-   container_name: policy_db
-   environment:
-     POSTGRES_USER: postgres
-     POSTGRES_PASSWORD: admin98fhb3Password
-     POSTGRES_DB: policysimdb
-   ports:
-     - "5432:5432"
-   volumes:
-     - pgdata:/var/lib/postgresql/data
-   restart: always
+# Sized for 4 vCPUs / 16 GB. Limits total ~13.3 GB, leaving ~2.7 GB for the OS and Postgres's file cache.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "30m"
+    max-file: "5"
 
-  # 2. Java Spring Boot API Container
+services:
+  # 1. Database (PostgreSQL)
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: policy_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: policysimdb
+    command:
+      - postgres
+      - -c
+      - shared_buffers=1GB
+      - -c
+      - effective_cache_size=3GB
+      - -c
+      - work_mem=64MB
+      - -c
+      - maintenance_work_mem=256MB
+    expose:
+      - "5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d policysimdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    cpus: "2.5"
+    mem_limit: "4g"
+    logging: *default-logging
+
+  # 2. Spring Boot API
   spring-backend:
     image: eclipse-temurin:25-jdk-alpine
     container_name: policy_spring
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"         
     volumes:
       - .:/app
     working_dir: /app
-    command: sh -c "echo 'Spring Boot workspace ready. Awaiting build artifact...' && tail -f /dev/null"
-    #depends_on:
-    #  - postgres-db
-    restart: always
 
-  # 3. Pure Java Simulation Engine Container
+    command: ["java", "-jar", "/app/spring/build/libs/spring-0.0.1-SNAPSHOT.jar", "--server.address=0.0.0.0"]
+    environment:
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+ExitOnOutOfMemoryError -Xss512k"
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/server/status >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
+    restart: unless-stopped
+    cpus: "1.5"
+    mem_limit: "3g"
+    logging: *default-logging
+
+  # 3. Simulation engine
   simulation-engine:
     image: eclipse-temurin:25-jdk-alpine
     container_name: policy_engine
     ports:
-      - "8081:8081"
+      - "127.0.0.1:8081:8081"
     volumes:
       - .:/app
     working_dir: /app
-    command: sh -c "echo 'op ready...' && tail -f /dev/null"
-    restart: always
+    command: ["java", "-jar", "/app/engine/build/libs/engine-0.0.1-SNAPSHOT.jar"]
+    environment:
+
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+ExitOnOutOfMemoryError -Xss512k"
     extra_hosts:
-      - "host.docker.internal:172.18.0.1"
+      - "host.docker.internal:host-gateway"
     depends_on:
       redis-engine:
         condition: service_healthy
+    restart: unless-stopped
+    cpus: "1"
+    mem_limit: "2.5g"
+    logging: *default-logging
 
-  # 4. React Frontend Workspace Container
+  # 4. Frontend
   frontend-ui:
     image: node:24-alpine
     container_name: policy_frontend
     ports:
-      - "5173:5173"
+      - "127.0.0.1:5173:5173"
     volumes:
       - ./frontend:/app/frontend
     working_dir: /app/frontend
-    command: sh -c "echo 'React Frontend workspace ready.' && tail -f /dev/null"
-    restart: always
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+    restart: unless-stopped
+    cpus: "0.25"
+    mem_limit: "256m"
+    logging: *default-logging
 
+  # 5. Redis for the engine
   redis-engine:
     image: redis:7-alpine
     container_name: policy_engine_redis
-    restart: unless-stopped
     command:
       - redis-server
       - --appendonly
       - "yes"
       - --requirepass
-      - "admin_redis_18_6380_Password"
+      - ${ENGINE_REDIS_PASSWORD}
+      - --maxmemory
+      - 768mb
+      - --maxmemory-policy
+      - noeviction
     volumes:
       - engine_redis_data:/data
     healthcheck:
-      test:
-        - CMD
-        - redis-cli
-        - -a
-        - "admin_redis_18_6380_Password"
-        - ping
+      test: ["CMD-SHELL", "redis-cli -a \"${ENGINE_REDIS_PASSWORD}\" --no-auth-warning ping | grep -q PONG"]
       interval: 5s
       timeout: 3s
       retries: 5
+    environment:
+      REDIS_PASSWORD: ${ENGINE_REDIS_PASSWORD}
+    restart: unless-stopped
+    cpus: "1"
+    mem_limit: "1g"
+    logging: *default-logging
 
 volumes:
   pgdata:

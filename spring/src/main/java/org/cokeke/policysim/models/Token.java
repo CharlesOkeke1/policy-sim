@@ -8,10 +8,15 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "tokens")
+@Table(name = "tokens", indexes = {
+    @Index(name = "idx_tokens_userId", columnList = "user_id"),
+    @Index(name = "idx_tokens_id", columnList = "id"),
+    @Index(name = "idx_tokens_t_string", columnList = "token")
+})
 public class Token {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

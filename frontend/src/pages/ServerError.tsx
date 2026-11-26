@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router';
 
 const ServerError = () => {
     const [countDown, setCountDown] = useState(FAILED_AUTH_RETRY);
-    const {authenticate} = useAuth();
+    const {user, authenticate} = useAuth();
     const [autoRetry, setAutoRetry] = useState(0);
     const [mult, setMult] = useState(0);
     const router = useNavigate();
@@ -34,7 +34,12 @@ const ServerError = () => {
     }, [authenticate]);
 
     function retry() {
-        authenticate();
+        try {
+            authenticate();
+            if (user != null) router("/home");
+        } catch {
+            router("/login");
+        }
         setCountDown(FAILED_AUTH_RETRY);
     }
 

@@ -2,9 +2,12 @@ package org.cokeke.policysim.models;
 
 import java.time.Instant;
 
+import org.hibernate.engine.profile.Fetch;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -15,9 +18,13 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "games", indexes = {
-    @Index(name = "idx_user_id", columnList = "user_id"),
-    @Index(name = "idx_completed", columnList = "completed"),
-    @Index(name = "idx_difficulty", columnList = "difficulty")
+    @Index(name = "games_idx_user_id", columnList = "user_id"),
+    @Index(name = "games_idx_completed", columnList = "completed"),
+    @Index(name = "games_idx_difficulty", columnList = "difficulty"),
+    @Index(name = "games_idx_stateId", columnList = "state_id"),
+    @Index(name = "games_idx_startDate", columnList = "start_date"),
+    @Index(name = "games_idx_sessionId", columnList = "session_id"),
+    @Index(name = "games_idx_stateId", columnList = "state_id")
 })
 public class Game {
     @Id
@@ -69,7 +76,7 @@ public class Game {
     @Schema(example = "1", description = "Game session unique id")
     private Long sessionId;
 
-    @ManyToOne
+    @ManyToOne //fetch = FetchType.LAZY
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 

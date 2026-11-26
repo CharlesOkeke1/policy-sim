@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface GameRepository extends JpaRepository<Game, Long> {
     List<Game> findByCompleted(Boolean status);
-    List<Game> findByUserId(Long userId);
+    List<Game> findByUser_Id(Long userId);
 }

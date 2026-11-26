@@ -30,6 +30,7 @@ import {
 import { CustomIcon } from '../shared/Icon';
 import { IoHelpOutline } from 'react-icons/io5';
 import { PiTrophy } from 'react-icons/pi';
+import { setUserTheme, THEME_DEBOUNCE_TIME } from '../services/ApiService';
 
 
 
@@ -69,6 +70,12 @@ const Home = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // useEffect(() => {
+  //   setInterval(() => {
+  //     postTheme();
+  //   }, 2 * 60 * 1000);
+  // },[]);
+
   useEffect(() => {
     const theme = sessionStorage.getItem("current_theme") as Theme || "";
     setTheme(theme);
@@ -94,7 +101,18 @@ const Home = () => {
     }  
   }
 
+  function postTheme() {
+    if (!user) return;
+    try {
+      console.log(currentTheme);
+      setUserTheme(user.id, currentTheme);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   async function logoutUser() {
+    postTheme();
     logout();  
   }
 

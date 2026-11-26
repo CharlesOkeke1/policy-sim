@@ -1,5 +1,6 @@
-package org.cokeke.policysim.common;
+package org.cokeke.policysim.security;
 
+import org.cokeke.policysim.common.JacksonConfiguration;
 import org.cokeke.policysimcontracts.GameContractService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

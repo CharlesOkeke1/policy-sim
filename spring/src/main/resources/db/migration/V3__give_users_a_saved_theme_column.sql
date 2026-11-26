@@ -1,0 +1,3 @@
+BEGIN;
+    ALTER TABLE users ADD COLUMN theme VARCHAR(10) DEFAULT 'Light';
+COMMIT;

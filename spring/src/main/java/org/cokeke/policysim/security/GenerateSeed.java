@@ -1,4 +1,4 @@
-package org.cokeke.policysim.common;
+package org.cokeke.policysim.security;
 import org.springframework.stereotype.Service;
 
 @Service 

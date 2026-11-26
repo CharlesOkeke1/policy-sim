@@ -6,6 +6,10 @@ description = 'PolicySim shared message types'
 
 dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
+    
+    // Dotenv
+    implementation 'io.github.cdimascio:dotenv-java:3.2.0'
+
 }
 
 java {

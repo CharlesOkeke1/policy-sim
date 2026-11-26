@@ -1,18 +1,21 @@
 package org.cokeke.policyengine.db;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.cokeke.policyengine.functions.GameRanking;
+import org.cokeke.policyengine.models.RankedOutput;
+import org.cokeke.policyengine.models.SpringRoundDTO;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.lettuce.core.RedisException;
 import io.lettuce.core.api.sync.RedisCommands;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-
-import org.cokeke.policyengine.models.SpringRoundDTO;
 
 public class LettuceGameRepository implements GameRepository {
     private final RedisCommands<String, String> redisCommands;
@@ -21,6 +24,26 @@ public class LettuceGameRepository implements GameRepository {
     public LettuceGameRepository(RedisCommands<String, String> redisCommands) {
         this.redisCommands = redisCommands;
         this.mapper = new ObjectMapper();
+    }
+
+    @Override 
+    public RankedOutput rankState(Long gameId, String stateId) {
+        GameObject game = getGame(gameId);
+        List<Round> rounds = game.getRounds();
+        Map<String, List<Double>> scoresMap = new HashMap<>();
+
+        for (Round round : rounds) {
+            if (scoresMap.containsKey(round.getStateId())) {
+                scoresMap.get(round.getStateId()).add(round.getRoundScore());
+            } else {
+                List<Double> newList = new ArrayList<>();
+                newList.add(round.getRoundScore());
+                scoresMap.put(round.getStateId(), newList);
+            }
+        }
+
+        RankedOutput rankedOut = GameRanking.rank(scoresMap, stateId);
+        return rankedOut;
     }
 
     @Override

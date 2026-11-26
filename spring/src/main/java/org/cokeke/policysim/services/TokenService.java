@@ -11,7 +11,8 @@ import org.cokeke.policysim.models.Session;
 import org.cokeke.policysim.models.User;
 import org.cokeke.policysim.repos.TokenRepository;
 import org.cokeke.policysim.repos.UserRepository;
-
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ public class TokenService {
         this.gameSessionSvc = gameSessionSvc;
     }       
 
+    @Cacheable(value = "token", key = "#token.id")
     @Transactional
     public String saveToken(Token token) {
         Long id = token.getUserId();
@@ -34,24 +36,28 @@ public class TokenService {
         return repo.save(token).getToken();
     }
 
+    @Cacheable (value = "token", key = "#token")
     public Token getToken(String token) {
         return repo.findByToken(token).orElseThrow(() -> new InvalidTokenException("Invalid token"));
     }
 
+    @Cacheable (value = "token_by__user", key = "#id")
     public Token findByUserId(Long id) { 
         Token t = repo.findByUserId(id).orElse(null);
         if (t == null) throw new UserNotFoundException("User not found");
         return t;
     }
 
+    @Cacheable (value = "allTokens", key = "'allTokens'")
     public List<Token> getAllTokens() {
         return repo.findAll();
     }
 
     public Boolean isTokenExpired(Token t) {
         return t.isExpired();
-    }
-
+    }   
+    
+    @CacheEvict (value = "allTokens", key = "'allTokens'")
     public void deleteAllTokens() {
         repo.deleteAll();
     }
@@ -61,6 +67,7 @@ public class TokenService {
         token.setExpirationTime(LocalDateTime.now());
     }
 
+    @Cacheable (value = "authenticated_user", key = "#tokenString")
     public User getAuthenticatedUser(String tokenString) {
         Token token;
         if (tokenString.startsWith("engine")) {
@@ -80,6 +87,8 @@ public class TokenService {
         return user;
     }
 
+    // Not used at the moment
+    @Cacheable (value = "token_expiry", key = "#tokenString")
     public LocalDateTime getTokenExpiryTime(String tokenString) {
         Token token = this.getToken(tokenString);
         return token.getExpirationTime();

@@ -3,9 +3,10 @@ import '../styles/Login.css';
 import lightLogo from '../assets/Policy_Sim_Logo_Light_PNG.png';
 import { useNavigate } from 'react-router';
 import { ButtonLoader } from '../shared/ButtonLoader';
-import { produrl } from '../utils/FetchWrapper';
-import { flushInput } from '../utils/Formatting';
+import { customFetch, produrl } from '../utils/FetchWrapper';
+import { flushInput, validateEmail } from '../utils/Formatting';
 import { getUsernames } from '../services/ApiService';
+import type { ApiResponse } from '../dtos/Models';
 
 interface SignUpRequest {
     username: string;
@@ -24,31 +25,42 @@ const SignUp = () => {
     const [strength, setStrength] = useState(0);
     const [takenUserNames, setTakenUsernames] = useState<String[]>([]);
     const passwordsMismatch = confirmPassword !== password;
-    const readyToPost = !passwordsMismatch && email.length > 0 && username.length > 0 && !isUsernameTaken() && !flushInput(username);
+    const readyToPost = !passwordsMismatch && email.length > 0 && 
+    username.length > 0 && 
+    !flushInput(username) && validateEmail(email) && strength >= 4;
+    const [signupfailed, setFailed] = useState(false);
+    const hasError = signupfailed || !readyToPost;
     
     useEffect(() => {
         if (flushInput(username)) {
             setError("Username contains an invalid character");
+        } else if (email.length <= 0 || username.length <= 0 || 
+            password.length <= 0 || confirmPassword.length <= 0) {
+            setError("All fields are required");
+        } else if (!validateEmail(email)) {
+            setError("Email is invalid");
+        } else if (passwordsMismatch) {
+            setError("Passwords do not match");
         }
-    }, [username]);
+    }, [email, username, password, confirmPassword, strength]);
 
     useEffect(() => {
-        getUNames();
-    }, []);
+        if (strength < 4) {
+            setError("Password is not strong enough");
+        }
+    }, [strength]);
+
 
     useEffect(() => {
-        if (isUsernameTaken()) setError("Username is already taken");
-    }, [username]);
+        getStrength(password);
+    }, [password]);
 
-    useEffect(() => {
-        getStrength(confirmPassword);
-    }, [confirmPassword]);
-
-    function signUp() {
+    async function signUp() {
         if (passwordsMismatch) {
             return;
         }
         setSubmitted(true);
+        setFailed(false);
         const payload: SignUpRequest = {
             username: username,
             email: email,
@@ -56,20 +68,30 @@ const SignUp = () => {
         };
 
         const api = `${produrl}/api/users`;
-        fetch(api, {
-            method: "POST", 
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        })
-        .then((response) => {
-            console.log(response.json())
-            router("/login");
-        })
-        .catch((e) => {
-            console.log(e)
-        });
+        
+        try {
+            const res: ApiResponse<any> = await fetch(api, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify(payload)
+            })
+            .then((res) => {return res.json(); });
+
+            if (res.code === 200) {
+                router("/login", {replace: true});
+            } else {
+                setFailed(true);
+                setError(res.message);
+            }
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setSubmitted(false);
+        }
     }
 
     const getStrength = (password: string) => {
@@ -89,15 +111,6 @@ const SignUp = () => {
         }
 
         setStrength(st);
-    }
-
-    function isUsernameTaken() {
-        return takenUserNames.includes(username);
-    }
-
-    async function getUNames() {
-        const res: String[] = await getUsernames();
-        setTakenUsernames(res);
     }
 
     return (
@@ -145,11 +158,7 @@ const SignUp = () => {
                             placeholder='John_Doe'
                             onChange={(e) => setUsername(e.target.value)}/>
                         </div>
-                        {
-                            isUsernameTaken() ? <p className='error'>{error}</p> :
-                            <p className='supporting_text'>Username displayed to the public</p>
-                        }
-                        
+                        <p className='supporting_text'>Username displayed to the public</p>
                         <div style={{width: "100%", flexDirection: "column"}}>
                             <div className='input_block'>
                                 <p className='input_label'>Email</p>
@@ -176,9 +185,8 @@ const SignUp = () => {
                             type='password' 
                             onChange={(e) => {setConfirmPassword(e.target.value);}}/>
                             {
-                                passwordsMismatch ?
-                                <p className='error'>Passwords do not match</p> : !readyToPost ? 
-                                <p className='error'>All fields are required</p> : ""
+                                hasError ? 
+                                <p className='error'>{error}</p> : ""
                             }
                             <div className='basicRow pills'>
                                 {[0, 1, 2, 3].map((pill) => (
@@ -189,8 +197,8 @@ const SignUp = () => {
                                     style={{
                                         backgroundColor:
                                             strength >= pill
-                                                ? "white" //var(--auth-link)
-                                                : "#2E2E2E" //var(--auth-input-border)
+                                                ? "var(--auth-link)"
+                                                : "var(--auth-input-border)"
                                     }}
                                 />
                             ))}

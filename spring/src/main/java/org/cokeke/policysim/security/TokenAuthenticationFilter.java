@@ -1,4 +1,4 @@
-package org.cokeke.policysim.common;
+package org.cokeke.policysim.security;
 
 import java.io.IOException;
 import java.util.List;
@@ -136,7 +136,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 || path.startsWith("/swagger-ui/")
                 || path.equals("/swagger-ui.html")
                 || path.startsWith("/webjars/")
-                || path.equals("/api/usernames")
                 || path.startsWith("/h2-console/")
                 || path.equals("/api/server/status");
         }

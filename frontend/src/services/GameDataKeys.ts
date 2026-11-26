@@ -33,12 +33,18 @@ export const useGameData = () => {
             {
                 queryKey: ["user_stats"],
                 queryFn: getUserStats,
-                staleTime: 1000 * 60 * 5,
+                staleTime: Infinity,
+                refetchOnMount: false,
+                refetchOnWindowFocus: false,
+                refetchOnReconnect: false
             },
             {
                 queryKey: ["user_game_data"],
                 queryFn: getUserData,
-                staleTime: 1000 * 60 * 5,
+                staleTime: Infinity,
+                refetchOnMount: false,
+                refetchOnWindowFocus: false,
+                refetchOnReconnect: false
             }       
         ]
     });
@@ -52,7 +58,7 @@ export const usePaginatedGames = (
     const queryClient = useQueryClient();
 
     const query = useQuery({
-        queryKey: ["user", userId, "_games", start, stop],
+        queryKey: ["user", userId, "_games_", start, stop],
         queryFn: () => getPaginatedGames(userId, start, stop),
         staleTime: 1000 * 60 * 5,
         enabled: !!userId

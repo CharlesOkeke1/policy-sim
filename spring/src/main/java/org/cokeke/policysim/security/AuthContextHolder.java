@@ -1,4 +1,4 @@
-package org.cokeke.policysim.common;
+package org.cokeke.policysim.security;
 
 import org.cokeke.policysim.models.User;
 import org.springframework.security.core.context.SecurityContextHolder;

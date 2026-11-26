@@ -12,6 +12,7 @@ import org.cokeke.policysim.models.Round;
 import org.cokeke.policysim.repos.GameRepository;
 import org.cokeke.policysim.repos.RoundRepository;
 import org.cokeke.policysim.responses.BatchRoundPushResponse;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,6 +25,7 @@ public class RoundService {
         this.roundRepo = roundRepository;
     }
 
+    @Cacheable (value = "round", key = "#result.id")
     public Round createRound(Long gameId, int currentMonth, String stateId, String stateName, double population, double productivity,
         double publicCapital, double priceLevel, double lastInflation, double householdWealth,
         double governmentDebt, double stability, double taxRate, double spendingShare,
@@ -43,14 +45,17 @@ public class RoundService {
         return roundRepo.save(round);
     }
 
+    @Cacheable (value = "round", key = "#id")
     public Round getRoundById(Long id) {
         return roundRepo.findById(id).orElse(null);
     }
 
+    @Cacheable (value = "round", key = "#r.id")
     public Round saveRound(Round r) {
         return roundRepo.save(r);
     }
 
+    @Cacheable (value = "roundlist_nogame", key = "#gameId")
     public List<RoundWithoutGame> getRoundsWithoutGameObjectByGameId(Long gameId) {
         Game game = gameRepo.findById(gameId).orElse(null);
         if (game == null) {
@@ -59,6 +64,7 @@ public class RoundService {
         return roundListToRoundListWithoutGameObject(roundRepo.findByGame_Id(gameId));
     }
 
+    @Cacheable (value = "roundlist", key = "#gameId")
     public List<Round> getRoundsByGameId(Long gameId) {
         Game game = gameRepo.findById(gameId).orElse(null);
         if (game == null) {

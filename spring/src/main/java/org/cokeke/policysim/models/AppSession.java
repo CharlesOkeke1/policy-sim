@@ -31,8 +31,9 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "app_sessions", indexes = {
-    @Index(name = "idx_refresh_token", columnList = "refreshToken"),
-    @Index(name = "idx_user_id", columnList = "userId")
+    @Index(name = "app_sessions_idx_refresh_token", columnList = "refresh_token"),
+    @Index(name = "app_sessions_idx_user_id", columnList = "user_id"),
+    @Index(name = "app_sessions_idx_createdAt", columnList = "created_at")
 })
 public class AppSession {
     @Id
@@ -48,8 +49,8 @@ public class AppSession {
     @Column(nullable = false)
     private String ipAddress; 
 
-    @Column(nullable = false)
     //Should take the format, "OS, Browser". Eg, iOS Mobile Safari, Windows 11 Google Chrome
+    @Column(nullable = false)
     private String deviceInfo; 
 
     @Column(nullable = false)

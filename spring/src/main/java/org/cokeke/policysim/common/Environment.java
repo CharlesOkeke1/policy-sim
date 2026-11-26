@@ -10,6 +10,7 @@ public class Environment {
     public static final String GET_USERNAMES = "/usernames";
     public static final String LOGOUT = "/users/logout";
     public static final String USER_BY_ID = "/users/{id}";
+    public static final String USER_THEME = "/users/{id}/theme";
     public static final String CHANGE_PASSWORD = "/users/change-password";
     public static final String REFRESH = "/users/refresh";
     public static final String ME = "/users/me";

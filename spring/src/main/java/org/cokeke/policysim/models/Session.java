@@ -7,10 +7,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "sessions")
+@Table(name = "sessions", indexes = {
+    @Index(name = "idx_session_id", columnList= "id"),
+    @Index(name = "idx_session_user_id", columnList = "user_id"),
+    @Index(name = "idx_session_game_id", columnList = "game_id"),
+    @Index(name = "idx_session_token", columnList= "engine_token"),
+    @Index(name = "idx_session_start_time", columnList = "start_time")
+})
 public class Session {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

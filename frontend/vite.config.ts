@@ -16,6 +16,6 @@ export default defineConfig({
   build: { 
     minify: 'esbuild',
     cssMinify: true,
-    sourcemap: true
- }
+    sourcemap: false
+  }
 })

@@ -10,6 +10,7 @@ import org.cokeke.policysim.exceptions.AppSessionExpiredException;
 import org.cokeke.policysim.exceptions.InsufficientPermissionsException;
 import org.cokeke.policysim.exceptions.InvalidCredentialsException;
 import org.cokeke.policysim.exceptions.LoginFailedException;
+import org.cokeke.policysim.exceptions.ProcessFailureException;
 import org.cokeke.policysim.exceptions.UserAlreadyExistsException;
 import org.cokeke.policysim.exceptions.UserNotFoundException;
 import org.cokeke.policysim.exceptions.InvalidRequestException;
@@ -17,14 +18,16 @@ import org.cokeke.policysim.external.SendEmail;
 import org.cokeke.policysim.models.AppSession;
 import org.cokeke.policysim.models.Email;
 import org.cokeke.policysim.models.Token;
-import org.cokeke.policysim.common.EnvConfig;
 import org.cokeke.policysim.models.User;
 import org.cokeke.policysim.models.Role;
 import org.cokeke.policysim.repos.EmailRepository;
 import org.cokeke.policysim.repos.UserRepository;
+import org.cokeke.policysim.responses.GetThemeResponse;
 import org.cokeke.policysim.responses.ServerStatusResponse;
 import org.cokeke.policysim.responses.UserResponse;
+import org.cokeke.policysim.security.EnvConfig;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -51,10 +54,16 @@ public class UserService {
         this.serverStatus = serverStatus;
     }
 
+    @CachePut (value = "user", key="#result.id")
     public User createUser(String name, String email, String password) {
         User existingUser = repo.findByEmail(email).orElse(null);
+        User existingUserByUserName = repo.findByUsername(name).orElse(null);
 
         if (existingUser != null) {
+            throw new UserAlreadyExistsException("User with this email already exists");
+        }
+
+        if (existingUserByUserName != null) {
             throw new UserAlreadyExistsException("User with this username already exists");
         }
 
@@ -67,23 +76,24 @@ public class UserService {
         return repo.save(user);
     }
 
-    @Cacheable (value = "user", key="#user.id")
+    @Cacheable (value = "user", key="#id")
     public User getUserById(Long id) {
         User user = this.getUser(id, "User with ID: " + id + " does not exist");
         return user;
     }
 
-    @Cacheable (value = "user", key="#user.email")
+    @Cacheable (value = "user", key="#email")
     public User getUserByEmail(String email) {
         User user = this.getUser(email);
         return user;
     }
 
+    @Cacheable (value = "allUsers", key="'allUsers'")
     public List<User> getAllUsers() {
         return repo.findAll();
     }
 
-    @Cacheable (value = "user", key="#user.id")
+    @CachePut (value = "user", key="#id")
     public User updateUser(Long id, String email, String name) {
         User user = repo.findById(id).orElse(null);
         if (user == null) {
@@ -100,6 +110,7 @@ public class UserService {
         return repo.save(user);
     }
 
+    @CachePut (value = "user", key="#id")
     public String changePassword(Long id, String currPassword, String newPassword) {
         User user = this.getUser(id, "User with ID: " + id + " does not exist");
 
@@ -119,11 +130,13 @@ public class UserService {
         repo.deleteById(user.getId());
     }
 
+    @CachePut (value = "login_res", key="#result.user.id")
     public LoginUserServiceRes loginUser(String email, String password, String ipAddress, String deviceInfo) {
         // Find user by email first, if not found, try finding by username
         User user = repo.findByEmail(email.toLowerCase()).orElse(null);
         if (user == null) {
-            user = repo.findByUsername(email.toLowerCase()).orElse(null);
+            //Username is case sensitive
+            user = repo.findByUsername(email).orElseThrow(() -> new ProcessFailureException("User to retrieve user with given username"));
         }
 
         if (user == null || !encoder.matches(password, user.getHash())) {
@@ -145,6 +158,7 @@ public class UserService {
         return true;
     }
 
+    @Cacheable (value = "user", key="#email")
     private User getUser(String email) {
         User user = repo.findByEmail(email).orElseThrow(() -> 
         new UserNotFoundException("User with Email: " + email + " does not exist"));
@@ -152,6 +166,7 @@ public class UserService {
         return user;
     }
 
+    @Cacheable (value = "user", key="#id")
     private User getUser(Long id) {
         User user = repo.findById(id).orElseThrow(() -> 
         new UserNotFoundException("User with ID: " + id + " does not exist"));
@@ -159,6 +174,7 @@ public class UserService {
         return user;
     }
 
+    @Cacheable (value = "user", key="#id")
     private User getUser(Long id, String failureMsg) {
         User user = repo.findById(id).orElseThrow(() -> 
         new UserNotFoundException(failureMsg));
@@ -176,6 +192,7 @@ public class UserService {
         return usernames;
     }
 
+    @CachePut (value = "login_res", key="#result.user.id")
     public LoginUserServiceRes me(String refreshToken) {
         AppSession session = sessionSvc.getBySessionRefreshToken(refreshToken);
 
@@ -187,6 +204,7 @@ public class UserService {
         return new LoginUserServiceRes(u, session);
     }
 
+    @CachePut (value = "email", key="#userId")
     public Email contactSupport(Long userId, String senderEmail, 
         String title, String subject, String content) {
         SendEmail.contactSupoort(senderEmail, title, subject, content);
@@ -198,10 +216,12 @@ public class UserService {
         return emailRepo.save(newEmail);
     }
 
+    @Cacheable(value = "server_status", key = "'server_status'")
     public ServerStatusResponse getServerStatus() {
         return new ServerStatusResponse(serverStatus.isOnline(), serverStatus.getServerReadyTime());
     }
 
+    @Cacheable (value = "is_super_user", key="#userId")
     public boolean isUserSuperUser(Long userId, String secret, boolean status) {
         User user = getUser(userId);
 
@@ -214,6 +234,7 @@ public class UserService {
         return true;
     }
 
+    @CachePut (value = "server_status", key = "'server_status'")
     public String setServerStatus(Long userId, String secret, boolean status, LocalDateTime readyTime) {
         if (isUserSuperUser(userId, secret, status)) {
             if (!readyTime.isAfter(LocalDateTime.now())) {
@@ -225,5 +246,18 @@ public class UserService {
             return "Server status successfully updated";
         }
         return "Failed to update server status";
+    }
+
+    @Cacheable(value = "user_theme", key = "#userId")
+    public void setPreferredTheme(Long userId, String theme) {
+        User u = getUser(userId);
+        u.setTheme(theme);
+        u.setThemeChangedLast(LocalDateTime.now());
+    }
+
+    @CachePut(value = "user_theme", key = "#userId")
+    public GetThemeResponse getPreferredTheme(Long userId) {
+        User u = getUser(userId);
+        return new GetThemeResponse(u.getTheme(), u.getThemeChangedLast());
     }
 }

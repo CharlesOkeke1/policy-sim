@@ -30,8 +30,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, [router]);
 
-    async function login(req: LoginRequest): Promise<string> {
-        setLoading(true);
+    async function login(req: LoginRequest): Promise<ApiResponse<any>> {
+        //setLoading(true);
         try {
             const res = await loginUser(req);
             setUser({
@@ -39,9 +39,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 email: res.result.email,
                 id: res.result.id
             });
-            return res.message;
+            return res;
         } finally {
-            setLoading(false);
+            // setLoading(false);
         }
     }
 
