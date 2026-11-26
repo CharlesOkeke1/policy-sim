@@ -52,7 +52,7 @@ application.properties
 frontend/node_modules/
 frontend/dist/
 
-.env
+*.env
 *.rdb
 *.dump
 *.tar.gz
