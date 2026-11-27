@@ -16,6 +16,8 @@ import org.cokeke.policyengine.db.RedisDB;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.server.WebSocketServer;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,9 +30,11 @@ public class Server extends WebSocketServer {
     private final HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
     .connectTimeout(Duration.ofSeconds(5)).build();
     private AtomicInteger SOCK_CONNS = new AtomicInteger(0);
+    private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
     public Server(GameContractService svc) {
         super(new InetSocketAddress(8081), 16);
+        setWebSocketFactory(new SafeCloseFactory());
         this.contractService = svc;
         this.setConnectionLostTimeout(120);
     }
@@ -94,8 +98,9 @@ public class Server extends WebSocketServer {
             String reason,
             boolean remote) {
         handlers.remove(conn);
+        logger.info("Connection closed");
         SOCK_CONNS.getAndDecrement();
-        System.out.println("Connection: [" + conn.toString().substring(0,20) + "] has been disconnected leaving, [Active Connections]: [" + SOCK_CONNS + "]");
+        System.out.println("Connection: [" + conn.toString().substring(20,40) + "] has been disconnected leaving, [Active Connections]: [" + SOCK_CONNS + "]");
         //System.out.println("Client disconnected because [" + reason + "]");
     }
 
@@ -114,6 +119,7 @@ public class Server extends WebSocketServer {
     @Override
     public void onError(WebSocket conn, Exception ex) {
         ex.printStackTrace();
+        logger.error("Error encountered ", ex.getMessage());
 
         if (conn != null) {
             RequestService service = handlers.get(conn).getRequestService();

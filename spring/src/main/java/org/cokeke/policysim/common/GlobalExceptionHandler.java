@@ -15,6 +15,7 @@ import org.cokeke.policysim.exceptions.RoundNotFoundException;
 import org.cokeke.policysim.exceptions.TokenExpiredException;
 import org.cokeke.policysim.exceptions.UserAlreadyExistsException;
 import org.cokeke.policysim.exceptions.UserNotFoundException;
+import org.cokeke.policysim.exceptions.ProcessFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -126,5 +127,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.valueOf(401))
             .body(ApiResponse.error(401, ex.getMessage(), ErrorCode.RESOURCE_REQUIRES_AUTHORIZATION));
+    }
+
+    // Taking 400 for now but because this exception is generic its constructor should also take a status code
+    @ExceptionHandler(ProcessFailureException.class)
+    public ResponseEntity<ApiResponse<String>> handleFailedProcess(ProcessFailureException ex) {
+        return ResponseEntity
+            .status(HttpStatus.valueOf(400))
+            .body(ApiResponse.error(400, ex.getMessage(), ErrorCode.PROCESS_FAILURE));
     }
 }

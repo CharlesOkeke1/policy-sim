@@ -57,11 +57,7 @@ public class RoundService {
 
     @Cacheable (value = "roundlist_nogame", key = "#gameId")
     public List<RoundWithoutGame> getRoundsWithoutGameObjectByGameId(Long gameId) {
-        Game game = gameRepo.findById(gameId).orElse(null);
-        if (game == null) {
-            throw new GameNotFoundException("Game not found");
-        }
-        return roundListToRoundListWithoutGameObject(roundRepo.findByGame_Id(gameId));
+        return roundListToRoundListWithoutGameObject(getRoundsByGameId(gameId));
     }
 
     @Cacheable (value = "roundlist", key = "#gameId")
@@ -146,5 +142,10 @@ public class RoundService {
             out.add(dto);
         }
         return out;
+    }
+
+    public List<Round> getUsersGamesWithTheirRouns(Long userId) {
+        List<Round> rounds = roundRepo.getUsersGamesWithTheirRounds(userId).orElse(new ArrayList<>());
+        return rounds;
     }
 }

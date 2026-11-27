@@ -61,7 +61,7 @@ services:
       retries: 6
       start_period: 60s
     restart: unless-stopped
-    cpus: "1.5"
+    cpus: "2.5"
     mem_limit: "3g"
     logging: *default-logging
 
@@ -84,7 +84,7 @@ services:
       redis-engine:
         condition: service_healthy
     restart: unless-stopped
-    cpus: "1"
+    cpus: "1.5"
     mem_limit: "2.5g"
     logging: *default-logging
 
@@ -114,7 +114,7 @@ services:
       - --requirepass
       - ${ENGINE_REDIS_PASSWORD}
       - --maxmemory
-      - 768mb
+      - 2gb
       - --maxmemory-policy
       - noeviction
     volumes:
@@ -128,7 +128,7 @@ services:
       REDIS_PASSWORD: ${ENGINE_REDIS_PASSWORD}
     restart: unless-stopped
     cpus: "1"
-    mem_limit: "1g"
+    mem_limit: "2g"
     logging: *default-logging
 
 volumes:

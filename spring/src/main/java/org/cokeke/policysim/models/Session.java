@@ -12,7 +12,6 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "sessions", indexes = {
-    @Index(name = "idx_session_id", columnList= "id"),
     @Index(name = "idx_session_user_id", columnList = "user_id"),
     @Index(name = "idx_session_game_id", columnList = "game_id"),
     @Index(name = "idx_session_token", columnList= "engine_token"),

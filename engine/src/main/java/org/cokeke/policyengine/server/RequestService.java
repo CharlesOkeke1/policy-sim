@@ -243,11 +243,11 @@ public class RequestService {
                 .constructParametricType(ApiResponse.class, resultType);
 
             System.out.println("Response code: " + response.statusCode());
-            System.out.println("Request path: " + request.uri());
+            System.out.println("Request path: " + request.uri().toString().substring(24));
             return mapper.readValue(response.body(), responseType);
 
         } catch (Exception e) {
-            throw new IllegalArgumentException("Spring request failed", e);
+            throw new IllegalArgumentException(e.getMessage());
         }
     }
 

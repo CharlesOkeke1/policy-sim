@@ -31,18 +31,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, [router]);
 
     async function login(req: LoginRequest): Promise<ApiResponse<any>> {
-        //setLoading(true);
-        try {
-            const res = await loginUser(req);
-            setUser({
-                name: res.result.name,
-                email: res.result.email,
-                id: res.result.id
-            });
-            return res;
-        } finally {
-            // setLoading(false);
-        }
+        const res = await loginUser(req);
+        setUser({
+            name: res.result.name,
+            email: res.result.email,
+            id: res.result.id
+        });
+        return res;
     }
 
     async function logout(): Promise<void> {

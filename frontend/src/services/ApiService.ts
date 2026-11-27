@@ -58,12 +58,6 @@ export const getPolicies = async (): Promise<Policy[]> => {
     return res.result;
 }
 
-export const getUsernames = async (): Promise<String[]> => {
-    const api = `${produrl}/api/usernames`;
-    const res: ApiResponse<String[]> = await customFetch({method: "GET", url: api});
-    return res.result;
-}
-
 export const getPaginatedGames = async (userId: number, start: number, stop: number): Promise<any> => {
     const url = `${produrl}/api/games/${userId}/paginated?start=${start}&stop=${stop}`;
     const res: ApiResponse<any> = await customFetch({method: "GET", url: url});

@@ -7,3 +7,4 @@
 *.css linguist-detectable=true
 *.html linguist-detectable=true
 *.bat linguist-detectable=true
+*.py linguist-detectable=true

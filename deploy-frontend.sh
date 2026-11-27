@@ -16,13 +16,12 @@ echo "================================"
 # 1. Start container if necessary
 echo "[1/5] Starting frontend container..."
 
-docker start "$CONTAINER" >/dev/null
+docker start "$CONTAINER" >/dev/null 2>&1 || true
 
 # 2. Build frontend inside container
 echo "[2/5] Building frontend..."
 
-docker exec "$CONTAINER" sh -c \
-    "cd /app/frontend && npm run build"
+docker exec "$CONTAINER" sh -c "npm run build"
 
 # 3. Verify build
 echo "[3/5] Verifying build..."
@@ -45,6 +44,7 @@ echo "[5/5] Validating Caddy..."
 sudo caddy validate --config "$CADDY_CONFIG"
 
 sudo systemctl reload caddy
+
 
 echo "================================"
 echo " Deployment successful!"

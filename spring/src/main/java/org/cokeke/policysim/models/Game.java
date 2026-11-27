@@ -24,7 +24,6 @@ import jakarta.persistence.Table;
     @Index(name = "games_idx_stateId", columnList = "state_id"),
     @Index(name = "games_idx_startDate", columnList = "start_date"),
     @Index(name = "games_idx_sessionId", columnList = "session_id"),
-    @Index(name = "games_idx_stateId", columnList = "state_id")
 })
 public class Game {
     @Id

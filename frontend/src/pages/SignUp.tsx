@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router';
 import { ButtonLoader } from '../shared/ButtonLoader';
 import { customFetch, produrl } from '../utils/FetchWrapper';
 import { flushInput, validateEmail } from '../utils/Formatting';
-import { getUsernames } from '../services/ApiService';
 import type { ApiResponse } from '../dtos/Models';
 
 interface SignUpRequest {
@@ -23,7 +22,6 @@ const SignUp = () => {
     const [error, setError] = useState("");
     const router = useNavigate();
     const [strength, setStrength] = useState(0);
-    const [takenUserNames, setTakenUsernames] = useState<String[]>([]);
     const passwordsMismatch = confirmPassword !== password;
     const readyToPost = !passwordsMismatch && email.length > 0 && 
     username.length > 0 && 

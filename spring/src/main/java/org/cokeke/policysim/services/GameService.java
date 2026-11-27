@@ -20,7 +20,6 @@ import org.cokeke.policysim.models.User;
 import org.cokeke.policysim.repos.GameRepository;
 import org.cokeke.policysim.repos.GameSessionRepository;
 import org.cokeke.policysim.responses.DashboardStats;
-import org.cokeke.policysim.responses.DashboardStats2;
 import org.cokeke.policysim.responses.GameResponse;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -202,25 +201,29 @@ public class GameService {
     @CachePut(value = "userDashboardStats1", key = "#id")
     public DashboardStats getUserDashboardStats(Long id) {
         List<Game> games = getUserGames(id);
-        double totalScore = 0;
-        int totalMonths = 0;
-        int completed = 0; int abandoned = 0; int inProgress = 0;
-        Map<Integer, Integer> positionMap = new HashMap<>();
 
         if (games.isEmpty()) {
             return new DashboardStats(id, 0, 0, 0, new HashMap<>(), 0, 0, 0);
         }
 
+        List<Round> allRounds = roundSvc.getUsersGamesWithTheirRouns(id);
+        double totalScore = 0;
+        int totalMonths = allRounds.size()/8;
+        int completed = 0; int abandoned = 0; int inProgress = 0;
+        Map<Integer, Integer> positionMap = new HashMap<>();
+
+        Map<Long, Integer> gamesMap = new HashMap<>();
+
+        for (Round r : allRounds) {
+            Long gameId = r.getGame().getId();
+            gamesMap.merge(gameId, 1, Integer::sum);
+        }
+
+
         for (Game g : games) {
             // Tally up scores
             totalScore += g.getScore();
 
-            List<Round> rounds = getAGamesRounds(g.getId());
-            if (rounds.isEmpty()) continue;
-
-            // Tally up total Months
-            totalMonths += rounds.get(rounds.size() - 1).getCurrentMonth();
-            
             //Compute Positions
             if (positionMap.containsKey(g.getRank())) {
                 positionMap.put(g.getRank(), positionMap.get(g.getRank()) + 1);
@@ -230,7 +233,7 @@ public class GameService {
 
             // Tally up completion
             if (g.isCompleted()) {
-                if (g.getTotalRounds() == rounds.get(rounds.size() - 1).getCurrentMonth()) {
+                if (gamesMap.getOrDefault(g.getId(), 0) == g.getTotalRounds() * 8) {
                     completed += 1;
                 } else {
                     abandoned += 1;

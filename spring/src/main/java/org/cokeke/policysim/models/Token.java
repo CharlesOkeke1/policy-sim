@@ -14,8 +14,8 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "tokens", indexes = {
     @Index(name = "idx_tokens_userId", columnList = "user_id"),
-    @Index(name = "idx_tokens_id", columnList = "id"),
-    @Index(name = "idx_tokens_t_string", columnList = "token")
+    @Index(name = "idx_tokens_token_string", columnList = "token"),
+    @Index(name = "idx_tokens_expiry", columnList = "expiration_time")
 })
 public class Token {
     @Id
